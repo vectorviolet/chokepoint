@@ -87,3 +87,68 @@ def test_update_combat_respects_the_fire_cooldown(assets, ctx):
     ctx.time_ms = tank.fire_interval_ms * 2
     tank.update_combat(ctx)
     assert len(tank.bullets) == 4  # cooldown elapsed -- fired again
+
+
+
+# ── tank bullets ─────────────────────────────────────────────────────────────
+
+class HpTower:
+    def __init__(self, position, hp=100):
+        self.position = Vector2(position)
+        self.maxHP = hp
+        self.hp = hp
+
+    def decrease_hp(self, damage):
+        self.hp -= damage
+
+
+def test_tank_bullet_flies_at_its_target_and_chips_its_hp_on_contact(assets, ctx):
+    tank = make_tank(assets)
+    tower = HpTower((200, 0))
+    ctx.towers.append(tower)
+    bullet = TankBullet(tank, tower)
+    tank.bullets.append(bullet)
+
+    bullet.update(ctx)
+    assert bullet.position.x == pytest.approx(TankBullet.SPEED)
+    assert tower.hp == 100
+
+    bullet.position = Vector2(200 - TankBullet.EXPLODE_DISTANCE + 1, 0)
+    bullet.update(ctx)
+    assert tower.hp == 100 - tank.bullet_damage
+    assert bullet not in tank.bullets
+
+
+def test_tank_bullet_vanishes_when_its_target_tower_is_gone(assets, ctx):
+    tank = make_tank(assets)
+    tower = HpTower((200, 0))
+    bullet = TankBullet(tank, tower)
+    tank.bullets.append(bullet)
+
+    bullet.update(ctx)  # tower was never (or is no longer) in ctx.towers
+
+    assert bullet not in tank.bullets
+
+
+def test_tank_muzzle_flash_expires_after_its_duration_of_game_time(assets, ctx):
+    tank = make_tank(assets)
+    tank.now = 1000.0
+    flash = TankMuzzleFlash(tank, Vector2(10, 0), 0.0)
+    tank.bullets.append(flash)
+
+    ctx.time_ms = 1000.0 + TankMuzzleFlash.FLASH_DURATION_MS
+    flash.update(ctx)
+    assert flash in tank.bullets
+
+    ctx.time_ms += 1
+    flash.update(ctx)
+    assert flash not in tank.bullets
+
+
+def test_draw_muzzle_renders_the_turret(assets):
+    import pygame
+    from pygamine import Camera
+    tank = make_tank(assets)
+    tank._aim_at(Vector2(100, 100))
+
+    tank.draw_muzzle(pygame.Surface((400, 300)), Camera(pygame.Rect(0, 0, 400, 300), 3008, 2176))

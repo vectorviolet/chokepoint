@@ -122,3 +122,112 @@ def test_explosion_removes_itself_once_all_frames_have_played(tower_config, asse
     ctx.time_ms = Explosion.FRAME_DURATION_MS * Explosion.TOTAL_FRAMES
     explosion.update(ctx)
     assert explosion not in plane.bullets
+
+
+
+# ── homing missile ───────────────────────────────────────────────────────────
+
+def make_missile_tower(tower_config, assets, position=(1000, 1000)):
+    tower = TowerFactory.create(2, 0, 0, tower_config, assets, audio=None, map_width=3008)
+    tower.position = Vector2(position)
+    tower.bullets = []
+    return tower
+
+
+def make_enemy(assets, position, enemy_id=1):
+    enemy = Enemy(enemy_id, 1, level=1, waypoints=WAYPOINTS, assets=assets)
+    enemy.position = Vector2(position)
+    return enemy
+
+
+def test_missile_homes_in_on_its_target_by_its_speed_times_game_speed(tower_config, assets, ctx):
+    from gameplay.combat.projectile import Projectile
+    tower = make_missile_tower(tower_config, assets)
+    target = make_enemy(assets, (1300, 1000))
+    ctx.enemies.append(target)
+    missile = Projectile(target, tower)
+    tower.bullets.append(missile)
+    ctx.speed = 2
+
+    missile.update(ctx)
+
+    assert missile.position == Vector2(1000 + Projectile.BULLET_SPEED * 2, 1000)
+    assert target.hp == target.maxHP  # still in flight
+
+
+def test_missile_explodes_on_reaching_its_target(tower_config, assets, ctx):
+    from gameplay.combat.projectile import Projectile
+    tower = make_missile_tower(tower_config, assets)
+    target = make_enemy(assets, (1000 + Projectile.EXPLODE_DISTANCE - 1, 1000))
+    ctx.enemies.append(target)
+    missile = Projectile(target, tower)
+    tower.bullets.append(missile)
+
+    missile.update(ctx)
+
+    assert missile not in tower.bullets
+    assert target.hp == target.maxHP - tower.damage
+
+
+def test_missile_follows_its_target_when_the_enemy_list_is_rebuilt(tower_config, assets, ctx):
+    """Saving/restoring rebuilds Enemy objects; the missile re-finds its
+    target by id rather than chasing a stale object."""
+    from gameplay.combat.projectile import Projectile
+    tower = make_missile_tower(tower_config, assets)
+    stale = make_enemy(assets, (1300, 1000), enemy_id=7)
+    missile = Projectile(stale, tower)
+    fresh = make_enemy(assets, (1000, 1300), enemy_id=7)
+    ctx.enemies.append(fresh)
+
+    missile.update(ctx)
+
+    assert missile.target is fresh
+    assert missile.position.y > 1000 and missile.position.x == 1000
+
+
+def test_missile_is_removed_once_out_of_the_map(tower_config, assets, ctx):
+    from gameplay.combat.projectile import Projectile
+    tower = make_missile_tower(tower_config, assets, position=(-5, 100))
+    target = make_enemy(assets, (500, 100))
+    ctx.enemies.append(target)
+    missile = Projectile(target, tower)
+    tower.bullets.append(missile)
+
+    missile.update(ctx)
+
+    assert missile not in tower.bullets
+    assert target.hp == target.maxHP
+
+
+# ── muzzle flash (instant hit) ───────────────────────────────────────────────
+
+def test_muzzle_flash_hits_once_then_disappears_after_its_duration(tower_config, assets, ctx):
+    from gameplay.combat.projectile import MuzzleFlash
+    tower = TowerFactory.create(1, 0, 0, tower_config, assets, audio=None, map_width=3008)
+    tower.bullets = []
+    tower.now = 500.0
+    target = make_enemy(assets, tower.position + Vector2(50, 0))
+    ctx.enemies.append(target)
+    flash = MuzzleFlash(target, tower, tower.position + Vector2(20, 0))
+    tower.bullets.append(flash)
+
+    ctx.time_ms = 500.0
+    flash.update(ctx)
+    flash.update(ctx)
+    assert target.hp == target.maxHP - tower.damage  # hit exactly once
+    assert flash in tower.bullets
+
+    ctx.time_ms = 500.0 + MuzzleFlash.FLASH_DURATION_MS + 1
+    flash.update(ctx)
+    assert flash not in tower.bullets
+
+
+def test_second_barrel_flash_is_visual_only(tower_config, assets, ctx):
+    from gameplay.combat.projectile import MuzzleFlash
+    tower = TowerFactory.create(1, 0, 0, tower_config, assets, audio=None, map_width=3008)
+    target = make_enemy(assets, tower.position + Vector2(50, 0))
+    ctx.enemies.append(target)
+
+    MuzzleFlash(target, tower, tower.position, deals_damage=False).update(ctx)
+
+    assert target.hp == target.maxHP

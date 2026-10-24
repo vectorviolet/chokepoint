@@ -167,3 +167,19 @@ def test_sell_price_refunds_seventy_percent_of_everything_spent(tower_config, as
 
     tower.level = 3
     assert tower.sell_price == int(sum(missile_prices[:3]) * 0.7)
+
+
+
+def test_selected_tower_ui_draws_upgrade_and_sell_buttons(tower_config, assets):
+    import pygame
+    from pygamine import Camera
+    camera = Camera(pygame.Rect(0, 0, 800, 600), 3008, 2176)
+    surface = pygame.Surface((800, 600))
+    gs = GameState(start_money=0, start_lives=10)
+
+    upgradable = make_tower(tower_config, assets, tower_type=2, row=4, col=4)
+    upgradable.draw_selected_ui(surface, gs, camera)
+    upgradable.draw_range(surface, camera)
+
+    maxed = make_tower(tower_config, assets, tower_type=1, row=4, col=6)
+    maxed.draw_selected_ui(surface, gs, camera)  # shows the MAX badge instead
