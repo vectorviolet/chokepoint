@@ -21,7 +21,7 @@ from util.constants import TILE_SIZE
 from pygamine import Debug
 from ui import hp_bar
 from ui.menu_background import MenuBackground
-from pygamine import SplashScreen
+from pygamine import SplashScreen, ImageMedia
 from pygamine import SaveStore
 from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
@@ -140,7 +140,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self.menu_bg = MenuBackground(self._tilemap_surface, self.size)
         self.menu_overlay = pygame.Surface(self.size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
-        self.splash = SplashScreen([self.assets.image_path("pygame_logo")], fade_ms=splash["fade_ms"], hold_ms=splash["hold_ms"])
+        self.splash = SplashScreen([ImageMedia(self.assets.image_path("pygame_logo"), fade_ms=splash["fade_ms"], hold_ms=splash["hold_ms"])])
         self._init_wave_manager()
 
         self.click_sound_path = self.assets.sound_path("click")
