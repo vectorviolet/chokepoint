@@ -1,6 +1,6 @@
 # Chokepoint
 
-![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/umutcanekinci/chokepoint/main/.github/badges/coverage.json)
+![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vectorviolet/chokepoint/main/.github/badges/coverage.json)
 
 Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 waves of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
 
@@ -52,7 +52,7 @@ All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves
 
 [![Available on itch.io](https://jessemillar.github.io/available-on-itchio-badge/badge-color.png)](https://umutcanekinci.itch.io/chokepoint)
 
-Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch.io/chokepoint) or the [latest GitHub release](https://github.com/umutcanekinci/chokepoint/releases/latest) — no Python required. Unzip and run:
+Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch.io/chokepoint) or the [latest GitHub release](https://github.com/vectorviolet/chokepoint/releases/latest) — no Python required. Unzip and run:
 
 | OS | Run |
 |----|-----|
@@ -73,7 +73,7 @@ Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch
 ## Running
 
 ```bash
-git clone --recurse-submodules https://github.com/umutcanekinci/chokepoint.git
+git clone --recurse-submodules https://github.com/vectorviolet/chokepoint.git
 cd chokepoint
 uv sync
 uv run python __main__.py
@@ -139,7 +139,7 @@ Art, UI, and sound from [Kenney](https://www.kenney.nl/) — [Tower Defense (Top
 
 Umutcan Ekinci — [umutcannekinci@gmail.com](mailto:umutcannekinci@gmail.com)
 
-See also the [contributors](https://github.com/umutcanekinci/chokepoint/contributors).
+See also the [contributors](https://github.com/vectorviolet/chokepoint/contributors).
 
 ## License
 

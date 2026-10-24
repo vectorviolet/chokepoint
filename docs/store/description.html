@@ -1,6 +1,6 @@
 <h1>Chokepoint</h1>
 <p>Chokepoint is a 2D tower defense game built with <a target="_blank" href="https://github.com/pygame-community/pygame-ce">pygame-ce</a>. Defend the path through 25 waves of escalating enemies &mdash; then keep going in endless mode &mdash; by buying, placing, and upgrading towers along a fixed Tiled-authored map.</p>
-<p><img style="max-width: 100%;" alt="Gameplay Preview" src="https://raw.githubusercontent.com/umutcanekinci/chokepoint/main/docs/preview.gif"></p>
+<p><img style="max-width: 100%;" alt="Gameplay Preview" src="https://raw.githubusercontent.com/vectorviolet/chokepoint/main/docs/preview.gif"></p>
 <h2>Gameplay</h2>
 <p>You start with <strong>$200</strong> and <strong>10 lives</strong>. Buy towers from the HUD on the right, place them on the map, and upgrade them as you earn money from kills. Survive all 25 waves to win &mdash; clearing wave 25 opens a victory screen where you can play again, return to the main menu, or keep going in endless mode as waves keep escalating past 25. Enemy HP and reward scale +25% per wave; each wave's total payout funds roughly one upgrade.</p>
 <h3>Enemies</h3>
@@ -109,7 +109,7 @@
     </tr>
   </tbody>
 </table>
-<p>All stats live in <a target="_blank" href="https://github.com/umutcanekinci/chokepoint/blob/main/config/towers.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/towers.yaml</code></a>, <a target="_blank" href="https://github.com/umutcanekinci/chokepoint/blob/main/config/enemies.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/enemies.yaml</code></a>, and <a target="_blank" href="https://github.com/umutcanekinci/chokepoint/blob/main/config/waves.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/waves.yaml</code></a> &mdash; tweak freely.</p>
+<p>All stats live in <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/towers.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/towers.yaml</code></a>, <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/enemies.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/enemies.yaml</code></a>, and <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/waves.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/waves.yaml</code></a> &mdash; tweak freely.</p>
 <h3>Controls</h3>
 <table border="1" style="width: 100%; border-collapse: collapse;">
   <thead>
@@ -140,7 +140,7 @@
   <li><a target="_blank" href="https://docs.astral.sh/uv/">uv</a> (optional but recommended)</li>
 </ul>
 <h2>Running the Game (Source)</h2>
-<pre style="background: #222; color: #eee; padding: 12px; border-radius: 5px; overflow-x: auto;"><code>git clone --recurse-submodules https://github.com/umutcanekinci/chokepoint.git
+<pre style="background: #222; color: #eee; padding: 12px; border-radius: 5px; overflow-x: auto;"><code>git clone --recurse-submodules https://github.com/vectorviolet/chokepoint.git
 cd chokepoint
 uv sync
 uv run python __main__.py</code></pre>
@@ -157,7 +157,7 @@ src/util/              Config loaders, constants
 src/pygamine/       Engine submodule (Application, Animator, PanelLoaderExt, ...)
 config/                YAML: assets, panels, towers, enemies, waves
 assets/                Images, sounds, fonts, Tiled project</code></pre>
-<p>See <a target="_blank" href="https://github.com/umutcanekinci/chokepoint/blob/main/CLAUDE.md">CLAUDE.md</a> for the full architecture overview.</p>
+<p>See <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/CLAUDE.md">CLAUDE.md</a> for the full architecture overview.</p>
 <h2>Credits</h2>
 <p>Art, UI, and sound from <a target="_blank" href="https://www.kenney.nl/">Kenney</a> &mdash; <a target="_blank" href="https://www.kenney.nl/assets/tower-defense-top-down">Tower Defense (Top-Down)</a>, <a target="_blank" href="https://www.kenney.nl/assets/ui-pack">UI Pack</a>, <a target="_blank" href="https://www.kenney.nl/assets/impact-sounds">Impact Sounds</a>, and <a target="_blank" href="https://www.kenney.nl/assets/smoke-particles">Smoke Particles</a>. Coin pickup art from <a target="_blank" href="https://laredgames.itch.io/gems-coins-free">La Red Games &mdash; Gems & Coins</a>.</p>
 <h2>Contributing</h2>
@@ -169,5 +169,5 @@ assets/                Images, sounds, fonts, Tiled project</code></pre>
   <li>Open a pull request.</li>
 </ol>
 <h2>Author & License</h2>
-<p>Created by Umutcan Ekinci &mdash; <a href="mailto:umutcannekinci@gmail.com">umutcannekinci@gmail.com</a>. See also the <a target="_blank" href="https://github.com/umutcanekinci/chokepoint/contributors">contributors</a>.</p>
-<p>Distributed under the MIT License. See <a target="_blank" href="https://github.com/umutcanekinci/chokepoint/blob/main/LICENSE">LICENSE</a> for details.</p>
+<p>Created by Umutcan Ekinci &mdash; <a href="mailto:umutcannekinci@gmail.com">umutcannekinci@gmail.com</a>. See also the <a target="_blank" href="https://github.com/vectorviolet/chokepoint/contributors">contributors</a>.</p>
+<p>Distributed under the MIT License. See <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/LICENSE">LICENSE</a> for details.</p>
