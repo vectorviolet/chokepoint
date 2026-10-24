@@ -42,7 +42,7 @@ class TowerPlacementController:
 		self.buying_tower_type: int        = 0
 		self.cursor_col:        int | None = None
 		self.cursor_row:        int | None = None
-		self.tower_positions:   list[tuple] = []
+		self.tower_positions:   set[tuple] = set()
 
 		self._block  = assets.get_image("tile_block")
 		self._enable = assets.get_image("tile_enable")
@@ -66,6 +66,8 @@ class TowerPlacementController:
 
 	def get_clicked_tower(self) -> BaseTower | None:
 		for tower in self._towers:
+			if tower.get_blocking_position() is None:
+				continue  # a plane: it has flown off its tile and can't be selected or sold
 			if self.cursor_col == tower.col and self.cursor_row == tower.row:
 				return tower
 		return None
@@ -78,8 +80,15 @@ class TowerPlacementController:
 			self._handle_tower_actions(event, mouse_pos)
 			self._handle_tower_selection()
 			self._handle_tower_purchase(mouse_pos)
+		if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+			self.cancel()
 		if event.type == pygame.KEYDOWN:
 			self._handle_tower_hotkey(event)
+
+	def cancel(self) -> None:
+		"""Right click: drop the tower being placed and any selection."""
+		self.buying_tower_type = 0
+		self._game_state.selected_tower = None
 
 	def _is_over_ui(self, mouse_pos: tuple) -> bool:
 		for obj in self._panel_manager["game"].values():
@@ -165,13 +174,26 @@ class TowerPlacementController:
 		return (row, col) not in self.tower_positions
 
 	def _draw_grid_overlay(self, surface: pygame.Surface) -> None:
+		# Only the tiles inside the viewport: blitting the whole 47x34 grid
+		# every frame cost more than the rest of the frame combined.
 		scaled_enable = self._camera.scale_image(self._enable)
 		scaled_block  = self._camera.scale_image(self._block)
-		for row_idx, row in enumerate(self._buildable_grid):
-			for col_idx in range(len(row)):
+		view = self._game_area
+		top_left     = self._camera.screen_to_world(view.topleft)
+		bottom_right = self._camera.screen_to_world(view.bottomright)
+		rows = len(self._buildable_grid)
+		cols = len(self._buildable_grid[0]) if rows else 0
+		first_col = max(0, int(top_left.x // TILE_SIZE))
+		first_row = max(0, int(top_left.y // TILE_SIZE))
+		last_col  = min(cols - 1, int(bottom_right.x // TILE_SIZE))
+		last_row  = min(rows - 1, int(bottom_right.y // TILE_SIZE))
+		blits = []
+		for row_idx in range(first_row, last_row + 1):
+			for col_idx in range(first_col, last_col + 1):
 				screen = self._camera.world_to_screen((col_idx * TILE_SIZE, row_idx * TILE_SIZE))
 				tile = scaled_enable if self._is_placeable(row_idx, col_idx) else scaled_block
-				surface.blit(tile, screen)
+				blits.append((tile, screen))
+		surface.blits(blits, doreturn=False)
 
 	def _draw_cursor_preview(self, surface: pygame.Surface, mouse_pos: tuple) -> None:
 		index = (

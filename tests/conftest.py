@@ -48,6 +48,7 @@ class FakeContext:
         self.enemies = []
         self.towers = []
         self.speed = speed
+        self.time_ms = 0.0
         self.map_width = map_width
         self.map_height = map_height
         self.money_earned = 0
@@ -63,11 +64,12 @@ def ctx() -> FakeContext:
 
 @pytest.fixture
 def fake_ticks(monkeypatch):
-    """A controllable stand-in for pygame.time.get_ticks().
+    """A controllable stand-in for pygame.time.get_ticks() -- the wall
+    clock Game.update() measures frame time with. Gameplay timers run on
+    game time instead (GameState.time_ms / a context's time_ms), which
+    tests set directly.
 
-    Set fake_ticks["t"] = <ms> to move the clock without real sleeps, for
-    deterministic tests of cooldowns/timers (wave spawn intervals, tank fire
-    rate, bomb fall duration, ...).
+    Set fake_ticks["t"] = <ms> to move the clock without real sleeps.
     """
     state = {"t": 0}
     monkeypatch.setattr(pygame.time, "get_ticks", lambda: state["t"])

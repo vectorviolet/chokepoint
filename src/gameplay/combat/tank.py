@@ -38,12 +38,14 @@ class Tank(Enemy):
         self._muzzle_angle: float = 0.0
 
         self.bullets: list = []
-        self._last_fire_time: int = 0
+        self._last_fire_time: float = 0
+        self.now: float = 0  # game time of the latest update_combat()
 
     # ── combat ───────────────────────────────────────────────────────────────
 
     def update_combat(self, ctx: "IGameContext") -> None:
         """Aim muzzle at nearest tower; fire on cooldown when in range."""
+        self.now = ctx.time_ms
         nearest, dist_sq = self._nearest_tower(ctx)
         if nearest is None:
             return
@@ -52,10 +54,9 @@ class Tank(Enemy):
 
         if dist_sq > self.range * self.range:
             return
-        now = pygame.time.get_ticks()
-        if now - self._last_fire_time < self.fire_interval_ms:
+        if self.now - self._last_fire_time < self.fire_interval_ms:
             return
-        self._last_fire_time = now
+        self._last_fire_time = self.now
         self._fire(nearest)
 
     def _fire(self, target_tower) -> None:
@@ -143,9 +144,9 @@ class TankMuzzleFlash(RotatableObject):
         super().__init__(tank.assets.image_path("tank_muzzle_flash"), pos)
         self.tank = tank
         self.rotate_to_angle(angle)
-        self._created_at = pygame.time.get_ticks()
+        self._created_at = tank.now
 
     def update(self, ctx: "IGameContext") -> None:
-        if pygame.time.get_ticks() - self._created_at > self.FLASH_DURATION_MS:
+        if ctx.time_ms - self._created_at > self.FLASH_DURATION_MS:
             if self in self.tank.bullets:
                 self.tank.bullets.remove(self)

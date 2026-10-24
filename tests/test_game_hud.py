@@ -6,9 +6,13 @@ class FakeText:
     def __init__(self):
         self.text = None
         self.color = None
+        self.state_texts = {}
 
-    def set_text(self, text):
-        self.text = text
+    def set_text(self, text, *, state=None):
+        if state is None:
+            self.text = text
+        else:
+            self.state_texts[state] = text
 
     def set_color(self, color):
         self.color = color
@@ -22,6 +26,7 @@ def make_panel():
     }
     for i in range(4):
         panel[f"fee_text_{i + 1}"] = FakeText()
+    panel["upgrade_plane_button_text"] = FakeText()
     return panel
 
 
@@ -122,3 +127,12 @@ def test_rebind_panel_refetches_text_objects_and_reapplies_prices(tower_config):
     game_state.increase_money(1)
     assert old_panel["coin_text"].text == "99"
     assert new_panel["coin_text"].text == "100"
+
+
+
+def test_plane_upgrade_button_shows_its_configured_price_on_hover(tower_config):
+    hud, panel, _ = make_hud(tower_config)
+    price = tower_config.prices[3][1]
+
+    expected = f"{price / 1000:g}K $" if price >= 1000 else f"{price} $"
+    assert panel["upgrade_plane_button_text"].state_texts == {"hover": expected}

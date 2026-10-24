@@ -1,6 +1,6 @@
 import pygame
 
-SCROLL_SPEED = 0.7   # px per frame
+SCROLL_SPEED = 0.7   # px per tick (util.constants.TICK_MS)
 
 
 class MenuBackground:
@@ -24,9 +24,10 @@ class MenuBackground:
         self._dx = SCROLL_SPEED
         self._dy = SCROLL_SPEED
 
-    def update(self) -> None:
-        self._x += self._dx
-        self._y += self._dy
+    def update(self, ticks: float = 1.0) -> None:
+        """Pan by `ticks` ticks' worth of SCROLL_SPEED (fractional is fine)."""
+        self._x += self._dx * ticks
+        self._y += self._dy * ticks
         if self._x >= self._max_x or self._x <= 0:
             self._dx = -self._dx
             self._x  = max(0.0, min(self._max_x, self._x))

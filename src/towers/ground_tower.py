@@ -26,7 +26,7 @@ class GroundTower(BaseTower):
         )
 
     def update(self, game_state: GameState, enemies: list) -> None:
-        self.now = pygame.time.get_ticks()
+        self.now = game_state.time_ms
         self.work(enemies, game_state.is_started)
 
     def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
@@ -57,7 +57,6 @@ class GroundTower(BaseTower):
     # ── private ───────────────────────────────────────────────────────────────
 
     def _is_attack_ready(self) -> bool:
-        self.now = pygame.time.get_ticks()
         return self.now - self.last_reload_time > self.speed
 
     def _shoot(self, target) -> None:

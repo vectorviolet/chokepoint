@@ -10,6 +10,7 @@ class IGameContext(Protocol):
     enemies:    list
     towers:     list
     speed:      int
+    time_ms:    float
     map_width:  int
     map_height: int
 

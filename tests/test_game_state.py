@@ -1,3 +1,5 @@
+import pytest
+
 from domain.game_state import GameState
 
 
@@ -83,3 +85,27 @@ def test_multiple_listeners_on_same_event_all_fire():
 
     assert a == [205]
     assert b == [205]
+
+
+# ── game clock ───────────────────────────────────────────────────────────────
+
+def test_tick_does_not_advance_game_time_while_paused():
+    from util.constants import TICK_MS
+    gs = GameState(start_money=0, start_lives=1)
+
+    gs.tick()
+
+    assert gs.time_ms == 0.0
+
+
+def test_tick_advances_game_time_by_one_tick_scaled_by_speed():
+    from util.constants import TICK_MS
+    gs = GameState(start_money=0, start_lives=1)
+    gs.is_started = True
+
+    gs.tick()
+    assert gs.time_ms == pytest.approx(TICK_MS)
+
+    gs.speed = 4
+    gs.tick()
+    assert gs.time_ms == pytest.approx(5 * TICK_MS)

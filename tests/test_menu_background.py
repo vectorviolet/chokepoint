@@ -62,3 +62,15 @@ def test_draw_blits_the_current_viewport_slice_without_raising():
     target = pygame.Surface((50, 50))
 
     bg.draw(target)
+
+
+
+def test_update_pans_by_a_fractional_number_of_ticks():
+    """Game.update() passes the frame's length in ticks, so the pan speed is
+    the same at any frame rate."""
+    bg = MenuBackground(pygame.Surface((100, 100)), viewport=(50, 50))
+
+    bg.update(2.5)
+
+    assert bg._x == SCROLL_SPEED * 2.5
+    assert bg._y == SCROLL_SPEED * 2.5

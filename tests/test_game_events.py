@@ -14,6 +14,7 @@ import pytest
 
 from app.game_events import GameEventsMixin
 from domain.game_state import GameState
+from util.config_loader import load_tower_config
 
 
 class FakeButton:
@@ -105,6 +106,9 @@ def make_game_panel():
     }
 
 
+PLANE_UPGRADE_PRICE = load_tower_config().prices[3][1]
+
+
 class FakeGame(GameEventsMixin):
     def __init__(self, *, has_saved_game=False, money=10_000):
         self.panel_manager = FakePanelManager({
@@ -133,6 +137,7 @@ class FakeGame(GameEventsMixin):
         self.audio = FakeAudio()
         self.click_sound_path = "assets/sfx/click.ogg"
         self.game_state = GameState(start_money=money, start_lives=10)
+        self.tower_config = load_tower_config()
         self.camera = FakeCamera()
         self.tower_controller = FakeTowerController()
         self._victory_popup_open = False
@@ -479,7 +484,7 @@ def test_gameover_main_menu_returns_to_menu():
 # ── plane upgrade ────────────────────────────────────────────────────────────
 
 def test_upgrade_plane_succeeds_with_enough_money():
-    game = FakeGame(money=5000)
+    game = FakeGame(money=PLANE_UPGRADE_PRICE)
     game.panel_manager["game"]["upgrade_plane_button"].clicked = True
 
     game._handle_upgrade_plane_button(click_up())
@@ -491,12 +496,12 @@ def test_upgrade_plane_succeeds_with_enough_money():
 
 
 def test_upgrade_plane_fails_with_insufficient_money():
-    game = FakeGame(money=4999)
+    game = FakeGame(money=PLANE_UPGRADE_PRICE - 1)
     game.panel_manager["game"]["upgrade_plane_button"].clicked = True
 
     game._handle_upgrade_plane_button(click_up())
 
-    assert game.game_state.money == 4999
+    assert game.game_state.money == PLANE_UPGRADE_PRICE - 1
     assert game.game_state.plane_level == 1
 
 

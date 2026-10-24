@@ -102,6 +102,9 @@ class FakeGame(GameSaveMixin):
     def _set_gameover_popup_active(self, active) -> None:
         self.calls.append(("_set_gameover_popup_active", active))
 
+    def _show_path_entrance(self) -> None:
+        self.calls.append("_show_path_entrance")
+
 
 def make_tower(tower_config, assets, *, tower_type=1, row=0, col=0, level=1, hp=None, position=(64.0, 64.0)):
     tower = TowerFactory.create(tower_type, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH)
@@ -243,9 +246,9 @@ def test_restore_enemies_handles_an_enemy_already_at_the_end(tower_config, asset
     assert game.enemies[0].reached_end()  # no _face_toward() crash on an at-end enemy
 
 
-def test_restore_wave_manager_rebases_timestamps_to_now(tower_config, assets, fake_ticks):
+def test_restore_wave_manager_rebases_timestamps_to_now(tower_config, assets):
     game = FakeGame(tower_config, assets)
-    fake_ticks["t"] = 5000
+    game.game_state.time_ms = 5000
 
     game._restore_wave_manager({
         "current_level": 2, "spawn_queue": [], "queue_index": 0,

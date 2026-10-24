@@ -16,6 +16,7 @@ class WaveManager:
 
     SPAWN_INTERVAL_MS  = 1000
     LEVEL_END_DELAY_MS = 5000
+    MIN_ENDLESS_INTERVAL_MS = 400
 
     def __init__(self, waypoints: list[Vector2], assets) -> None:
         if not waypoints:
@@ -42,8 +43,19 @@ class WaveManager:
         self._level_finish_time = None
 
     def _wave_for(self, level: int) -> WaveDef:
-        extra = level - 10
-        return WaveDef(groups=[(3, max(0, 4 - extra)), (4, 10 + extra * 3)])
+        """Endless-mode waves past the last authored one: keep its mix and
+        grow every group a little per wave, tanks half as fast, while the
+        spawn interval tightens down to a floor. HP/reward keep scaling
+        per level in Enemy, as for every wave."""
+        last = max(WAVE_COMPOSITIONS)
+        base = WAVE_COMPOSITIONS[last]
+        extra = level - last
+        groups = [
+            (enemy_type, count + (extra // 2 if enemy_type in TANK_TYPES else extra))
+            for enemy_type, count in base.groups
+        ]
+        interval = base.spawn_interval_ms or self.SPAWN_INTERVAL_MS
+        return WaveDef(groups=groups, spawn_interval_ms=max(self.MIN_ENDLESS_INTERVAL_MS, interval - 10 * extra))
 
     def update(self, enemies: list, game_state: GameState) -> None:
         if not game_state.is_started:
@@ -53,7 +65,7 @@ class WaveManager:
             self._current_level = game_state.level
             self._build_queue(game_state.level)
 
-        now = pygame.time.get_ticks()
+        now = game_state.time_ms
 
         if self._queue_index < len(self._spawn_queue):
             if now - self._last_spawn_time >= self._spawn_interval_ms:

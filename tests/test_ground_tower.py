@@ -66,10 +66,10 @@ def test_work_rotates_toward_the_nearest_in_range_enemy(tower_config, assets):
     assert tower.is_rotated is True
 
 
-def test_work_shoots_once_the_cooldown_has_elapsed(tower_config, assets, fake_ticks):
+def test_work_shoots_once_the_cooldown_has_elapsed(tower_config, assets):
     tower = make_tower(tower_config, assets, tower_type=2)  # Projectile branch
     enemy = FakeEnemy(tower.position + Vector2(20, 0))
-    fake_ticks["t"] = tower.speed + 1
+    tower.now = tower.speed + 1
 
     tower.work([enemy], is_started=True)
 
@@ -78,10 +78,10 @@ def test_work_shoots_once_the_cooldown_has_elapsed(tower_config, assets, fake_ti
     assert tower.last_reload_time == tower.speed + 1
 
 
-def test_work_does_not_shoot_before_the_cooldown_elapses(tower_config, assets, fake_ticks):
+def test_work_does_not_shoot_before_the_cooldown_elapses(tower_config, assets):
     tower = make_tower(tower_config, assets, tower_type=2)
     enemy = FakeEnemy(tower.position + Vector2(20, 0))
-    fake_ticks["t"] = tower.speed  # not yet > speed
+    tower.now = tower.speed  # not yet > speed
 
     tower.work([enemy], is_started=True)
 

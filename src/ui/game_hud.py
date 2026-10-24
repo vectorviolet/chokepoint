@@ -17,11 +17,18 @@ class GameHUD:
 		self.fee_texts = [panel_manager["game"][f"fee_text_{i + 1}"] for i in range(4)]
 		for i, fee_text in enumerate(self.fee_texts):
 			fee_text.set_text(f"{tower_config.prices[i][0]} $")
+		self._show_plane_upgrade_price(panel_manager)
 
 		game_state.add_money_listener(self._on_money_changed)
 		game_state.add_level_listener(self._on_level_changed)
 		game_state.add_lives_listener(self._on_lives_changed)
 		self._check_purchasing_power(game_state.money)
+
+	def _show_plane_upgrade_price(self, panel_manager: PanelManager) -> None:
+		"""The plane-upgrade button shows its price while hovered."""
+		price = self._tower_config.prices[3][1]
+		label = f"{price / 1000:g}K $" if price >= 1000 else f"{price} $"
+		panel_manager["game"]["upgrade_plane_button_text"].set_text(label, state="hover")
 
 	def _on_money_changed(self, money: int) -> None:
 		self.coin_text.set_text(str(money))
@@ -60,4 +67,5 @@ class GameHUD:
 		self.fee_texts  = [panel_manager["game"][f"fee_text_{i + 1}"] for i in range(4)]
 		for i, fee_text in enumerate(self.fee_texts):
 			fee_text.set_text(f"{self._tower_config.prices[i][0]} $")
+		self._show_plane_upgrade_price(panel_manager)
 		self.refresh()

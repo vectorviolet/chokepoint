@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Callable, TYPE_CHECKING
 
+from util.constants import TICK_MS
+
 if TYPE_CHECKING:
     from towers.base_tower import BaseTower
 
@@ -19,9 +21,9 @@ class WaveDef:
 class TowerConfig:
     """All per-type, per-level tower data.
 
-    prices[type-1][level-1] doubles as the sell value at that level and as
-    the buy/upgrade cost to *reach* that level (same index scheme used by the
-    original code throughout).
+    prices[type-1][level-1] is the buy/upgrade cost to *reach* that level
+    (same index scheme used by the original code throughout). For planes,
+    whose level is a global upgrade, prices[3][1] is that upgrade's cost.
     """
     prices:       list[list[int]]
     max_levels:   list[int]
@@ -44,6 +46,12 @@ class GameState:
         self.selected_tower: "BaseTower | None" = None
         self.plane_level:    int  = 1
         self.has_won:        bool = False
+        # Game time in ms: advances one TICK_MS * speed per tick while the
+        # game runs, and stands still while it's paused. Every gameplay
+        # timer (spawn intervals, reloads, fuses, ...) reads this rather
+        # than the wall clock, so pausing freezes them and x2/x4 speed
+        # runs them faster along with movement.
+        self.time_ms:        float = 0.0
 
         self._money_cbs: list[Callable[[int], None]] = []
         self._lives_cbs: list[Callable[[int], None]] = []
@@ -78,6 +86,10 @@ class GameState:
         self.lives = max(0, self.lives - amount)
         for cb in self._lives_cbs:
             cb(self.lives)
+
+    def tick(self) -> None:
+        if self.is_started:
+            self.time_ms += TICK_MS * self.speed
 
     def advance_level(self) -> None:
         self.level += 1

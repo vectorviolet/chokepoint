@@ -84,6 +84,7 @@ class GameSaveMixin:
         self._gameover_popup_open = False
         self.tower_controller.buying_tower_type = 0
         self._sync_game_ui()
+        self._show_path_entrance()
         self.panel_manager.current_panel = "game"
 
     def _restore_game_state(self, saved: dict) -> None:
@@ -132,10 +133,10 @@ class GameSaveMixin:
         wm._queue_index       = saved.get("queue_index", 0)
         wm._spawn_interval_ms = saved.get("spawn_interval_ms", wm.SPAWN_INTERVAL_MS)
         wm._count_all_time    = saved.get("count_all_time", 0)
-        # pygame.time.get_ticks() is relative to this process's pygame.init(),
-        # so any saved tick timestamp is meaningless after a restart -- rebase
-        # both to "now" rather than restoring the literal saved values.
-        now = pygame.time.get_ticks()
+        # Game time restarts from 0 with every process, so any saved timestamp
+        # is meaningless after a restart -- rebase both to "now" rather than
+        # restoring the literal saved values.
+        now = self.game_state.time_ms
         wm._last_spawn_time   = now
         wm._level_finish_time = now if saved.get("level_finish_pending") else None
 
@@ -159,6 +160,7 @@ class GameSaveMixin:
         self.tower_controller.buying_tower_type = 0
 
         self._sync_game_ui()
+        self._show_path_entrance()
         self.panel_manager.current_panel = "game"
 
     # ── UI sync ──────────────────────────────────────────────────────────────

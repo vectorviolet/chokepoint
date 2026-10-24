@@ -6,7 +6,6 @@ window:
 gameplay:
   starting_money: 200
   starting_lives: 10
-  game_area: [0, 0, 1920, 1080]   # [x, y, width, height]
 
 camera:
   edge_scroll_zone: 30

@@ -35,7 +35,8 @@ towers:
     shoot_sound: tower_3_shoot
 
   - type: 4  # Plane — drops bombs along flight path; ranges = explosion radius
-    prices:    [600, 1200]
+    # prices[1] is the one-time global upgrade making every later plane level 2.
+    prices:    [600, 5000]
     max_level: 2
     ranges:    [96, 128]
     damages:   [100, 200]

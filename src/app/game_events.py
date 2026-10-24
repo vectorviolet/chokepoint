@@ -134,8 +134,9 @@ class GameEventsMixin:
         panel = self.panel_manager["game"]
         if not self._activate(panel["upgrade_plane_button"], event):
             return
-        if self.game_state.money >= 5000 and self.game_state.plane_level == 1:
-            self.game_state.decrease_money(5000)
+        price = self.tower_config.prices[3][1]
+        if self.game_state.money >= price and self.game_state.plane_level == 1:
+            self.game_state.decrease_money(price)
             panel["buy_tower_4"].set_state("lvl2")
             panel["upgrade_plane_button"].set_state("purchased")
             self.game_state.plane_level = 2

@@ -119,7 +119,7 @@ class MuzzleFlash(RotatableObject):
         self.tower         = tower
         self.target        = target
         self.damage        = tower.damage
-        self._created_at   = pygame.time.get_ticks()
+        self._created_at   = tower.now
         self._damage_dealt = not deals_damage
         self.rotate_to_angle(angle_between_points(pos, target.position))
 
@@ -133,7 +133,7 @@ class MuzzleFlash(RotatableObject):
                 self.target.decrease_hp(self.damage, ctx)
             self._damage_dealt = True
 
-        if pygame.time.get_ticks() - self._created_at > self.FLASH_DURATION_MS:
+        if ctx.time_ms - self._created_at > self.FLASH_DURATION_MS:
             if self in self.tower.bullets:
                 self.tower.bullets.remove(self)
 
@@ -142,13 +142,13 @@ class Bomb(RotatableObject):
     """Bomb dropped by a plane.
 
     Released with the plane's forward velocity, then decelerates via drag
-    each frame. The plane keeps powering forward at full speed, so the bomb
+    each tick. The plane keeps powering forward at full speed, so the bomb
     visually lags behind it and lands where its momentum runs out. After
-    FALL_DURATION_MS of in-game time, replaces itself in tower.bullets with
+    FALL_DURATION_MS of game time, replaces itself in tower.bullets with
     an Explosion. Damage and radius come from the dropping tower's level.
     """
     FALL_DURATION_MS = 600
-    DRAG             = 0.94  # per-frame velocity multiplier (air resistance)
+    DRAG             = 0.94  # per-tick velocity multiplier at x1 (air resistance)
     SPRITE_SCALE     = 0.6   # bullet_2_lvl1 is sized for missiles; scale down for bombs
 
     def __init__(self, tower, drop_velocity: Vector2) -> None:
@@ -160,7 +160,7 @@ class Bomb(RotatableObject):
         self.damage        = tower.damage
         self.radius        = tower.range
         self._velocity     = Vector2(drop_velocity)
-        self._created_at   = pygame.time.get_ticks()
+        self._created_at   = tower.now
         self._scale_sprite()
         if self._velocity.length_squared() > 0:
             self.rotate_to_delta(self._velocity)
@@ -175,18 +175,18 @@ class Bomb(RotatableObject):
         self.rect.center = self.position
 
     def update(self, ctx: "IGameContext") -> None:
-        elapsed = (pygame.time.get_ticks() - self._created_at) * ctx.speed
+        elapsed = ctx.time_ms - self._created_at
         if elapsed >= self.FALL_DURATION_MS:
             self._detonate(ctx)
             return
         self.position += self._velocity * ctx.speed
-        self._velocity *= self.DRAG
+        self._velocity *= self.DRAG ** ctx.speed  # x2 covers two x1 ticks' worth of drag
         self.rect.center = self.position
 
     def _detonate(self, ctx: "IGameContext") -> None:
         if self in self.tower.bullets:
             self.tower.bullets.remove(self)
-        self.tower.bullets.append(Explosion(self.position, self.tower, self.damage, self.radius))
+        self.tower.bullets.append(Explosion(self.position, self.tower, self.damage, self.radius, ctx.time_ms))
 
 
 class Explosion(GameObject):
@@ -203,14 +203,14 @@ class Explosion(GameObject):
 
     _frames_cache: dict[int, list[pygame.Surface]] = {}
 
-    def __init__(self, position: Vector2, tower, damage: int, radius: int) -> None:
+    def __init__(self, position: Vector2, tower, damage: int, radius: int, created_at: float) -> None:
         super().__init__(name="explosion")
         self.tower         = tower
         self.position      = Vector2(position)
         self.damage        = damage
         self.radius        = radius
         self._frames       = Explosion._get_frames(tower.assets, radius)
-        self._created_at   = pygame.time.get_ticks()
+        self._created_at   = created_at
         self._damage_dealt = False
 
         renderer = self.add_component(SpriteRenderer2D)
@@ -245,7 +245,7 @@ class Explosion(GameObject):
                     enemy.decrease_hp(self.damage, ctx)
             self._damage_dealt = True
 
-        elapsed = (pygame.time.get_ticks() - self._created_at) * ctx.speed
+        elapsed = ctx.time_ms - self._created_at
         idx = int(elapsed // self.FRAME_DURATION_MS)
         if idx >= self.TOTAL_FRAMES:
             if self in self.tower.bullets:

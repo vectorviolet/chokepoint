@@ -15,6 +15,7 @@ import pytest
 from pygame import Rect
 
 from app.game import Game, WIN_WAVE, _VICTORY_POPUP_OBJECTS, _GAMEOVER_POPUP_OBJECTS
+from util.constants import TICK_MS, MAX_FRAME_MS
 from domain.game_state import GameState
 from pygamine import Application, Camera
 
@@ -86,6 +87,8 @@ def make_game(**overrides):
     game.enemies = []
     game.wave_manager = None
     game._construction_complete = True
+    game._last_frame_ticks = None
+    game._tick_backlog_ms = 0.0
     for key, value in overrides.items():
         setattr(game, key, value)
     return game
@@ -213,14 +216,18 @@ def test_reflow_camera_updates_game_area_and_clamps_the_camera():
 
 # ── update dispatch ──────────────────────────────────────────────────────────
 
-def test_update_on_a_menu_panel_updates_the_menu_background():
+def test_update_on_a_menu_panel_pans_the_menu_background_by_elapsed_ticks(fake_ticks):
     game = make_game()
     game.panel_manager.current_panel = "main_menu"
     game.menu_bg = SimpleNamespace(update=Spy())
 
+    fake_ticks["t"] = 1000
+    game.update()  # first frame: nothing elapsed yet
+    fake_ticks["t"] = 1000 + 3 * TICK_MS
     game.update()
 
-    assert len(game.menu_bg.update.calls) == 1
+    assert game.menu_bg.update.calls[0] == (0.0,)
+    assert game.menu_bg.update.calls[1][0] == pytest.approx(3.0, abs=0.01)
 
 
 def test_update_on_settings_also_refreshes_the_window_mode_label():
@@ -234,31 +241,101 @@ def test_update_on_settings_also_refreshes_the_window_mode_label():
     assert len(game._refresh_window_mode_label.calls) == 1
 
 
-def test_update_on_the_game_panel_calls_update_game():
+def test_update_on_the_game_panel_calls_update_game_with_the_frame_time(fake_ticks):
     game = make_game()
     game.panel_manager.current_panel = "game"
     game._update_game = Spy()
 
+    fake_ticks["t"] = 500
+    game.update()
+    fake_ticks["t"] = 520
     game.update()
 
-    assert len(game._update_game.calls) == 1
+    assert game._update_game.calls == [(0.0,), (20.0,)]
 
 
-def test_update_game_forwards_to_camera_mouse_and_subsystems():
+def test_elapsed_frame_ms_is_capped_so_a_stall_is_not_replayed(fake_ticks):
+    game = make_game()
+    fake_ticks["t"] = 0
+    game._elapsed_frame_ms()
+
+    fake_ticks["t"] = 10_000  # e.g. ten seconds spent dragging the window
+    assert game._elapsed_frame_ms() == MAX_FRAME_MS
+
+
+def make_updating_game():
     game = make_game()
     game.camera = SimpleNamespace(update_with_mouse=Spy())
     game.mouse = SimpleNamespace(position=(1, 2), update=Spy())
     game.tower_controller = SimpleNamespace(update_cursor=Spy())
-    game._update_towers = Spy()
-    game._update_enemies = Spy()
+    game._tick = Spy()
+    return game
 
-    game._update_game()
 
-    assert game.camera.update_with_mouse.calls == [((1, 2),)]
+def test_update_game_forwards_input_motion_scaled_to_the_frame_time():
+    game = make_updating_game()
+
+    game._update_game(2 * TICK_MS)
+
+    assert game.camera.update_with_mouse.calls == [((1, 2), pytest.approx(2.0))]
     assert len(game.mouse.update.calls) == 1
     assert game.tower_controller.update_cursor.calls == [((1, 2),)]
-    assert len(game._update_towers.calls) == 1
-    assert len(game._update_enemies.calls) == 1
+
+
+def test_update_game_runs_one_tick_per_tick_ms_of_frame_time():
+    game = make_updating_game()
+
+    game._update_game(3 * TICK_MS + 1)
+
+    assert len(game._tick.calls) == 3
+
+
+def test_update_game_carries_leftover_time_into_the_next_frame():
+    """At 60 fps a frame is ~2.75 ticks long: the fractional remainder
+    must accumulate rather than be dropped, or the game would run slow."""
+    game = make_updating_game()
+
+    for _ in range(4):
+        game._update_game(TICK_MS * 0.8)  # 3.2 ticks in total
+
+    assert len(game._tick.calls) == 3
+
+
+def test_simulated_ticks_per_second_do_not_depend_on_the_frame_rate():
+    for fps in (30, 60, 144, 240):
+        game = make_updating_game()
+        for _ in range(fps):
+            game._update_game(1000 / fps)
+        assert len(game._tick.calls) in (164, 165), fps
+
+
+def test_tick_advances_game_time_before_updating_towers_and_enemies():
+    game = make_game()
+    order = []
+    game.game_state.is_started = True
+    game._update_towers = lambda: order.append(("towers", game.game_state.time_ms))
+    game._update_enemies = lambda: order.append(("enemies", game.game_state.time_ms))
+
+    game._tick()
+
+    assert order == [("towers", pytest.approx(TICK_MS)), ("enemies", pytest.approx(TICK_MS))]
+
+
+def test_time_ms_reads_from_game_state():
+    game = make_game()
+    game.game_state.time_ms = 1234.5
+    assert game.time_ms == 1234.5
+
+
+def test_show_path_entrance_centres_the_camera_on_the_spawn_point():
+    game = make_game()
+    game.camera = SimpleNamespace(center_on=Spy())
+    spawn = pygame.math.Vector2(2624, 0)
+    game.tilemap = SimpleNamespace(waypoints=[spawn, pygame.math.Vector2(2624, 576)])
+
+    game._show_path_entrance()
+
+    assert game.camera.center_on.calls == [(spawn,)]
 
 
 class FakeBullet:
@@ -298,7 +375,7 @@ def test_update_towers_drops_removed_towers_and_collects_blocking_positions():
 
     assert game.towers == [keep]
     assert keep.update_calls == [(game.game_state, game.enemies)]
-    assert game.tower_controller.tower_positions == [(1, 2)]
+    assert game.tower_controller.tower_positions == {(1, 2)}
     assert keep.bullets[0].updated_with is game
 
 

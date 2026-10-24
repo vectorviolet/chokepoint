@@ -17,7 +17,7 @@ from pygamine import PanelLoaderExt
 from pygamine import make_factory, make_text_factory, make_animated_factory, make_slider_factory, make_scrolling_panel_factory
 from util.config_loader import load_tower_config
 from pygamine import Camera
-from util.constants import TILE_SIZE
+from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS
 from pygamine import Debug
 from ui import hp_bar
 from ui.menu_background import MenuBackground
@@ -105,11 +105,17 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self.enemies:      list[Enemy]     = []
         self.wave_manager: WaveManager | None = None
 
-        self.game_area        = Rect(*gameplay["game_area"])
+        # The map viewport is the whole canvas. self.size is the canvas as
+        # restored from the saved window settings above -- on_canvas_resized()
+        # is skipped during construction, so this is the only place a saved
+        # non-default size reaches the viewport at startup.
+        self.game_area        = Rect(0, 0, *self.size)
         self.game_state       = GameState(start_money=gameplay["starting_money"], start_lives=gameplay["starting_lives"])
         self.game_state.add_level_listener(self._on_level_changed)
         self._victory_popup_open  = False
         self._gameover_popup_open = False
+        self._last_frame_ticks: int | None = None  # wall clock of the previous update()
+        self._tick_backlog_ms = 0.0               # real time not yet simulated as whole ticks
         self.assets           = AssetManager()
         self.tower_config     = load_tower_config()
         self.tilemap          = Tilemap("assets/tiled_project/tiled_tilemap.tmx")
@@ -153,6 +159,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         }
         self._bind_settings_ui()
         self._build_menu_controllers()
+        self._show_path_entrance()
         self._construction_complete = True
 
     @override
@@ -272,6 +279,10 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         return self.game_state.speed
 
     @property
+    def time_ms(self) -> float:
+        return self.game_state.time_ms
+
+    @property
     def map_width(self) -> int:
         return self.tilemap.map_width
 
@@ -281,6 +292,11 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
 
     def increase_money(self, amount: int) -> None:
         self.game_state.increase_money(amount)
+
+    def _show_path_entrance(self) -> None:
+        """Point the camera at where enemies spawn -- the map's top-left
+        corner it would otherwise open on is empty grass."""
+        self.camera.center_on(self.tilemap.waypoints[0])
 
     def _init_wave_manager(self) -> None:
         if not self.tilemap.waypoints:
@@ -365,29 +381,49 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
 
     @override
     def update(self) -> None:
+        frame_ms = self._elapsed_frame_ms()
         self.panel_manager.update()
         if self.panel_manager.current_panel == "game":
-            self._update_game()
+            self._update_game(frame_ms)
         else:
-            self.menu_bg.update()
+            self.menu_bg.update(frame_ms / TICK_MS)
         if self.panel_manager.current_panel == "settings":
             self._refresh_window_mode_label()  # picks up F11-triggered mode changes
 
-    def _update_game(self) -> None:
-        self.camera.update_with_mouse(self.mouse.position)
+    def _elapsed_frame_ms(self) -> float:
+        """Wall-clock ms since the previous update(), capped at MAX_FRAME_MS."""
+        now = pygame.time.get_ticks()
+        last, self._last_frame_ticks = self._last_frame_ticks, now
+        if last is None:
+            return 0.0
+        return float(min(MAX_FRAME_MS, max(0, now - last)))
+
+    def _update_game(self, frame_ms: float) -> None:
+        # Input-driven motion follows real time; the simulation runs in fixed
+        # ticks so the same game plays out at any frame rate.
+        self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)
+        self._tick_backlog_ms += frame_ms
+        while self._tick_backlog_ms >= TICK_MS:
+            self._tick_backlog_ms -= TICK_MS
+            self._tick()
+
+    def _tick(self) -> None:
+        """One fixed simulation step: game time first, then everything
+        that reads it."""
+        self.game_state.tick()
         self._update_towers()
         self._update_enemies()
 
     def _update_towers(self) -> None:
         self.towers[:] = [t for t in self.towers if not t.should_remove()]
-        self.tower_controller.tower_positions = []
+        self.tower_controller.tower_positions = set()
         for tower in self.towers:
             tower.update(self.game_state, self.enemies)
             pos = tower.get_blocking_position()
             if pos:
-                self.tower_controller.tower_positions.append(pos)
+                self.tower_controller.tower_positions.add(pos)
             for bullet in tower.bullets:
                 if self.game_state.is_started:
                     bullet.update(self)
@@ -395,7 +431,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
     def _update_enemies(self) -> None:
         if self.wave_manager:
             self.wave_manager.update(self.enemies, self.game_state)
-        for enemy in self.enemies:
+        for enemy in list(self.enemies):  # copy: reaching the end removes from the list
             if enemy.reached_end():
                 self.enemies.remove(enemy)
                 self.game_state.decrease_lives(enemy.damage)

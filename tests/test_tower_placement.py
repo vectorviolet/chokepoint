@@ -334,3 +334,52 @@ def test_draw_shortcuts_does_not_raise(tower_config, assets):
     surface = pygame.Surface((1920, 1080))
 
     controller.draw_shortcuts(surface)
+
+
+# ── right click / planes / grid overlay ─────────────────────────────────────
+
+def test_right_click_cancels_placement_and_clears_the_selection(tower_config, assets):
+    tower = make_tower(tower_config, assets, row=2, col=2)
+    controller, _, gs = make_controller(tower_config, assets, towers=[tower])
+    controller.buying_tower_type = 3
+    gs.selected_tower = tower
+
+    controller.handle_event(pygame.event.Event(pygame.MOUSEBUTTONUP, button=3), (500, 500))
+
+    assert controller.buying_tower_type == 0
+    assert gs.selected_tower is None
+
+
+def test_a_flying_plane_cannot_be_clicked_and_selected(tower_config, assets):
+    """A plane keeps the row/col it was launched from while it flies away;
+    clicking that empty tile must not select it (that used to put an
+    invisible sell button on the tile)."""
+    plane = make_tower(tower_config, assets, tower_type=PLANE_TYPE, row=3, col=4)
+    controller, _, _ = make_controller(tower_config, assets, towers=[plane])
+    controller.cursor_row, controller.cursor_col = 3, 4
+
+    assert controller.get_clicked_tower() is None
+
+
+class CountingSurface(pygame.Surface):
+    def __init__(self, size):
+        super().__init__(size)
+        self.blitted = 0
+
+    def blits(self, blit_sequence, doreturn=True):
+        blit_sequence = list(blit_sequence)
+        self.blitted += len(blit_sequence)
+        return super().blits(blit_sequence, doreturn=doreturn)
+
+
+def test_grid_overlay_only_draws_the_tiles_inside_the_viewport(tower_config, assets):
+    controller, _, _ = make_controller(tower_config, assets)  # 47x34 grid, 1536x1080 view
+    controller.buying_tower_type = GROUND_TYPE
+    surface = CountingSurface(GAME_AREA.size)
+
+    controller._draw_grid_overlay(surface)
+
+    visible_cols = GAME_AREA.width // TILE_SIZE + 1   # 24 whole + the partial edge column
+    visible_rows = -(-GAME_AREA.height // TILE_SIZE)   # 16.9 -> 17
+    assert surface.blitted == visible_cols * visible_rows
+    assert surface.blitted < 47 * 34
