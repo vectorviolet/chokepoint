@@ -143,7 +143,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self.menu_overlay.fill((0, 0, 0, 120))
         self.splash = SplashScreen([
             ImageSequenceMedia(
-                folder_path=Path(self.assets.image_path("publisher_splash")).parent,
+                folder_path=self.assets.sequence_path("publisher_splash"),
                 audio_path=self.assets.sound_path("publisher_splash"),
                 audio_manager=self.audio
             ),

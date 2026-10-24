@@ -6,7 +6,6 @@ images:
   logo:              {folder: branding, name: logo}
   pygame_logo:       {folder: branding, name: pygame_logo}
   kenney_logo:       {folder: branding, name: kenney_logo}
-  publisher_splash:  {folder: branding/frames, name: "0001", extension: jpg}
   social_media:      {folder: branding, name: social_media}
   heart:             {folder: hud, name: heart}
 
@@ -107,6 +106,10 @@ images:
 
   # ── Coin pickup (animated spritesheet, 4-frame horizontal strip) ──────
   coin_sheet:        {folder: coins, name: MonedaD}
+
+# Folders of numbered frames played as video (fps from each folder's meta.yaml)
+sequences:
+  publisher_splash:  {folder: branding, name: publisher_splash}
 
 sounds:
   bg_music:          {folder: "", name: bg, extension: mp3}
