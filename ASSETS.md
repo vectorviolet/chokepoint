@@ -13,3 +13,12 @@
 ## Lored Games
 
 - [Gems & Coins](https://laredgames.itch.io/gems-coins-free)
+
+
+## Fonts
+
+Both SIL Open Font License 1.1; license texts in `assets/fonts/`.
+
+- [Anton](https://fonts.google.com/specimen/Anton)
+
+- [Comic Neue](https://fonts.google.com/specimen/Comic+Neue)
