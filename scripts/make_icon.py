@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate packaging/icon.ico from the game logo for the Windows build.
 
-Run before PyInstaller on Windows (see .github/workflows/release.yml). Requires
-Pillow. Best-effort: if the logo or Pillow is missing it exits 0 so the build
+Optional: builds use the committed packaging/icon.ico, and running this
+replaces it with one made from the logo. Requires Pillow. Best-effort: if the logo or Pillow is missing it exits 0 so the build
 still succeeds with the default icon.
 """
 

@@ -97,7 +97,6 @@ Builds are produced by [PyInstaller](https://pyinstaller.org/) from `chokepoint.
 
 ```bash
 uv sync --group build
-uv run python scripts/make_icon.py   # optional, Windows icon from the logo
 uv run pyinstaller chokepoint.spec --noconfirm
 ```
 

@@ -27,8 +27,9 @@ datas = [
     (str(ROOT / "src" / "pygamine" / "pygamine" / "branding"), "pygamine/branding"),
 ]
 
-# Optional per-OS application icon. Windows: scripts/make_icon.py generates
-# packaging/icon.ico from the logo. macOS: drop packaging/icon.icns yourself.
+# Optional per-OS application icon. Windows: the committed packaging/icon.ico
+# (scripts/make_icon.py can regenerate one from the logo, overwriting it).
+# macOS: drop packaging/icon.icns yourself.
 # Absent icons are fine — the build just uses the default.
 icon = None
 if sys.platform.startswith("win") and (ROOT / "packaging" / "icon.ico").exists():
