@@ -44,6 +44,11 @@ object_templates:
     font_size: 27
     bold: true
     color: white
+  credit_text:
+    type: text
+    font: Impact
+    font_size: 35
+    color: white
 
 panels:
   main_menu:
@@ -53,7 +58,7 @@ panels:
         layout: { direction: vertical, start: [CENTER, 300], spacing: 120 }
         objects:
           play:     { extends: btn-lg }
-          contact:  { extends: btn-lg }
+          credits:  { extends: btn-lg }
           settings: { extends: btn-lg }
           exit:     { extends: btn-lg }
 
@@ -61,10 +66,10 @@ panels:
         extends: button_text
         parent: play
         text: "PLAY"
-      contact_text:
+      credits_text:
         extends: button_text
-        parent: contact
-        text: "CONTACT US"
+        parent: credits
+        text: "CREDITS"
       settings_text:
         extends: button_text
         parent: settings
@@ -79,12 +84,6 @@ panels:
         position: [25, 25]
       music_toggle_icon:
         extends: music_toggle_icon
-
-      kenney_logo:
-        anchor: bottom-right
-        position: [-25, -25]
-        size: [144, 56]
-        asset: kenney_logo
 
   play_menu:
     extends: [menu_chrome]
@@ -123,13 +122,66 @@ panels:
       music_toggle_icon:
         extends: music_toggle_icon
 
-  contact:
+  credits:
     extends: [menu_chrome]
     objects:
-      social_media:
-        position: [CENTER, CENTER]
-        size: [750, 750]
+      scroller_logic:
+        type: scrolling_panel
+        position: [0, 200]   # visible viewport; content enters at its bottom
+        size: [1920, 800]
+        speed: 90            # px/s
+        targets:
+          - credits_logo
+          - credits_title
+          - credits_dev_1
+          - kenney_logo
+          - kenney_asset_1
+          - kenney_asset_2
+          - kenney_asset_3
+          - kenney_asset_4
+          - other_asset_1
+
+      credits_title:
+        type: text
+        font: Impact
+        font_size: 70
+        position: [CENTER, 0]
+        text: "CREDITS"
+        color: white
+      credits_dev_1:
+        type: text
+        font: ComicSansMs
+        font_size: 40
+        position: [CENTER, 250]
+        text: "Developer"
+        color: white
+      credits_logo:
+        position: [ CENTER, 240 ]
+        size: [ 300, 300 ]
         asset: social_media
+      kenney_logo:
+        position: [CENTER, 550]
+        size: [ 144, 56 ]
+        asset: kenney_logo
+      kenney_assets:
+        layout: { direction: vertical, start: [CENTER, 630], spacing: 50 }
+        objects:
+          kenney_asset_1:
+            extends: credit_text
+            text: "UI IMAGES & SOUNDS https://www.kenney.nl/assets/ui-pack"
+          kenney_asset_2:
+            extends: credit_text
+            text: "TOWER DEFENSE TOP-DOWN https://www.kenney.nl/assets/tower-defense-top-down"
+          kenney_asset_3:
+            extends: credit_text
+            text: "IMPACT SOUNDS https://www.kenney.nl/assets/impact-sounds"
+          kenney_asset_4:
+            extends: credit_text
+            text: "SMOKE PARTICLES https://www.kenney.nl/assets/smoke-particles"
+          other_asset_1:
+            extends: credit_text
+            text: "Gems & Coins https://laredgames.itch.io/gems-coins-free"
+
       back:
         extends: btn-sm
         size: [375, 100]

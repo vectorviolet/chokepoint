@@ -32,8 +32,8 @@ class GameEventsMixin:
                 self.panel_manager.current_panel = "play_menu"
             else:
                 self._start_new_game()
-        elif self._activate(panel["contact"], event):
-            self.panel_manager.current_panel = "contact"
+        elif self._activate(panel["credits"], event):
+            self.panel_manager.current_panel = "credits"
         elif self._activate(panel["settings"], event):
             self.panel_manager.current_panel = "settings"
         elif self._activate(panel["exit"], event):
@@ -48,8 +48,8 @@ class GameEventsMixin:
         elif self._activate(panel["back"], event):
             self.panel_manager.current_panel = "main_menu"
 
-    def _handle_contact_event(self, event) -> None:
-        panel = self.panel_manager["contact"]
+    def _handle_credits_event(self, event) -> None:
+        panel = self.panel_manager["credits"]
         if self._activate(panel["back"], event):
             self.panel_manager.current_panel = "main_menu"
 

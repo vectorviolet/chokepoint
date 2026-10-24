@@ -14,7 +14,7 @@ from pygamine import Mouse
 from pygamine import PanelManager
 from pygamine import PanelLoaderExt
 
-from pygamine import make_factory, make_text_factory, make_animated_factory, make_slider_factory
+from pygamine import make_factory, make_text_factory, make_animated_factory, make_slider_factory, make_scrolling_panel_factory
 from util.config_loader import load_tower_config
 from pygamine import Camera
 from util.constants import TILE_SIZE
@@ -147,7 +147,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self.handlers = {
             "main_menu": self._handle_main_menu_event,
             "play_menu": self._handle_play_menu_event,
-            "contact":   self._handle_contact_event,
+            "credits":   self._handle_credits_event,
             "settings":  self._handle_settings_event,
             "game":      self._handle_game_event,
         }
@@ -173,7 +173,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         """(Re-)builds the keyboard-nav controllers from the current panel
         objects -- they hold direct button references, so a canvas resize
         (which rebuilds those objects) must rebuild these too."""
-        main_menu_buttons = [self.panel_manager["main_menu"][n] for n in ("play", "contact", "settings", "exit")]
+        main_menu_buttons = [self.panel_manager["main_menu"][n] for n in ("play", "credits", "settings", "exit")]
         play_menu_buttons = [self.panel_manager["play_menu"][n] for n in ("continue_game", "new_game", "back")]
         self.menu_controllers = {
             "main_menu": MenuController(
@@ -212,6 +212,8 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         loader.register("text", make_text_factory(self.assets))
         loader.register("animated", make_animated_factory(self.assets))
         loader.register("slider", make_slider_factory(self.assets))
+        loader.register("scrolling_panel", make_scrolling_panel_factory(self.assets))
+
         loader.load("config/panels.yaml")
 
     def _refresh_window_size_label(self) -> None:
@@ -359,12 +361,12 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
     @override
     def update(self) -> None:
         self.panel_manager.update()
-        if self.panel_manager.current_panel in ("main_menu", "play_menu", "contact", "settings"):
+        if self.panel_manager.current_panel == "game":
+            self._update_game()
+        else:
             self.menu_bg.update()
         if self.panel_manager.current_panel == "settings":
             self._refresh_window_mode_label()  # picks up F11-triggered mode changes
-        if self.panel_manager.current_panel == "game":
-            self._update_game()
 
     def _update_game(self) -> None:
         self.camera.update_with_mouse(self.mouse.position)
@@ -424,7 +426,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self.window.fill((0, 0, 0))
         if self.panel_manager.current_panel == "game":
             self._draw_game()
-        elif self.panel_manager.current_panel in ("main_menu", "play_menu", "contact", "settings"):
+        else:
             self.menu_bg.draw(self.window)
             self.window.blit(self.menu_overlay, (0, 0))
         self.panel_manager.draw(self.window)
@@ -489,7 +491,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         panel = self.panel_manager.current_panel
         if panel == "main_menu":
             self.exit()
-        elif panel in ("play_menu", "contact", "settings", "game"):
+        elif panel in ("play_menu", "credits", "settings", "game"):
             if panel == "settings":
                 self._save_settings()
             elif panel == "game":

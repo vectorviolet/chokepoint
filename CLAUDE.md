@@ -42,7 +42,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `game_state` | `GameState` | Pure data (money, lives, speed, level, is_started, has_won); fires listener callbacks on money/level change |
 | `camera` | `Camera` | Edge-scroll camera for the 1536×1080 game area; applies world→screen offset to all drawn entities |
 | `assets` | `AssetManager` | Loads all images/sounds from `config/assets.yaml`; accessed via string keys everywhere |
-| `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "contact", "game"); switching is `panel_manager.current_panel = "name"` |
+| `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "credits", "game"); switching is `panel_manager.current_panel = "name"` |
 | `tilemap` | `Tilemap` | 47×34 tile grid loaded from a Tiled `.tmx`; pre-rendered once after splash |
 | `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears |
 | `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners |

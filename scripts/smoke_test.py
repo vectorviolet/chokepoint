@@ -25,7 +25,7 @@ def boot_game() -> None:
     from app.game import Game
 
     game = Game()
-    for panel in ("main_menu", "play_menu", "contact", "settings", "game"):
+    for panel in ("main_menu", "play_menu", "credits", "settings", "game"):
         game.panel_manager.current_panel = panel
         game.update()
         game.draw()

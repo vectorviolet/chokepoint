@@ -101,7 +101,7 @@ class FakeGame(GameEventsMixin):
     def __init__(self, *, has_saved_game=False, money=10_000):
         self.panel_manager = FakePanelManager({
             "main_menu": {
-                "play": FakeButton(), "contact": FakeButton(),
+                "play": FakeButton(), "credits": FakeButton(),
                 "settings": FakeButton(), "exit": FakeButton(),
                 "music_toggle_icon": FakeButton(),
             },
@@ -109,7 +109,7 @@ class FakeGame(GameEventsMixin):
                 "continue_game": FakeButton(), "new_game": FakeButton(),
                 "back": FakeButton(), "music_toggle_icon": FakeButton(),
             },
-            "contact": {"back": FakeButton(), "music_toggle_icon": FakeButton()},
+            "credits": {"back": FakeButton(), "music_toggle_icon": FakeButton()},
             "settings": {
                 "back": FakeButton(), "reset": FakeButton(),
                 "window_size_back_button": FakeButton(), "window_size_next_button": FakeButton(),
@@ -241,9 +241,9 @@ def test_main_menu_play_without_a_saved_game_starts_a_new_game():
 
 def test_main_menu_contact_and_settings_and_exit():
     game = FakeGame()
-    game.panel_manager["main_menu"]["contact"].clicked = True
+    game.panel_manager["main_menu"]["credits"].clicked = True
     game._handle_main_menu_event(click_up())
-    assert game.panel_manager.current_panel == "contact"
+    assert game.panel_manager.current_panel == "credits"
 
     game2 = FakeGame()
     game2.panel_manager["main_menu"]["settings"].clicked = True
@@ -285,13 +285,13 @@ def test_play_menu_back_returns_to_main_menu():
     assert game.panel_manager.current_panel == "main_menu"
 
 
-# ── contact ──────────────────────────────────────────────────────────────────
+# ── credits ──────────────────────────────────────────────────────────────────
 
-def test_contact_back_returns_to_main_menu():
+def test_credits_back_returns_to_main_menu():
     game = FakeGame()
-    game.panel_manager["contact"]["back"].clicked = True
+    game.panel_manager["credits"]["back"].clicked = True
 
-    game._handle_contact_event(click_up())
+    game._handle_credits_event(click_up())
 
     assert game.panel_manager.current_panel == "main_menu"
 
@@ -531,11 +531,11 @@ def test_toggle_music_updates_every_panels_icon():
     game._toggle_music()
 
     assert game.audio.is_music_paused is True
-    for tab in ("main_menu", "play_menu", "contact", "settings", "game"):
+    for tab in ("main_menu", "play_menu", "credits", "settings", "game"):
         assert game.panel_manager[tab]["music_toggle_icon"].state == "paused"
 
     game._toggle_music()
 
     assert game.audio.is_music_paused is False
-    for tab in ("main_menu", "play_menu", "contact", "settings", "game"):
+    for tab in ("main_menu", "play_menu", "credits", "settings", "game"):
         assert game.panel_manager[tab]["music_toggle_icon"].state is None
