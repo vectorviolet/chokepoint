@@ -53,7 +53,7 @@ class TowerPlacementController:
 			assets.get_image("tower_4_lvl1"),
 			assets.get_image("tower_4_lvl2"),
 		]
-		self._shortcut_font = pygame.font.SysFont("Impact", 20)
+		self._shortcut_font = pygame.font.Font(assets.font_path("anton"), 20)
 
 	def update_cursor(self, mouse_pos: tuple) -> None:
 		if self._game_area.collidepoint(mouse_pos):

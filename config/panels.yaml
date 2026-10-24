@@ -26,13 +26,13 @@ object_templates:
         asset: icon_music_disabled
   button_text:
     type: text
-    font: Impact
+    font: anton
     font_size: 48
     position: [CENTER, CENTER]
   fee_text:
     type: text
-    font: ComicSansMs
-    font_size: 18
+    font: comic_neue
+    font_size: 21
     color: green
     text: "0 $"
     background_color: [0, 0, 0, 100]
@@ -40,13 +40,12 @@ object_templates:
   stat_text:
     type: text
     background_color: [ 50, 50, 50, 200 ]
-    font: ComicSansMs
-    font_size: 27
-    bold: true
+    font: comic_neue_bold
+    font_size: 31
     color: white
   credit_text:
     type: text
-    font: Impact
+    font: anton
     font_size: 35
     color: white
 
@@ -90,7 +89,7 @@ panels:
     objects:
       play_menu_title_text:
         type: text
-        font: Impact
+        font: anton
         font_size: 70
         color: red
         position: [CENTER, 320]
@@ -143,15 +142,15 @@ panels:
 
       credits_title:
         type: text
-        font: Impact
+        font: anton
         font_size: 70
         position: [CENTER, 0]
         text: "CREDITS"
         color: white
       credits_dev_1:
         type: text
-        font: ComicSansMs
-        font_size: 40
+        font: comic_neue
+        font_size: 46
         position: [CENTER, 250]
         text: "Developer"
         color: white
@@ -201,7 +200,7 @@ panels:
     objects:
       settings_title_text:
         type: text
-        font: Impact
+        font: anton
         font_size: 70
         color: red
         position: [CENTER, 320]
@@ -216,8 +215,8 @@ panels:
 
       window_size_label_text:
         type: text
-        font: ComicSansMs
-        font_size: 24
+        font: comic_neue
+        font_size: 28
         color: white
         parent: graphics_column
         position: [CENTER, 60]
@@ -233,8 +232,8 @@ panels:
         text: "<"
       window_size_value_text:
         type: text
-        font: ComicSansMs
-        font_size: 32
+        font: comic_neue
+        font_size: 37
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
@@ -252,8 +251,8 @@ panels:
 
       window_mode_label_text:
         type: text
-        font: ComicSansMs
-        font_size: 24
+        font: comic_neue
+        font_size: 28
         color: white
         parent: graphics_column
         position: [CENTER, 220]
@@ -269,8 +268,8 @@ panels:
         text: "<"
       window_mode_value_text:
         type: text
-        font: ComicSansMs
-        font_size: 32
+        font: comic_neue
+        font_size: 37
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
@@ -288,16 +287,16 @@ panels:
 
       sfx_volume_label_text:
         type: text
-        font: ComicSansMs
-        font_size: 24
+        font: comic_neue
+        font_size: 28
         color: white
         parent: audio_column
         position: [CENTER, 60]
         text: "SFX VOLUME"
       sfx_volume_value_text:
         type: text
-        font: ComicSansMs
-        font_size: 24
+        font: comic_neue
+        font_size: 28
         color: white
         parent: audio_column
         position: [CENTER, 98]
@@ -311,16 +310,16 @@ panels:
 
       music_volume_label_text:
         type: text
-        font: ComicSansMs
-        font_size: 24
+        font: comic_neue
+        font_size: 28
         color: white
         parent: audio_column
         position: [CENTER, 220]
         text: "BGM VOLUME"
       music_volume_value_text:
         type: text
-        font: ComicSansMs
-        font_size: 24
+        font: comic_neue
+        font_size: 28
         color: white
         parent: audio_column
         position: [CENTER, 258]
@@ -483,7 +482,7 @@ panels:
         nine_slice: 10
       victory_title_text:
         type: text
-        font: Impact
+        font: anton
         font_size: 56
         color: [255, 215, 0]
         parent: victory_panel_bg
@@ -491,8 +490,8 @@ panels:
         text: "YOU WON!"
       victory_subtitle_text:
         type: text
-        font: ComicSansMs
-        font_size: 22
+        font: comic_neue
+        font_size: 25
         color: white
         parent: victory_panel_bg
         position: [CENTER, 140]
@@ -532,7 +531,7 @@ panels:
         nine_slice: 10
       gameover_title_text:
         type: text
-        font: Impact
+        font: anton
         font_size: 56
         color: [220, 60, 60]
         parent: gameover_panel_bg
@@ -540,8 +539,8 @@ panels:
         text: "GAME OVER"
       gameover_subtitle_text:
         type: text
-        font: ComicSansMs
-        font_size: 22
+        font: comic_neue
+        font_size: 25
         color: white
         parent: gameover_panel_bg
         position: [CENTER, 140]

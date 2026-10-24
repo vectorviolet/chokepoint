@@ -20,7 +20,7 @@ class BaseTower(RotatableObject):
         )
         self.assets     = assets
         self.audio      = audio
-        self._price_font = pygame.font.SysFont("ComicSansMs", 15)
+        self._price_font = pygame.font.Font(assets.font_path("comic_neue"), 17)
         self.tower_type  = tower_type
         self.row         = row
         self.col         = col

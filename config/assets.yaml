@@ -107,6 +107,13 @@ images:
   # ── Coin pickup (animated spritesheet, 4-frame horizontal strip) ──────
   coin_sheet:        {folder: coins, name: MonedaD}
 
+# Bundled fonts (SIL OFL, licenses next to them) -- open lookalikes of Impact
+# and Comic Sans MS, which can't be redistributed in release builds
+fonts:
+  anton:             {name: Anton-Regular}
+  comic_neue:        {name: ComicNeue-Regular}
+  comic_neue_bold:   {name: ComicNeue-Bold}
+
 # Folders of numbered frames played as video (fps from each folder's meta.yaml)
 sequences:
   publisher_splash:  {folder: branding, name: publisher_splash}
