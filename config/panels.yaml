@@ -133,7 +133,6 @@ panels:
           - credits_logo
           - credits_title
           - credits_dev_1
-          - kenney_logo
           - kenney_asset_1
           - kenney_asset_2
           - kenney_asset_3
@@ -141,6 +140,7 @@ panels:
           - other_asset_1
           - font_credit_1
           - font_credit_2
+          - music_credit_1
 
       credits_title:
         type: text
@@ -160,10 +160,6 @@ panels:
         position: [ CENTER, 240 ]
         size: [ 300, 300 ]
         asset: social_media
-      kenney_logo:
-        position: [CENTER, 550]
-        size: [ 144, 56 ]
-        asset: kenney_logo
       kenney_assets:
         layout: { direction: vertical, start: [CENTER, 630], spacing: 50 }
         objects:
@@ -188,6 +184,9 @@ panels:
           font_credit_2:
             extends: credit_text
             text: "COMIC NEUE FONT https://fonts.google.com/specimen/Comic+Neue"
+          music_credit_1:
+            extends: credit_text
+            text: "MUSIC Sakura Girl - Clown https://hypeddit.com/sakuragirl/clown"
 
       back:
         extends: btn-sm

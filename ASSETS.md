@@ -22,3 +22,7 @@ Both SIL Open Font License 1.1; license texts in `assets/fonts/`.
 - [Anton](https://fonts.google.com/specimen/Anton)
 
 - [Comic Neue](https://fonts.google.com/specimen/Comic+Neue)
+
+## Music
+
+- [Sakura Girl - Clown](https://hypeddit.com/sakuragirl/clown)

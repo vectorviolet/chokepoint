@@ -4,7 +4,6 @@ images:
   # ── Backgrounds & general ─────────────────────────────────────────────
   bg_main:           {folder: branding, name: bg}
   logo:              {folder: branding, name: logo}
-  kenney_logo:       {folder: branding, name: kenney_logo}
   social_media:      {folder: branding, name: social_media}
   heart:             {folder: hud, name: heart}
 
