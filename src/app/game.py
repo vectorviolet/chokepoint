@@ -21,7 +21,7 @@ from util.constants import TILE_SIZE
 from pygamine import Debug
 from ui import hp_bar
 from ui.menu_background import MenuBackground
-from pygamine import SplashScreen, ImageMedia
+from pygamine import SplashScreen, ImageMedia, ImageSequenceMedia
 from pygamine import SaveStore
 from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
@@ -128,9 +128,10 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
 
         self.load_panels(window_transform)
 
-        self.audio            = GameAudio(str(self.assets.sound_path("bg_music")))
+        self.audio            = GameAudio(str(self.assets.sound_path("bg_music")), autoplay=False)
         self.audio.set_music_volume(audio["music_volume"])
         self.audio.set_sfx_volume(audio["sfx_volume"])
+
         self.hud              = GameHUD(self.game_state, self.tower_config, self.panel_manager)
         self.tower_controller = TowerPlacementController(self.towers, self.tower_config, self.assets, self.audio, self.game_state, self.camera, self.panel_manager, self.tilemap.buildable_grid, self.tilemap.map_width, self.game_area)
 
@@ -140,7 +141,14 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self.menu_bg = MenuBackground(self._tilemap_surface, self.size)
         self.menu_overlay = pygame.Surface(self.size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
-        self.splash = SplashScreen([ImageMedia(self.assets.image_path("pygame_logo"), fade_ms=splash["fade_ms"], hold_ms=splash["hold_ms"])])
+        self.splash = SplashScreen([
+            ImageSequenceMedia(
+                folder_path=Path(self.assets.image_path("publisher_splash")).parent,
+                audio_path=self.assets.sound_path("publisher_splash"),
+                audio_manager=self.audio
+            ),
+            ImageMedia(self.assets.image_path("pygame_logo"), fade_ms=splash["fade_ms"], hold_ms=splash["hold_ms"]),
+        ], skip_completely=True)
         self._init_wave_manager()
 
         self.click_sound_path = self.assets.sound_path("click")
@@ -154,6 +162,11 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self._bind_settings_ui()
         self._build_menu_controllers()
         self._construction_complete = True
+
+    @override
+    def show_splash(self) -> None:
+        super().show_splash()
+        self.audio.play_music(str(self.assets.sound_path("bg_music")))
 
     def _bind_settings_ui(self) -> None:
         """(Re-)applies live audio/window state to the settings panel's

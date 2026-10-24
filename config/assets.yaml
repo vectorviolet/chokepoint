@@ -6,6 +6,7 @@ images:
   logo:              {folder: branding, name: logo}
   pygame_logo:       {folder: branding, name: pygame_logo}
   kenney_logo:       {folder: branding, name: kenney_logo}
+  publisher_splash:  {folder: branding/frames, name: "0001", extension: jpg}
   social_media:      {folder: branding, name: social_media}
   heart:             {folder: hud, name: heart}
 
@@ -109,6 +110,7 @@ images:
 
 sounds:
   bg_music:          {folder: "", name: bg, extension: mp3}
+  publisher_splash:  {folder: "", name: publisher_splash}
 
   # ── Menu navigation SFX ───────────────────────────────────────────────
   switch_up:         {folder: "", name: switch-b}
