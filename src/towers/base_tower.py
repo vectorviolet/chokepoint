@@ -10,6 +10,9 @@ UPGRADE_BTN_OFFSET = Vector2(-55, -105)
 SELL_BTN_OFFSET    = Vector2( 20, -110)
 BTN_SIZE           = (50, 50)
 
+# Share of everything spent on a tower (purchase plus upgrades) refunded on sale.
+SELL_REFUND = 0.7
+
 
 class BaseTower(RotatableObject):
     def __init__(self, tower_type: int, row: int, col: int,
@@ -51,7 +54,8 @@ class BaseTower(RotatableObject):
 
     @property
     def sell_price(self) -> int:
-        return self._config.prices[self.tower_type - 1][self.level - 1]
+        spent = sum(self._config.prices[self.tower_type - 1][:self.level])
+        return int(spent * SELL_REFUND)
 
     @property
     def upgrade_price(self) -> int:

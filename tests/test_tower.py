@@ -153,3 +153,17 @@ def test_sell_does_nothing_when_tower_is_not_selected(tower_config, assets):
 
     assert gs.money == 0
     assert tower in towers
+
+
+# ── sell price ───────────────────────────────────────────────────────────────
+
+def test_sell_price_refunds_seventy_percent_of_everything_spent(tower_config, assets):
+    from towers.base_tower import SELL_REFUND
+    missile_prices = tower_config.prices[1]
+    tower = make_tower(tower_config, assets, tower_type=2)
+
+    assert SELL_REFUND == 0.7
+    assert tower.sell_price == int(missile_prices[0] * 0.7)
+
+    tower.level = 3
+    assert tower.sell_price == int(sum(missile_prices[:3]) * 0.7)

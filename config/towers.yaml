@@ -2,13 +2,18 @@
 # speeds = milliseconds between shots (LOWER = faster fire). Type 4 uses speeds as movement.
 # shoot_sound = key into config/assets.yaml sounds; omit for silent towers (e.g. plane).
 #
+# Balance (2026-10-25, from headless whole-game simulations): gun-only,
+# missile/cannon-only and mixed builds can all clear wave 25; the mixed
+# build does best. Cost-efficiency (DPS per $): gun 0.20, missile L1 0.21,
+# cannon L1 0.15 -- missile/cannon trade raw efficiency for range and HP.
+#
 # Range reference (tile = 64 px):
 #   128 = 2.0 tiles   160 = 2.5 tiles   192 = 3.0 tiles
 #   224 = 3.5 tiles   256 = 4.0 tiles   288 = 4.5 tiles
 
 towers:
   - type: 1  # Rapid gun — cheap starter, low damage, short-medium range
-    prices:      [80]
+    prices:      [100]      # was 80: at 80 spamming it beat every other build
     max_level:   1
     ranges:      [160]
     damages:     [12]
@@ -17,7 +22,7 @@ towers:
     shoot_sound: tower_1_shoot
 
   - type: 2  # Homing missile — medium range, upgrades scale DPS up
-    prices:      [220, 480, 850]
+    prices:      [160, 340, 600]
     max_level:   3
     ranges:      [192, 224, 256]
     damages:     [40, 70, 120]
@@ -26,7 +31,7 @@ towers:
     shoot_sound: tower_2_shoot
 
   - type: 3  # Heavy cannon — long range artillery, slow heavy hits
-    prices:      [380, 780]
+    prices:      [280, 560]
     max_level:   2
     ranges:      [256, 288]
     damages:     [90, 170]
