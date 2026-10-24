@@ -5,6 +5,38 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] – 2026-10-25
+
+### Changed
+
+- Tower balance: Rapid gun $80 → $100, Missile $220/$480/$850 → $160/$340/$600, Cannon
+  $380/$780 → $280/$560. Spamming Rapid guns used to beat every other build, and builds without
+  them couldn't get past wave 8; now gun-only, missile/cannon and mixed builds can all win.
+- Selling refunds 70% of everything spent on a tower. It used to refund the full price of its
+  current level only, so moving a tower was free but selling an upgraded one lost what was paid
+  for its earlier levels.
+- The game plays the same at any frame rate. Gameplay runs in fixed steps, and every timer runs on
+  a game clock that stops while paused. At 60 fps the game used to run at about a third of its
+  speed.
+- x2 and x4 speed now speed up everything (tower fire, spawns, bombs) instead of only movement,
+  which made faster speeds much harder rather than just quicker.
+- The camera opens on the path entrance rather than an empty corner of the map.
+- Endless waves after wave 30 grow gradually from wave 30's mix instead of jumping to 73 Heavies.
+- New Windows app icon.
+
+### Added
+
+- Right click cancels tower placement and clears the selection.
+
+### Fixed
+
+- Starting at a saved window size other than 1920×1080 kept a 1920×1080 map view until the window
+  was resized: at 1280×720 the right side of the map, where enemies spawn, couldn't be reached, and
+  at 16:10 sizes a black band showed under the map.
+- The victory and game-over overlays left an uncovered strip on windows that aren't 16:9.
+- The game slowed down while placing a tower (the placement grid now draws 3.5× faster).
+- A plane could be selected and sold from the tile it launched from, after it had flown away.
+
 ## [0.2.1] – 2026-10-24
 
 ### Added
