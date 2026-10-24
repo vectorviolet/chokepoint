@@ -2,7 +2,7 @@
 <p>Chokepoint is a 2D tower defense game built with <a target="_blank" href="https://github.com/pygame-community/pygame-ce">pygame-ce</a>. Defend the path through 25 waves of escalating enemies &mdash; then keep going in endless mode &mdash; by buying, placing, and upgrading towers along a fixed Tiled-authored map.</p>
 <p><img style="max-width: 100%;" alt="Gameplay Preview" src="https://raw.githubusercontent.com/vectorviolet/chokepoint/main/docs/preview.gif"></p>
 <h2>Gameplay</h2>
-<p>You start with <strong>$200</strong> and <strong>10 lives</strong>. Buy towers from the HUD on the right, place them on the map, and upgrade them as you earn money from kills. Survive all 25 waves to win &mdash; clearing wave 25 opens a victory screen where you can play again, return to the main menu, or keep going in endless mode as waves keep escalating past 25. Enemy HP and reward scale +25% per wave; each wave's total payout funds roughly one upgrade.</p>
+<p>You start with <strong>$200</strong> and <strong>10 lives</strong>. Buy towers from the bar at the bottom of the screen, place them on the map, and upgrade them as you earn money from kills; selling a tower refunds 70% of everything you spent on it. Survive all 25 waves to win &mdash; clearing wave 25 opens a victory screen where you can play again, return to the main menu, or keep going in endless mode as waves keep escalating past 25. Enemy HP and reward scale +25% per wave; each wave's total payout funds roughly one upgrade.</p>
 <h3>Enemies</h3>
 <table border="1" style="width: 100%; border-collapse: collapse;">
   <thead>
@@ -83,21 +83,21 @@
       <td style="padding: 8px;">1</td>
       <td style="padding: 8px;">Rapid gun</td>
       <td style="padding: 8px;">1</td>
-      <td style="padding: 8px;">$80</td>
+      <td style="padding: 8px;">$100</td>
       <td style="padding: 8px;">Cheap starter &mdash; fast, low damage</td>
     </tr>
     <tr>
       <td style="padding: 8px;">2</td>
       <td style="padding: 8px;">Homing missile</td>
       <td style="padding: 8px;">3</td>
-      <td style="padding: 8px;">$220</td>
+      <td style="padding: 8px;">$160</td>
       <td style="padding: 8px;">Tracks targets; scales hard with upgrades</td>
     </tr>
     <tr>
       <td style="padding: 8px;">3</td>
       <td style="padding: 8px;">Heavy cannon</td>
       <td style="padding: 8px;">2</td>
-      <td style="padding: 8px;">$380</td>
+      <td style="padding: 8px;">$280</td>
       <td style="padding: 8px;">Long-range artillery, slow heavy hits</td>
     </tr>
     <tr>
@@ -109,6 +109,7 @@
     </tr>
   </tbody>
 </table>
+<p>Planes reach level 2 through a one-time $5000 upgrade that applies to every plane launched after it.</p>
 <p>All stats live in <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/towers.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/towers.yaml</code></a>, <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/enemies.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/enemies.yaml</code></a>, and <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/waves.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/waves.yaml</code></a> &mdash; tweak freely.</p>
 <h3>Controls</h3>
 <table border="1" style="width: 100%; border-collapse: collapse;">
@@ -120,16 +121,40 @@
   </thead>
   <tbody>
     <tr>
-      <td style="padding: 8px;">Select / place tower</td>
-      <td style="padding: 8px;">Left click</td>
+      <td style="padding: 8px;">Pick a tower to buy</td>
+      <td style="padding: 8px;">Click it in the bottom bar, or press 1&ndash;4</td>
     </tr>
     <tr>
-      <td style="padding: 8px;">Open tower upgrade panel</td>
-      <td style="padding: 8px;">Click a placed tower</td>
+      <td style="padding: 8px;">Place it</td>
+      <td style="padding: 8px;">Left click a green tile</td>
     </tr>
     <tr>
-      <td style="padding: 8px;">Cancel placement</td>
+      <td style="padding: 8px;">Cancel placement / deselect</td>
       <td style="padding: 8px;">Right click</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px;">Upgrade or sell a tower</td>
+      <td style="padding: 8px;">Click the tower, then the arrow (upgrade) or money bag (sell)</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px;">Start / pause the waves</td>
+      <td style="padding: 8px;">Space, or the play button</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px;">Game speed (x1 / x2 / x4)</td>
+      <td style="padding: 8px;">Speed button</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px;">Scroll the map</td>
+      <td style="padding: 8px;">Move the mouse to a screen edge</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px;">Zoom</td>
+      <td style="padding: 8px;">Mouse wheel</td>
+    </tr>
+    <tr>
+      <td style="padding: 8px;">Back to the main menu (saves the run)</td>
+      <td style="padding: 8px;">Esc, or the menu button</td>
     </tr>
   </tbody>
 </table>
@@ -159,7 +184,7 @@ config/                YAML: assets, panels, towers, enemies, waves
 assets/                Images, sounds, fonts, Tiled project</code></pre>
 <p>See <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/CLAUDE.md">CLAUDE.md</a> for the full architecture overview.</p>
 <h2>Credits</h2>
-<p>Art, UI, and sound from <a target="_blank" href="https://www.kenney.nl/">Kenney</a> &mdash; <a target="_blank" href="https://www.kenney.nl/assets/tower-defense-top-down">Tower Defense (Top-Down)</a>, <a target="_blank" href="https://www.kenney.nl/assets/ui-pack">UI Pack</a>, <a target="_blank" href="https://www.kenney.nl/assets/impact-sounds">Impact Sounds</a>, and <a target="_blank" href="https://www.kenney.nl/assets/smoke-particles">Smoke Particles</a>. Coin pickup art from <a target="_blank" href="https://laredgames.itch.io/gems-coins-free">La Red Games &mdash; Gems & Coins</a>.</p>
+<p>Art, UI, and sound from <a target="_blank" href="https://www.kenney.nl/">Kenney</a> &mdash; <a target="_blank" href="https://www.kenney.nl/assets/tower-defense-top-down">Tower Defense (Top-Down)</a>, <a target="_blank" href="https://www.kenney.nl/assets/ui-pack">UI Pack</a>, <a target="_blank" href="https://www.kenney.nl/assets/impact-sounds">Impact Sounds</a>, and <a target="_blank" href="https://www.kenney.nl/assets/smoke-particles">Smoke Particles</a>. Coin pickup art from <a target="_blank" href="https://laredgames.itch.io/gems-coins-free">La Red Games &mdash; Gems & Coins</a>. Fonts: <a target="_blank" href="https://fonts.google.com/specimen/Anton">Anton</a> and <a target="_blank" href="https://fonts.google.com/specimen/Comic+Neue">Comic Neue</a> (SIL OFL).</p>
 <h2>Contributing</h2>
 <ol>
   <li>Fork this repository.</li>

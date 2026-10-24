@@ -8,7 +8,7 @@ Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/
 
 ## Gameplay
 
-You start with **$200** and **10 lives**. Buy towers from the HUD on the right, place them on the map, and upgrade them as you earn money from kills. Survive all 25 waves to win — clearing wave 25 opens a victory screen where you can play again, return to the main menu, or keep going in endless mode as waves keep escalating past 25. Enemy HP and reward scale +25% per wave; each wave's total payout funds roughly one upgrade.
+You start with **$200** and **10 lives**. Buy towers from the bar at the bottom of the screen, place them on the map, and upgrade them as you earn money from kills; selling a tower refunds 70% of everything you spent on it. Survive all 25 waves to win — clearing wave 25 opens a victory screen where you can play again, return to the main menu, or keep going in endless mode as waves keep escalating past 25. Enemy HP and reward scale +25% per wave; each wave's total payout funds roughly one upgrade.
 
 ### Screenshots
 
@@ -33,10 +33,12 @@ Types 5–6 are armed: while advancing, they fire on the nearest ground tower in
 
 | # | Name           | Levels | Price (L1) | Behaviour                                |
 |---|----------------|--------|------------|------------------------------------------|
-| 1 | Rapid gun      | 1      | $80        | Cheap starter — fast, low damage         |
-| 2 | Homing missile | 3      | $220       | Tracks targets; scales hard with upgrades |
-| 3 | Heavy cannon   | 2      | $380       | Long-range artillery, slow heavy hits    |
+| 1 | Rapid gun      | 1      | $100       | Cheap starter — fast, low damage         |
+| 2 | Homing missile | 3      | $160       | Tracks targets; scales hard with upgrades |
+| 3 | Heavy cannon   | 2      | $280       | Long-range artillery, slow heavy hits    |
 | 4 | Plane          | 2      | $600       | Flies over the map, dropping bombs along its path |
+
+Planes reach level 2 through a one-time $5000 upgrade (the button under the speed toggle) that applies to every plane launched after it.
 
 All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves.yaml` — tweak freely.
 
@@ -44,9 +46,15 @@ All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves
 
 | Action | Input |
 |---|---|
-| Select / place tower | Left click |
-| Open tower upgrade panel | Click a placed tower |
-| Cancel placement | Right click |
+| Pick a tower to buy | Click it in the bottom bar, or press 1–4 |
+| Place it | Left click a green tile |
+| Cancel placement / deselect | Right click |
+| Upgrade or sell a tower | Click the tower, then the arrow (upgrade) or money bag (sell) |
+| Start / pause the waves | Space, or the play button |
+| Game speed (x1 / x2 / x4) | Speed button |
+| Scroll the map | Move the mouse to a screen edge |
+| Zoom | Mouse wheel |
+| Back to the main menu (saves the run) | Esc, or the menu button |
 
 ## Download
 
@@ -125,7 +133,7 @@ See [CLAUDE.md](CLAUDE.md) for the full architecture overview.
 
 ## Credits
 
-Art, UI, and sound from [Kenney](https://www.kenney.nl/) — [Tower Defense (Top-Down)](https://www.kenney.nl/assets/tower-defense-top-down), [UI Pack](https://www.kenney.nl/assets/ui-pack), [Impact Sounds](https://www.kenney.nl/assets/impact-sounds), and [Smoke Particles](https://www.kenney.nl/assets/smoke-particles). Coin pickup art from [La Red Games — Gems & Coins](https://laredgames.itch.io/gems-coins-free).
+Art, UI, and sound from [Kenney](https://www.kenney.nl/) — [Tower Defense (Top-Down)](https://www.kenney.nl/assets/tower-defense-top-down), [UI Pack](https://www.kenney.nl/assets/ui-pack), [Impact Sounds](https://www.kenney.nl/assets/impact-sounds), and [Smoke Particles](https://www.kenney.nl/assets/smoke-particles). Coin pickup art from [La Red Games — Gems & Coins](https://laredgames.itch.io/gems-coins-free). Fonts: [Anton](https://fonts.google.com/specimen/Anton) and [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) (SIL OFL). Full list in [ASSETS.md](ASSETS.md).
 
 ## Contributing
 

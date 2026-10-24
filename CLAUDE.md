@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Running the Game
 
 ```bash
-cd C:\Users\user\Desktop\projects\chokepoint
+cd chokepoint
 python __main__.py         # or: uv run python __main__.py
 ```
 
@@ -39,8 +39,8 @@ paths resolve in both. `config_loader` anchors to that root too.
 
 | Object | Class | Responsibility |
 |--------|-------|----------------|
-| `game_state` | `GameState` | Pure data (money, lives, speed, level, is_started, has_won); fires listener callbacks on money/level change |
-| `camera` | `Camera` | Edge-scroll camera for the 1536×1080 game area; applies world→screen offset to all drawn entities |
+| `game_state` | `GameState` | Pure data (money, lives, speed, level, is_started, has_won) plus the game clock `time_ms`; fires listener callbacks on money/lives/level change |
+| `camera` | `Camera` | Edge-scroll/zoom camera over the map; its viewport (`game_area`) is the whole canvas. Applies the world→screen offset to all drawn entities |
 | `assets` | `AssetManager` | Loads all images/sounds from `config/assets.yaml`; accessed via string keys everywhere |
 | `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "credits", "game"); switching is `panel_manager.current_panel = "name"` |
 | `tilemap` | `Tilemap` | 47×34 tile grid loaded from a Tiled `.tmx`; pre-rendered once after splash |
@@ -73,7 +73,7 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 ### Projectiles / IGameContext
 
-`Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.speed`, `.map_width`, `.map_height`, and `.increase_money()`. This avoids circular imports — projectiles never import `Game`.
+`Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.towers`, `.speed`, `.time_ms`, `.map_width`, `.map_height`, and `.increase_money()`. This avoids circular imports — projectiles never import `Game`.
 
 ### Rendering order (game panel)
 
@@ -91,7 +91,16 @@ Tilemap → towers + bullets → enemies → border lines → HUD → tower plac
 
 ### Coordinate system
 
-Tile size is 64 px. Map is 47×34 tiles = 3008×2176 px world space. The camera viewport is the 1536×1080 game area; the map is larger than the viewport, so the `Camera` edge-scrolls and zooms over it. HUD occupies 384 px on the right (x: 1536–1920). All entity positions are world-space center points stored as `pygame.math.Vector2`.
+Tile size is 64 px. Map is 47×34 tiles = 3008×2176 px world space. The camera viewport is the whole canvas (whatever window size is in use); the map is larger than it, so the `Camera` edge-scrolls and zooms over it, opening on the path entrance. The HUD floats over the map: counters top-left, buttons top-right, tower bar bottom-centre. All entity positions are world-space center points stored as `pygame.math.Vector2`.
+
+### Simulation timing
+
+Gameplay runs on a fixed tick, independent of the frame rate: `Game.update()` measures real frame time and `_update_game()` runs one `_tick()` per `TICK_MS` of it (`TICKS_PER_SECOND = 165` in `util/constants.py`, the cap the per-tick speeds were tuned at). Each tick advances `GameState.time_ms` by `TICK_MS × speed` while the game is started, then updates towers and enemies.
+
+- Per-tick motion (enemy/projectile/plane/bomb speeds in code and config) is multiplied by `speed`.
+- Every gameplay timer (spawn intervals, reloads, tank fire, fuses, flashes, wave delays) compares against game time (`game_state.time_ms`, `ctx.time_ms`, or an owner's `.now`), never `pygame.time.get_ticks()`, so pausing freezes it and x2/x4 runs it faster in step with motion.
+- Input-driven motion (camera edge scroll, menu background) follows real time instead.
+- Tests set game time directly (`gs.time_ms`, `ctx.time_ms`, `tower.now`); the `fake_ticks` fixture only drives the wall clock `update()` reads.
 
 ### Adding a new tower type
 
