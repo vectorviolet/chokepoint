@@ -92,8 +92,8 @@ panels:
       play_menu_title_text:
         type: text
         font: Impact
-        font_size: 48
-        color: white
+        font_size: 70
+        color: red
         position: [CENTER, 320]
         text: "PLAY"
 
@@ -150,8 +150,8 @@ panels:
       settings_title_text:
         type: text
         font: Impact
-        font_size: 48
-        color: white
+        font_size: 70
+        color: red
         position: [CENTER, 320]
         text: "SETTINGS"
 
