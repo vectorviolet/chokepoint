@@ -124,7 +124,7 @@ panels:
   credits:
     extends: [menu_chrome]
     objects:
-      scroller_logic:
+      credits_scroller:
         type: scrolling_panel
         position: [0, 200]   # visible viewport; content enters at its bottom
         size: [1920, 800]
@@ -139,6 +139,8 @@ panels:
           - kenney_asset_3
           - kenney_asset_4
           - other_asset_1
+          - font_credit_1
+          - font_credit_2
 
       credits_title:
         type: text
@@ -180,6 +182,12 @@ panels:
           other_asset_1:
             extends: credit_text
             text: "Gems & Coins https://laredgames.itch.io/gems-coins-free"
+          font_credit_1:
+            extends: credit_text
+            text: "ANTON FONT https://fonts.google.com/specimen/Anton"
+          font_credit_2:
+            extends: credit_text
+            text: "COMIC NEUE FONT https://fonts.google.com/specimen/Comic+Neue"
 
       back:
         extends: btn-sm

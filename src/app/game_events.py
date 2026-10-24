@@ -33,6 +33,7 @@ class GameEventsMixin:
             else:
                 self._start_new_game()
         elif self._activate(panel["credits"], event):
+            self.panel_manager["credits"]["credits_scroller"].reset()  # replay from the top
             self.panel_manager.current_panel = "credits"
         elif self._activate(panel["settings"], event):
             self.panel_manager.current_panel = "settings"

@@ -30,6 +30,14 @@ class FakeButton:
         self.state = state
 
 
+class FakeScroller:
+    def __init__(self):
+        self.resets = 0
+
+    def reset(self) -> None:
+        self.resets += 1
+
+
 class FakeAudio:
     def __init__(self):
         self.played = []
@@ -109,7 +117,10 @@ class FakeGame(GameEventsMixin):
                 "continue_game": FakeButton(), "new_game": FakeButton(),
                 "back": FakeButton(), "music_toggle_icon": FakeButton(),
             },
-            "credits": {"back": FakeButton(), "music_toggle_icon": FakeButton()},
+            "credits": {
+                "back": FakeButton(), "music_toggle_icon": FakeButton(),
+                "credits_scroller": FakeScroller(),
+            },
             "settings": {
                 "back": FakeButton(), "reset": FakeButton(),
                 "window_size_back_button": FakeButton(), "window_size_next_button": FakeButton(),
@@ -239,7 +250,7 @@ def test_main_menu_play_without_a_saved_game_starts_a_new_game():
     assert "_start_new_game" in game.calls
 
 
-def test_main_menu_contact_and_settings_and_exit():
+def test_main_menu_credits_and_settings_and_exit():
     game = FakeGame()
     game.panel_manager["main_menu"]["credits"].clicked = True
     game._handle_main_menu_event(click_up())
@@ -286,6 +297,18 @@ def test_play_menu_back_returns_to_main_menu():
 
 
 # ── credits ──────────────────────────────────────────────────────────────────
+
+def test_opening_credits_restarts_the_scroll_each_time():
+    game = FakeGame()
+    scroller = game.panel_manager["credits"]["credits_scroller"]
+    game.panel_manager["main_menu"]["credits"].clicked = True
+
+    game._handle_main_menu_event(click_up())
+    game.panel_manager.current_panel = "main_menu"
+    game._handle_main_menu_event(click_up())
+
+    assert scroller.resets == 2
+
 
 def test_credits_back_returns_to_main_menu():
     game = FakeGame()
