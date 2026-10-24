@@ -8,10 +8,6 @@ gameplay:
   starting_lives: 10
   game_area: [0, 0, 1920, 1080]   # [x, y, width, height]
 
-splash:
-  fade_ms: 1500
-  hold_ms: 1000
-
 camera:
   edge_scroll_zone: 30
   speed: 10

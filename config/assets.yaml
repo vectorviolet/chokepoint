@@ -4,7 +4,6 @@ images:
   # ── Backgrounds & general ─────────────────────────────────────────────
   bg_main:           {folder: branding, name: bg}
   logo:              {folder: branding, name: logo}
-  pygame_logo:       {folder: branding, name: pygame_logo}
   kenney_logo:       {folder: branding, name: kenney_logo}
   social_media:      {folder: branding, name: social_media}
   heart:             {folder: hud, name: heart}
@@ -114,13 +113,8 @@ fonts:
   comic_neue:        {name: ComicNeue-Regular}
   comic_neue_bold:   {name: ComicNeue-Bold}
 
-# Folders of numbered frames played as video (fps from each folder's meta.yaml)
-sequences:
-  publisher_splash:  {folder: branding, name: publisher_splash}
-
 sounds:
   bg_music:          {folder: "", name: bg, extension: mp3}
-  publisher_splash:  {folder: "", name: publisher_splash}
 
   # ── Menu navigation SFX ───────────────────────────────────────────────
   switch_up:         {folder: "", name: switch-b}
