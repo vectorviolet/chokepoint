@@ -134,6 +134,31 @@ See [CLAUDE.md](CLAUDE.md) for the full architecture overview.
 
 Art, UI, and sound from [Kenney](https://www.kenney.nl/) — [Tower Defense (Top-Down)](https://www.kenney.nl/assets/tower-defense-top-down), [UI Pack](https://www.kenney.nl/assets/ui-pack), [Impact Sounds](https://www.kenney.nl/assets/impact-sounds), and [Smoke Particles](https://www.kenney.nl/assets/smoke-particles). Coin pickup art from [La Red Games — Gems & Coins](https://laredgames.itch.io/gems-coins-free). Fonts: [Anton](https://fonts.google.com/specimen/Anton) and [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) (SIL OFL). Music: [Sakura Girl - Clown](https://hypeddit.com/sakuragirl/clown). Full list with licenses in [CREDITS.md](CREDITS.md).
 
+## Asset sources
+
+Every file under `assets/` is listed in `assets/SOURCES.yaml` with its source:
+
+- **A pack**, given by its slug (for example `kenney-ui-pack`). The entry also gives the file's
+  path inside that pack as `original`. Images built from several pack files list them under
+  `composited_from` instead. Edited pack files say what changed under `modified`.
+- **`own`**, for files made for this game.
+- **`unknown`**, for files whose origin or license isn't confirmed yet. Each needs a `todo` that
+  says what to do; the credits list them as "not yet verified".
+
+The `packs` section names each pack, its author, URL, license and what the game uses it for.
+Each pack's own license text is in `licenses/assets/<slug>.txt`, and every build ships it.
+
+When you add, replace or remove an asset:
+
+1. Update `assets/SOURCES.yaml`, and add `licenses/assets/<slug>.txt` for any new pack.
+2. Run `uv run python scripts/gen_credits.py` to regenerate CREDITS.md's asset section. Don't
+   edit that section by hand.
+3. Run the tests. `tests/test_sources.py` fails if a file is missing from `SOURCES.yaml`, if a
+   listed file doesn't exist, if a pack has no license text, or if CREDITS.md is out of date.
+
+Only ship assets whose license allows bundling them in a distributed game; resolve every
+`unknown` entry before the next release.
+
 ## Code style
 
 - **Formatting:** Black-compatible, enforced by `ruff format` (line length 88, double quotes,

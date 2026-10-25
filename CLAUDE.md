@@ -19,6 +19,13 @@ uv run --group dev pytest tests/ --cov --cov-report=term  # with coverage
 `tests/conftest.py` runs pygame headless (`SDL_VIDEODRIVER=dummy`) and points every
 `SaveStore` at a temporary folder (the autouse `saves_in_tmp` fixture).
 
+**Asset sources:** every file under `assets/` must be listed in `assets/SOURCES.yaml` with its
+source (a pack, `own`, or `unknown` plus a `todo`) and its original file name. Each source needs
+its license text in `licenses/assets/<source>.txt`. CREDITS.md's asset section is generated from
+`SOURCES.yaml` by `scripts/gen_credits.py`; don't edit it by hand (the Music, Software and
+Trademarks sections around it are hand-written). `tests/test_sources.py` enforces all of this.
+Never add an asset whose origin and license you can't state.
+
 **Code style:** run `uv run --group dev ruff format .` and `uv run --group dev ruff check .`
 before every commit. Formatting is Black-compatible (`[tool.ruff.format]` in `pyproject.toml`);
 lint is pyflakes-only (`[tool.ruff.lint]`). CI fails on `ruff format --check .` and on lint
