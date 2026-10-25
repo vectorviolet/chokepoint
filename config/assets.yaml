@@ -115,14 +115,14 @@ fonts:
   comic_neue_bold:   {name: ComicNeue-Bold}
 
 sounds:
-  bg_music:          {folder: "", name: bg, extension: mp3}
+  bg_music:          {folder: music, name: bg, extension: mp3}
 
   # ── Menu navigation SFX ───────────────────────────────────────────────
-  switch_up:         {folder: "", name: switch-b}
-  switch_down:       {folder: "", name: switch-a}
-  click:             {folder: "", name: click-a}
+  switch_up:         {folder: sfx, name: switch-b}
+  switch_down:       {folder: sfx, name: switch-a}
+  click:             {folder: sfx, name: click-a}
 
   # ── Tower attack SFX (referenced by config/towers.yaml shoot_sound:) ──
-  tower_1_shoot:     {folder: "", name: impactGeneric_light_000}
-  tower_2_shoot:     {folder: "", name: impactMining_000}
-  tower_3_shoot:     {folder: "", name: impactMetal_heavy_000}
+  tower_1_shoot:     {folder: sfx, name: impactGeneric_light_000}
+  tower_2_shoot:     {folder: sfx, name: impactMining_000}
+  tower_3_shoot:     {folder: sfx, name: impactMetal_heavy_000}

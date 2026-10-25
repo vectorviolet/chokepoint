@@ -333,26 +333,26 @@ files:
   "images/towers/tower4shadow2.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile293.png"
-  "sounds/bg.mp3":
+  "sounds/music/bg.mp3":
     source: music-sakura-girl-clown
     original: "Clown"
     note: "byte-identical to the artist's Hypeddit download (Sakura Girl - Clown.mp3); the SoundCloud track's license field is cc-by"
-  "sounds/click-a.ogg":
+  "sounds/sfx/click-a.ogg":
     source: kenney-ui-pack
     original: "Sounds/click-a.ogg"
-  "sounds/impactGeneric_light_000.ogg":
+  "sounds/sfx/impactGeneric_light_000.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactGeneric_light_000.ogg"
-  "sounds/impactMetal_heavy_000.ogg":
+  "sounds/sfx/impactMetal_heavy_000.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactMetal_heavy_000.ogg"
-  "sounds/impactMining_000.ogg":
+  "sounds/sfx/impactMining_000.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactMining_000.ogg"
-  "sounds/switch-a.ogg":
+  "sounds/sfx/switch-a.ogg":
     source: kenney-ui-pack
     original: "Sounds/switch-a.ogg"
-  "sounds/switch-b.ogg":
+  "sounds/sfx/switch-b.ogg":
     source: kenney-ui-pack
     original: "Sounds/switch-b.ogg"
   "maps/tiled_project.tiled-project":
