@@ -4,7 +4,8 @@ images:
   # ── Backgrounds & general ─────────────────────────────────────────────
   bg_main:           {folder: branding, name: bg}
   logo:              {folder: branding, name: logo}
-  # Platform logos shipped with pygamine (src/pygamine/pygamine/branding)
+  # Logos shipped with pygamine (src/pygamine/pygamine/branding)
+  vv_lockup:         {source: branding, folder: vectorviolet, name: lockup-light-glitch}  # white artwork, for dark backgrounds
   github_icon:       {source: branding, folder: github, name: GitHub_Invertocat_White}
   itch_icon:         {source: branding, folder: itchio/logos, name: itchio-logo-textless-white}
   heart:             {folder: hud, name: heart}

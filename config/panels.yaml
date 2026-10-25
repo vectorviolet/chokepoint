@@ -52,7 +52,7 @@ object_templates:
   credits_entry:
     type: text
     font: comic_neue
-    font_size: 46
+    font_size: 38
     color: white
 
 panels:
@@ -136,6 +136,7 @@ panels:
         size: [1920, 800]
         speed: 90            # px/s
         targets:
+          - credits_lockup
           - credits_title
           - credits_dev_title
           - credits_dev
@@ -159,98 +160,104 @@ panels:
           - credits_fonts
           - credits_fonts_2
 
+      # "a VECTORVIOLET game" -- pygamine's lockup; the file's built-in clear
+      # space puts the visible logo at ~700x63 inside this 880x120 box.
+      credits_lockup:
+        position: [CENTER, 0]
+        size: [880, 120]
+        asset: vv_lockup
       credits_title:
         type: text
         font: anton
         font_size: 70
-        position: [CENTER, 0]
+        position: [CENTER, 120]
         text: "CREDITS"
         color: white
       credits_dev_title:
         extends: credits_heading
-        position: [CENTER, 130]
+        position: [CENTER, 250]
         text: "Developer"
       credits_dev:
         extends: credits_entry
-        position: [CENTER, 172]
+        position: [CENTER, 292]
         text: "Umutcan Ekinci"
       # Profile links: platform icon + username, the pair centred as a row
-      # (icons right-aligned at x=837, names start at x=854).
+      # (icons right-aligned at x=859, names start at x=873).
       credits_github_icon:
-        position: [786, 257]
-        size: [51, 50]
+        position: [817, 364]
+        size: [42, 41]
         asset: github_icon
       credits_github_name:
         extends: credits_entry
-        position: [854, 255]
+        position: [873, 362]
         text: "umutcanekinci"
       credits_itch_icon:
-        position: [781, 322]
-        size: [56, 50]
+        position: [813, 418]
+        size: [46, 41]
         asset: itch_icon
       credits_itch_name:
         extends: credits_entry
-        position: [854, 320]
+        position: [873, 416]
         text: "umutcanekinci"
       credits_art_title:
         extends: credits_heading
-        position: [CENTER, 420]
+        position: [CENTER, 500]
         text: "Art"
       credits_art:
         extends: credits_entry
-        position: [CENTER, 462]
+        position: [CENTER, 542]
         text: "Kenney - Tower Defense (Top-Down)"
       credits_ui_title:
         extends: credits_heading
-        position: [CENTER, 555]
+        position: [CENTER, 622]
         text: "UI"
       credits_ui:
         extends: credits_entry
-        position: [CENTER, 597]
+        position: [CENTER, 664]
         text: "Kenney - UI Pack"
       credits_ui_2:
         extends: credits_entry
-        position: [CENTER, 652]
+        position: [CENTER, 710]
         text: "La Red Games - Gems / Coins Free"
       credits_sound_title:
         extends: credits_heading
-        position: [CENTER, 745]
+        position: [CENTER, 790]
         text: "Sound"
       credits_sound:
         extends: credits_entry
-        position: [CENTER, 787]
+        position: [CENTER, 832]
         text: "Kenney - Impact Sounds"
       credits_vfx_title:
         extends: credits_heading
-        position: [CENTER, 880]
+        position: [CENTER, 912]
         text: "VFX"
       credits_vfx:
         extends: credits_entry
-        position: [CENTER, 922]
+        position: [CENTER, 954]
         text: "Kenney - Smoke Particles"
       credits_music_title:
         extends: credits_heading
-        position: [CENTER, 1015]
+        position: [CENTER, 1034]
         text: "Music"
       credits_music:
         extends: credits_entry
-        position: [CENTER, 1057]
+        position: [CENTER, 1076]
         text: "Sakura Girl - Clown"
       credits_music_2:
         extends: credits_entry
-        position: [CENTER, 1112]
+        position: [CENTER, 1122]
         text: "hypeddit.com/sakuragirl/clown"
       credits_fonts_title:
         extends: credits_heading
-        position: [CENTER, 1205]
+        position: [CENTER, 1202]
         text: "Fonts"
       credits_fonts:
         extends: credits_entry
-        position: [CENTER, 1247]
+        position: [CENTER, 1244]
         text: "Anton — Vernon Adams"
       credits_fonts_2:
         extends: credits_entry
-        position: [CENTER, 1302]
+        position: [CENTER, 1290]
         text: "Comic Neue — Craig Rozynski"
 
       back:
