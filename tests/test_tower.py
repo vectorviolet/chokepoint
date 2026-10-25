@@ -1,4 +1,3 @@
-import pytest
 from pygame.math import Vector2
 
 from domain.game_state import GameState

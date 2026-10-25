@@ -10,7 +10,6 @@ cycle_resolution, on_exit_request, ...) are stubbed here and log to
 Game() (which would load the actual map/panels/assets for no benefit)."""
 
 import pygame
-import pytest
 
 from app.game_events import GameEventsMixin
 from domain.game_state import GameState

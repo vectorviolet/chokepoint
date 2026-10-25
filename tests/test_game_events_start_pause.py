@@ -7,7 +7,6 @@ a real Game() would load the actual map/panels/assets for no benefit here.
 from types import SimpleNamespace
 
 import pygame
-import pytest
 
 from app.game_events import GameEventsMixin
 

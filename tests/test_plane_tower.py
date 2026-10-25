@@ -1,8 +1,5 @@
-from types import SimpleNamespace
 
 import pygame
-import pytest
-from pygame.math import Vector2
 
 from domain.game_state import GameState
 from gameplay.combat.projectile import Bomb

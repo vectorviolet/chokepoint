@@ -90,7 +90,6 @@ def test_multiple_listeners_on_same_event_all_fire():
 # ── game clock ───────────────────────────────────────────────────────────────
 
 def test_tick_does_not_advance_game_time_while_paused():
-    from util.constants import TICK_MS
     gs = GameState(start_money=0, start_lives=1)
 
     gs.tick()

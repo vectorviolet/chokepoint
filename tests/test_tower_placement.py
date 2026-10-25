@@ -1,5 +1,4 @@
 import pygame
-import pytest
 from pygame import Rect
 
 from domain.game_state import GameState

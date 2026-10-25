@@ -6,8 +6,6 @@ provide (_init_wave_manager, _set_*_popup_active, ...) are stubbed."""
 
 from types import SimpleNamespace
 
-import pygame
-import pytest
 from pygame.math import Vector2
 
 from app.game_save import GameSaveMixin

@@ -1,4 +1,3 @@
-import pytest
 from pygame.math import Vector2
 
 from gameplay.combat.enemy import Enemy

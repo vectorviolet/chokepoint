@@ -1,4 +1,3 @@
-import pygame
 from pygame.math import Vector2
 
 from util.config_loader import load_wave_compositions
