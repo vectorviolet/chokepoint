@@ -47,7 +47,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears |
 | `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners |
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference |
-| `menu_bg` | `MenuBackground` | Pre-renders tilemap at 2× and slowly pans it behind menu panels |
+| `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
 
 ### Panel / UI system
 
@@ -93,13 +93,33 @@ Tilemap → towers + bullets → enemies → border lines → HUD → tower plac
 
 Tile size is 64 px. Map is 47×34 tiles = 3008×2176 px world space. The camera viewport is the whole canvas (whatever window size is in use); the map is larger than it, so the `Camera` edge-scrolls and zooms over it, opening on the path entrance. The HUD floats over the map: counters top-left, buttons top-right, tower bar bottom-centre. All entity positions are world-space center points stored as `pygame.math.Vector2`.
 
+### Battle simulation and the menu demo
+
+The battle itself -- ticking towers, enemies and waves, and drawing them
+through a camera -- lives in `BattleSimulation` (`src/gameplay/battle.py`).
+`Game` inherits it for the real game. `MenuDemo` (`src/gameplay/menu_demo.py`)
+inherits it too, as a separate world shown behind the menus:
+
+- It has its own `GameState`, towers, enemies, wave manager and camera, and it shares
+  only the tilemap and assets with the real game. It has no save store, its
+  towers play no sound, and enemies that escape cost nothing.
+- Each run is random. Towers of every type stand along the path, pre-upgraded. A run
+  starts at a mid-game wave, pre-warmed while the screen is black, and its waves
+  are denser than the real game's. Planes fly bombing runs. The camera eases
+  between groups of enemies.
+- After a few waves, or when the defence is worn down, it fades out and a new run starts.
+
+Hooks: `_on_enemy_escaped()` handles lives (`Game` adds game over and deletes the
+save). `_on_tower_positions()` passes the occupied build tiles on (`Game` gives
+them to the placement controller).
+
 ### Simulation timing
 
 Gameplay runs on a fixed tick, independent of the frame rate: `Game.update()` measures real frame time and `_update_game()` runs one `_tick()` per `TICK_MS` of it (`TICKS_PER_SECOND = 165` in `util/constants.py`, the cap the per-tick speeds were tuned at). Each tick advances `GameState.time_ms` by `TICK_MS × speed` while the game is started, then updates towers and enemies.
 
 - Per-tick motion (enemy/projectile/plane/bomb speeds in code and config) is multiplied by `speed`.
 - Every gameplay timer (spawn intervals, reloads, tank fire, fuses, flashes, wave delays) compares against game time (`game_state.time_ms`, `ctx.time_ms`, or an owner's `.now`), never `pygame.time.get_ticks()`, so pausing freezes it and x2/x4 runs it faster in step with motion.
-- Input-driven motion (camera edge scroll, menu background) follows real time instead.
+- Input-driven motion (camera edge scroll, the menu demo's camera) follows real time instead.
 - Tests set game time directly (`gs.time_ms`, `ctx.time_ms`, `tower.now`); the `fake_ticks` fixture only drives the wall clock `update()` reads.
 
 ### Adding a new tower type

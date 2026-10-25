@@ -182,6 +182,38 @@ def test_every_screen_and_game_overlay_draws(make_game, fake_ticks):
     game.draw()
 
 
+# ── the main menu's live background ─────────────────────────────────────────
+
+def test_the_menu_demo_plays_in_a_world_of_its_own(make_game, fake_ticks, tmp_path):
+    game = make_game()
+    game.panel_manager.current_panel = "main_menu"
+    before = snapshot(game)
+    demo_state, demo_time = game.menu_demo.game_state, game.menu_demo.game_state.time_ms
+
+    play(game, fake_ticks, seconds=10, draw_every=10)
+
+    # The demo played on (or already began a new run)...
+    assert game.menu_demo.game_state is not demo_state or demo_state.time_ms > demo_time
+    assert game.menu_demo.towers is not game.towers
+    assert game.menu_demo.enemies is not game.enemies
+    # ...while the player's game didn't move.
+    assert snapshot(game) == before
+    assert not (tmp_path / "save.json").exists()
+
+
+def test_play_after_watching_the_menu_demo_starts_a_fresh_game(make_game, fake_ticks):
+    game = make_game()
+    game.panel_manager.current_panel = "main_menu"
+    play(game, fake_ticks, seconds=5)
+
+    game._start_new_game()
+
+    assert game.panel_manager.current_panel == "game"
+    assert game.towers == [] and game.enemies == []
+    assert (game.game_state.level, game.game_state.time_ms) == (1, 0.0)
+    assert game.game_state.money == game._starting_money
+
+
 # ── leaving and coming back ─────────────────────────────────────────────────
 
 def test_leaving_a_game_saves_it_and_continue_restores_it(make_game, fake_ticks):

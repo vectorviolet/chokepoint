@@ -19,8 +19,6 @@ from util.config_loader import load_tower_config
 from pygamine import Camera
 from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS
 from pygamine import Debug
-from ui import hp_bar
-from ui.menu_background import MenuBackground
 from pygamine import SplashScreen, standard_splash_media
 from pygamine import SaveStore
 from pygamine import GameAudio
@@ -32,6 +30,8 @@ from gameplay.tilemap import Tilemap
 from gameplay.combat.tower_placement import TowerPlacementController
 from towers import BaseTower, GroundTower
 from gameplay.combat.wave_manager import WaveManager
+from gameplay.battle import BattleSimulation
+from gameplay.menu_demo import MenuDemo
 
 WINDOW_MODE_LABELS = {
     "fullscreen": "FULLSCREEN",
@@ -60,11 +60,13 @@ _GAMEOVER_POPUP_OBJECTS = (
 )
 
 
-class Game(GameEventsMixin, GameSaveMixin, Application):
+class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     """Top-level orchestrator.
 
     Responsibilities: wiring subsystems, routing input per panel,
-    and running the update/draw pipeline.
+    and running the update/draw pipeline. The battle itself (ticking towers,
+    enemies and waves, and drawing them) is BattleSimulation's, shared with
+    the main menu's live background.
     """
 
     # ── construction ──────────────────────────────────────────────────────────
@@ -140,10 +142,8 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self.hud              = GameHUD(self.game_state, self.tower_config, self.panel_manager)
         self.tower_controller = TowerPlacementController(self.towers, self.tower_config, self.assets, self.audio, self.game_state, self.camera, self.panel_manager, self.tilemap.buildable_grid, self.tilemap.map_width, self.game_area)
 
-        # Cached (not cheap -- iterates every tile): reused by _reflow_panels()
-        # to rebuild menu_bg at the new size without re-rendering the tilemap.
-        self._tilemap_surface = self.tilemap.pre_render()
-        self.menu_bg = MenuBackground(self._tilemap_surface, self.size)
+        # Behind the menus: a battle playing itself, in a world of its own.
+        self.menu_demo = MenuDemo(self.tilemap, self.assets, self.tower_config, self.size)
         self.menu_overlay = pygame.Surface(self.size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
         self.splash = SplashScreen(standard_splash_media(self.audio), skip_completely=True)
@@ -272,26 +272,18 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self._refresh_music_volume_label()
         self._save_settings()
 
-    # ── IGameContext interface ────────────────────────────────────────────────
+    # ── BattleSimulation hooks ───────────────────────────────────────────────
 
-    @property
-    def speed(self) -> int:
-        return self.game_state.speed
+    @override
+    def _on_tower_positions(self, positions: set[tuple]) -> None:
+        self.tower_controller.tower_positions = positions
 
-    @property
-    def time_ms(self) -> float:
-        return self.game_state.time_ms
-
-    @property
-    def map_width(self) -> int:
-        return self.tilemap.map_width
-
-    @property
-    def map_height(self) -> int:
-        return self.tilemap.map_height
-
-    def increase_money(self, amount: int) -> None:
-        self.game_state.increase_money(amount)
+    @override
+    def _on_enemy_escaped(self, enemy) -> None:
+        super()._on_enemy_escaped(enemy)
+        if self.game_state.lives == 0 and not self._gameover_popup_open:
+            self.save_store.delete()  # a lost run isn't continuable
+            self._trigger_game_over()
 
     def _show_path_entrance(self) -> None:
         """Point the camera at where enemies spawn -- the map's top-left
@@ -373,7 +365,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         self._bind_settings_ui()
         self._build_menu_controllers()
         self._sync_game_ui()
-        self.menu_bg = MenuBackground(self._tilemap_surface, new_size)
+        self.menu_demo.resize(new_size)
         self.menu_overlay = pygame.Surface(new_size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
 
@@ -386,7 +378,7 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         if self.panel_manager.current_panel == "game":
             self._update_game(frame_ms)
         else:
-            self.menu_bg.update(frame_ms / TICK_MS)
+            self.menu_demo.update(frame_ms)
         if self.panel_manager.current_panel == "settings":
             self._refresh_window_mode_label()  # picks up F11-triggered mode changes
 
@@ -409,44 +401,6 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
             self._tick_backlog_ms -= TICK_MS
             self._tick()
 
-    def _tick(self) -> None:
-        """One fixed simulation step: game time first, then everything
-        that reads it."""
-        self.game_state.tick()
-        self._update_towers()
-        self._update_enemies()
-
-    def _update_towers(self) -> None:
-        self.towers[:] = [t for t in self.towers if not t.should_remove()]
-        self.tower_controller.tower_positions = set()
-        for tower in self.towers:
-            tower.update(self.game_state, self.enemies)
-            pos = tower.get_blocking_position()
-            if pos:
-                self.tower_controller.tower_positions.add(pos)
-            for bullet in tower.bullets:
-                if self.game_state.is_started:
-                    bullet.update(self)
-
-    def _update_enemies(self) -> None:
-        if self.wave_manager:
-            self.wave_manager.update(self.enemies, self.game_state)
-        for enemy in list(self.enemies):  # copy: reaching the end removes from the list
-            if enemy.reached_end():
-                self.enemies.remove(enemy)
-                self.game_state.decrease_lives(enemy.damage)
-                if self.game_state.lives == 0 and not self._gameover_popup_open:
-                    self.save_store.delete()  # a lost run isn't continuable
-                    self._trigger_game_over()
-                continue
-            if not self.game_state.is_started:
-                continue
-            enemy.move(self.game_state.speed)
-            if hasattr(enemy, "update_combat"):
-                enemy.update_combat(self)
-                for bullet in list(enemy.bullets):
-                    bullet.update(self)
-
     # ── event handling ────────────────────────────────────────────────────────
 
     @override
@@ -468,38 +422,16 @@ class Game(GameEventsMixin, GameSaveMixin, Application):
         if self.panel_manager.current_panel == "game":
             self._draw_game()
         else:
-            self.menu_bg.draw(self.window)
+            self.menu_demo.draw(self.window)
             self.window.blit(self.menu_overlay, (0, 0))
         self.panel_manager.draw(self.window)
         if self.panel_manager.current_panel == "game":
             self.tower_controller.draw_shortcuts(self.window)
 
     def _draw_game(self) -> None:
-        def _draw_tilemap(self) -> None:
-            self.tilemap.draw(self.window, self.camera)
-
-        def _draw_towers(self) -> None:
-            for tower in self.towers:
-                tower.draw(self.game_state, self.camera, self.window)
-                for bullet in tower.bullets:
-                    self.camera.draw(self.window, bullet)
-                hp_bar.draw(self.window, self.camera, tower.position, tower.hp, tower.maxHP,
-                            force=tower is self.game_state.selected_tower)
-
-        def _draw_enemies(self) -> None:
-            for enemy in self.enemies:
-                self.camera.draw(self.window, enemy)
-                if hasattr(enemy, "draw_muzzle"):
-                    enemy.draw_muzzle(self.window, self.camera)
-                    for bullet in enemy.bullets:
-                        self.camera.draw(self.window, bullet)
-                hp_bar.draw(self.window, self.camera, enemy.position, enemy.hp, enemy.maxHP)
-
         old_clip = self.window.get_clip()
         self.window.set_clip(self.game_area)
-        _draw_tilemap(self)
-        _draw_towers(self)
-        _draw_enemies(self)
+        self._draw_battle(self.window, self.camera)
         self.tower_controller.draw(self.window, self.mouse.position)
         self._draw_selected_tower_ui()
         self.window.set_clip(old_clip)

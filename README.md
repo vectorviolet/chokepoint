@@ -119,9 +119,9 @@ The workflow builds on each OS, zips the bundle, attaches all three to a GitHub 
 __main__.py            Entry point — injects src/ + src/pygamine/ into sys.path
 src/app/game.py        Game class — wires all subsystems
 src/domain/            Pure data (GameState, protocols)
-src/gameplay/          Combat, tilemap, enemies, projectiles
+src/gameplay/          Battle simulation, combat, tilemap, menu demo
 src/towers/            Tower hierarchy and factory
-src/ui/                HUD, HP bars, menu background
+src/ui/                HUD, HP bars
 src/util/              Config loaders, constants
 src/pygamine/       Engine submodule (Application, Animator, PanelLoaderExt, ...)
 config/                YAML: assets, panels, towers, enemies, waves

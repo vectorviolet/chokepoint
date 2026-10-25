@@ -216,24 +216,23 @@ def test_reflow_camera_updates_game_area_and_clamps_the_camera():
 
 # ── update dispatch ──────────────────────────────────────────────────────────
 
-def test_update_on_a_menu_panel_pans_the_menu_background_by_elapsed_ticks(fake_ticks):
+def test_update_on_a_menu_panel_runs_the_menu_demo_by_elapsed_real_time(fake_ticks):
     game = make_game()
     game.panel_manager.current_panel = "main_menu"
-    game.menu_bg = SimpleNamespace(update=Spy())
+    game.menu_demo = SimpleNamespace(update=Spy())
 
     fake_ticks["t"] = 1000
     game.update()  # first frame: nothing elapsed yet
-    fake_ticks["t"] = 1000 + 3 * TICK_MS
+    fake_ticks["t"] = 1040
     game.update()
 
-    assert game.menu_bg.update.calls[0] == (0.0,)
-    assert game.menu_bg.update.calls[1][0] == pytest.approx(3.0, abs=0.01)
+    assert game.menu_demo.update.calls == [(0.0,), (40.0,)]
 
 
 def test_update_on_settings_also_refreshes_the_window_mode_label():
     game = make_game()
     game.panel_manager.current_panel = "settings"
-    game.menu_bg = SimpleNamespace(update=Spy())
+    game.menu_demo = SimpleNamespace(update=Spy())
     game._refresh_window_mode_label = Spy()
 
     game.update()
@@ -501,16 +500,16 @@ def test_draw_on_the_game_panel_calls_draw_game_and_shortcuts():
     assert len(game.tower_controller.draw_shortcuts.calls) == 1
 
 
-def test_draw_on_a_menu_panel_draws_the_menu_background_and_overlay():
+def test_draw_on_a_menu_panel_draws_the_menu_demo_and_overlay():
     game = make_game()
     game.panel_manager.current_panel = "main_menu"
     game.window = pygame.Surface((100, 100))
-    game.menu_bg = SimpleNamespace(draw=Spy())
+    game.menu_demo = SimpleNamespace(draw=Spy())
     game.menu_overlay = pygame.Surface((100, 100), pygame.SRCALPHA)
 
     game.draw()
 
-    assert len(game.menu_bg.draw.calls) == 1
+    assert len(game.menu_demo.draw.calls) == 1
 
 
 def test_draw_selected_tower_ui_is_a_no_op_with_nothing_selected():
