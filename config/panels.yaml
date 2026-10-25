@@ -152,9 +152,13 @@ panels:
           - credits_music_title
           - credits_music
           - credits_music_2
+          - credits_music_3
           - credits_fonts_title
           - credits_fonts
           - credits_fonts_2
+          - credits_built_title
+          - credits_built
+          - credits_built_2
           - credits_github_icon
           - credits_github_name
           - credits_itch_icon
@@ -229,36 +233,52 @@ panels:
         extends: credits_entry
         position: [CENTER, 994]
         text: "hypeddit.com/sakuragirl/clown"
+      credits_music_3:
+        extends: credits_entry
+        position: [CENTER, 1040]
+        text: "Licensed under CC BY 3.0"
       credits_fonts_title:
         extends: credits_heading
-        position: [CENTER, 1074]
+        position: [CENTER, 1120]
         text: "Fonts"
       credits_fonts:
         extends: credits_entry
-        position: [CENTER, 1116]
-        text: "Anton — Vernon Adams"
+        position: [CENTER, 1162]
+        text: "Anton - Vernon Adams"
       credits_fonts_2:
         extends: credits_entry
-        position: [CENTER, 1162]
-        text: "Comic Neue — Craig Rozynski"
+        position: [CENTER, 1208]
+        text: "Comic Neue - Craig Rozynski"
+      credits_built_title:
+        extends: credits_heading
+        position: [CENTER, 1288]
+        text: "Built with"
+      credits_built:
+        extends: credits_entry
+        position: [CENTER, 1330]
+        text: "pygame-ce"
+      credits_built_2:
+        extends: credits_entry
+        position: [CENTER, 1376]
+        text: "pygamine"
       # Profile links, closing the scroll a little apart from the sections:
       # platform icon + username, the pair centred as a row
       # (icons right-aligned at x=859, names start at x=873).
       credits_github_icon:
-        position: [817, 1284]
+        position: [817, 1498]
         size: [42, 41]
         asset: github_icon
       credits_github_name:
         extends: credits_entry
-        position: [873, 1282]
+        position: [873, 1496]
         text: "umutcanekinci"
       credits_itch_icon:
-        position: [813, 1338]
+        position: [813, 1552]
         size: [46, 41]
         asset: itch_icon
       credits_itch_name:
         extends: credits_entry
-        position: [873, 1336]
+        position: [873, 1550]
         text: "umutcanekinci"
 
       back:
