@@ -152,5 +152,5 @@ Gameplay runs on a fixed tick, independent of the frame rate: `Game.update()` me
 1. Add stats to `config/towers.yaml`
 2. Subclass `BaseTower` (or reuse `GroundTower` if behaviour matches)
 3. Register in `TowerFactory.create()`
-4. Add assets to `config/assets.yaml` and `assets/images/towers/`
+4. Add assets to `config/assets.yaml`: sprites in `assets/images/towers/`, the buy button in `assets/images/hud/tower_bar/`
 5. Add buy button to `config/panels.yaml` and price display to `GameHUD`

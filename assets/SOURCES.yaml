@@ -96,14 +96,14 @@ files:
   "images/branding/logo.png":
     source: own
     note: "made by the developer in Canva: the Bungee font (SIL OFL) with the developer's own glitch effect"
-  "images/buttons/max.png":
+  "images/ui/buttons/max.png":
     source: own
     note: "Canva, redrawn 2026-10-26"
-  "images/buttons/sell.png":
+  "images/ui/buttons/sell.png":
     source: kenney-board-game-icons
     original: "PNG/Double (128px)/pouch.png"
     modified: "scaled onto the previous icon's 219x230 canvas, in the box its art occupied"
-  "images/coins/MonedaD.png":
+  "images/hud/coin.png":
     source: laredgames-gems-coins
     original: "MonedaD.png"
     note: "byte-identical to MonedaD.png in the pack's Coin_Gems.zip"
@@ -131,16 +131,16 @@ files:
   "images/enemies/E6_Muzzle.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile292.png"
-  "images/gui/Green/Default/button_rectangle_depth_flat.png":
+  "images/ui/panels/button_green.png":
     source: kenney-ui-pack
     original: "PNG/Green/Default/button_rectangle_depth_flat.png"
-  "images/gui/Grey/Default/button_rectangle_depth_flat.png":
+  "images/ui/panels/button_grey.png":
     source: kenney-ui-pack
     original: "PNG/Grey/Default/button_rectangle_depth_flat.png"
-  "images/gui/Red/Default/button_rectangle_depth_flat.png":
+  "images/ui/panels/button_red.png":
     source: kenney-ui-pack
     original: "PNG/Red/Default/button_rectangle_depth_flat.png"
-  "images/gui/Yellow/Default/button_rectangle_depth_flat.png":
+  "images/ui/panels/button_yellow.png":
     source: kenney-ui-pack
     original: "PNG/Yellow/Default/button_rectangle_depth_flat.png"
   "images/hud/heart.png":
@@ -148,140 +148,140 @@ files:
     original: "Base pack/HUD/hud_heartFull.png"
     modified: "scaled onto the previous heart's 254x254 canvas, in the box its art occupied"
     todo: "to be replaced by my brother's own heart art + animation"
-  "images/icons/Large/icon_jump.png":
+  "images/hud/icons/icon_jump.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_jump.png"
-  "images/icons/Large/icon_menu.png":
+  "images/hud/icons/icon_menu.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_menu.png"
-  "images/icons/Large/icon_music.png":
+  "images/hud/icons/icon_music.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_music.png"
-  "images/icons/Large/icon_music_disabled.png":
+  "images/hud/icons/icon_music_disabled.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_music_disabled.png"
-  "images/icons/Large/icon_pause.png":
+  "images/hud/icons/icon_pause.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_pause.png"
-  "images/icons/Large/icon_play.png":
+  "images/hud/icons/icon_play.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_play.png"
-  "images/muzzle_flashes/1L1.png":
+  "images/effects/muzzle/1L1.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile295.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/muzzle_flashes/3L1.png":
+  "images/effects/muzzle/3L1.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile296.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/muzzle_flashes/3L2.png":
+  "images/effects/muzzle/3L2.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile296.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/muzzle_flashes/Tank_Muzzle_Effect.png":
+  "images/effects/muzzle/Tank_Muzzle_Effect.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile297.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/particles/Black smoke/blackSmoke00.png":
+  "images/effects/smoke/blackSmoke00.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke00.png"
-  "images/particles/Black smoke/blackSmoke01.png":
+  "images/effects/smoke/blackSmoke01.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke01.png"
-  "images/particles/Black smoke/blackSmoke02.png":
+  "images/effects/smoke/blackSmoke02.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke02.png"
-  "images/particles/Black smoke/blackSmoke03.png":
+  "images/effects/smoke/blackSmoke03.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke03.png"
-  "images/particles/Black smoke/blackSmoke04.png":
+  "images/effects/smoke/blackSmoke04.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke04.png"
-  "images/particles/Black smoke/blackSmoke05.png":
+  "images/effects/smoke/blackSmoke05.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke05.png"
-  "images/particles/Black smoke/blackSmoke06.png":
+  "images/effects/smoke/blackSmoke06.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke06.png"
-  "images/particles/Black smoke/blackSmoke07.png":
+  "images/effects/smoke/blackSmoke07.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke07.png"
-  "images/particles/Black smoke/blackSmoke08.png":
+  "images/effects/smoke/blackSmoke08.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke08.png"
-  "images/particles/Black smoke/blackSmoke09.png":
+  "images/effects/smoke/blackSmoke09.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke09.png"
-  "images/particles/Black smoke/blackSmoke10.png":
+  "images/effects/smoke/blackSmoke10.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke10.png"
-  "images/particles/Black smoke/blackSmoke11.png":
+  "images/effects/smoke/blackSmoke11.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke11.png"
-  "images/particles/Black smoke/blackSmoke12.png":
+  "images/effects/smoke/blackSmoke12.png":
     source: kenney-smoke-particles
     original: "PNG/Black smoke/blackSmoke12.png"
-  "images/particles/Explosion/explosion00.png":
+  "images/effects/explosion/explosion00.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion00.png"
-  "images/particles/Explosion/explosion01.png":
+  "images/effects/explosion/explosion01.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion01.png"
-  "images/particles/Explosion/explosion02.png":
+  "images/effects/explosion/explosion02.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion02.png"
-  "images/particles/Explosion/explosion03.png":
+  "images/effects/explosion/explosion03.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion03.png"
-  "images/particles/Explosion/explosion04.png":
+  "images/effects/explosion/explosion04.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion04.png"
-  "images/particles/Explosion/explosion05.png":
+  "images/effects/explosion/explosion05.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion05.png"
-  "images/particles/Explosion/explosion06.png":
+  "images/effects/explosion/explosion06.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion06.png"
-  "images/particles/Explosion/explosion07.png":
+  "images/effects/explosion/explosion07.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion07.png"
-  "images/particles/Explosion/explosion08.png":
+  "images/effects/explosion/explosion08.png":
     source: kenney-smoke-particles
     original: "PNG/Explosion/explosion08.png"
-  "images/projectiles/2L1.png":
+  "images/effects/projectiles/2L1.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile252.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/projectiles/2L2.png":
+  "images/effects/projectiles/2L2.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile251.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/projectiles/2L3.png":
+  "images/effects/projectiles/2L3.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile251.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/projectiles/Tank_Bullet.png":
+  "images/effects/projectiles/Tank_Bullet.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile275.png"
-  "images/tiles/block.png":
+  "images/ui/placement/block.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile017.png"
-  "images/tiles/enable.png":
+  "images/ui/placement/enable.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile018.png"
-  "images/towers/buy_tower1.png":
+  "images/hud/tower_bar/buy_tower1.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Retina/towerDefense_tile203.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/towers/buy_tower2.png":
+  "images/hud/tower_bar/buy_tower2.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Retina/towerDefense_tile206.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/towers/buy_tower3.png":
+  "images/hud/tower_bar/buy_tower3.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Retina/towerDefense_tile249.png"
     modified: "rotated 270 degrees (the game faces right); otherwise pixel-identical"
-  "images/towers/buy_tower4.png":
+  "images/hud/tower_bar/buy_tower4.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Retina/towerDefense_tile271.png"
   "images/towers/tower1L1.png":
