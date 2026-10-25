@@ -3,7 +3,7 @@ from pygame.math import Vector2
 
 from domain.game_state import GameState, TowerConfig
 from gameplay.combat.projectile import Bomb
-from towers.base_tower import BaseTower
+from gameplay.towers.base_tower import BaseTower
 
 BOMB_DROP_INTERVAL_MS = 500
 

@@ -120,12 +120,12 @@ __main__.py            Entry point — injects src/ + src/pygamine/ into sys.pat
 src/app/game.py        Game class — wires all subsystems
 src/domain/            Pure data (GameState, protocols)
 src/gameplay/          Battle simulation, combat, tilemap, menu demo
-src/towers/            Tower hierarchy and factory
+src/gameplay/towers/   Tower hierarchy and factory
 src/ui/                HUD, HP bars
 src/util/              Config loaders, constants
 src/pygamine/       Engine submodule (Application, Animator, PanelLoaderExt, ...)
 config/                YAML: assets, panels, towers, enemies, waves
-assets/                Images, sounds, fonts, Tiled project
+assets/                Images, sounds, fonts, Tiled map
 ```
 
 See [CLAUDE.md](CLAUDE.md) for the full architecture overview.

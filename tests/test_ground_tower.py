@@ -2,8 +2,8 @@ import pytest
 from pygame.math import Vector2
 
 from gameplay.combat.projectile import MuzzleFlash, Projectile
-from towers import TowerFactory
-from towers.ground_tower import BARREL_FORWARD, BARREL_SPREAD
+from gameplay.towers import TowerFactory
+from gameplay.towers.ground_tower import BARREL_FORWARD, BARREL_SPREAD
 
 MAP_WIDTH = 3008
 

@@ -4,7 +4,7 @@ from pygame.math import Vector2
 from gameplay.rotatable_object import RotatableObject
 from domain.game_state import GameState, TowerConfig
 from gameplay.combat.projectile import MuzzleFlash, Projectile
-from towers.base_tower import BaseTower
+from gameplay.towers.base_tower import BaseTower
 
 BARREL_FORWARD = 26  # px from tower center to barrel tip along aim direction
 BARREL_SPREAD = 8  # px lateral offset from center for twin-barrel towers

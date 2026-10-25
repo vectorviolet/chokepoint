@@ -4,7 +4,7 @@ from pygame import Rect
 from domain.game_state import GameState
 from gameplay.combat.tower_placement import TowerPlacementController
 from pygamine import Camera
-from towers import TowerFactory
+from gameplay.towers import TowerFactory
 from util.constants import TILE_SIZE
 
 GAME_AREA = Rect(0, 0, 1536, 1080)

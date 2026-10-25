@@ -2,7 +2,7 @@ from pygame.math import Vector2
 
 from gameplay.combat.enemy import Enemy
 from gameplay.combat.projectile import Bomb, Explosion
-from towers import TowerFactory
+from gameplay.towers import TowerFactory
 
 PLANE_TYPE = 4
 MAP_WIDTH = 3008

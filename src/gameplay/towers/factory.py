@@ -1,7 +1,7 @@
 from domain.game_state import TowerConfig
-from towers.base_tower import BaseTower
-from towers.ground_tower import GroundTower
-from towers.plane_tower import PlaneTower
+from gameplay.towers.base_tower import BaseTower
+from gameplay.towers.ground_tower import GroundTower
+from gameplay.towers.plane_tower import PlaneTower
 
 
 class TowerFactory:

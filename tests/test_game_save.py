@@ -13,7 +13,7 @@ from domain.game_state import GameState
 from gameplay.combat.enemy import Enemy
 from gameplay.combat.tank import Tank
 from gameplay.combat.wave_manager import WaveManager
-from towers import TowerFactory
+from gameplay.towers import TowerFactory
 
 MAP_WIDTH = 3008
 WAYPOINTS = [Vector2(0, 0), Vector2(100, 0), Vector2(100, 100)]

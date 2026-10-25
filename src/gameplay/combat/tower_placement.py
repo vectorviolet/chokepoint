@@ -5,7 +5,7 @@ from pygamine import PanelManager
 from pygamine import Camera
 from util.constants import TILE_SIZE, HALF_TILE
 from domain.game_state import GameState, TowerConfig
-from towers import BaseTower, TowerFactory
+from gameplay.towers import BaseTower, TowerFactory
 
 _TOWER_HOTKEYS = {
     pygame.K_1: 1,

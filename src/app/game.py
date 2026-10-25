@@ -34,7 +34,7 @@ from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
 from gameplay.combat.tower_placement import TowerPlacementController
-from towers import BaseTower, GroundTower
+from gameplay.towers import BaseTower, GroundTower
 from gameplay.combat.wave_manager import WaveManager
 from gameplay.battle import BattleSimulation
 from gameplay.menu_demo import MenuDemo

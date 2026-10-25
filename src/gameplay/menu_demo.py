@@ -25,7 +25,7 @@ from domain.game_state import GameState, TowerConfig
 from gameplay.battle import BattleSimulation
 from gameplay.combat.wave_manager import WaveManager
 from pygamine import Camera
-from towers import TowerFactory
+from gameplay.towers import TowerFactory
 from util.constants import TICK_MS, TILE_SIZE, HALF_TILE
 
 GROUND_TOWER_TYPES = (1, 2, 3)

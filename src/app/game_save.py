@@ -3,7 +3,7 @@ from pygame.math import Vector2
 from gameplay.combat.enemy import Enemy
 from gameplay.combat.tank import Tank
 from gameplay.combat.wave_manager import TANK_TYPES
-from towers import TowerFactory
+from gameplay.towers import TowerFactory
 
 
 class GameSaveMixin:

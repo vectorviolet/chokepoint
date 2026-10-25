@@ -54,7 +54,7 @@ source = [
     "src/domain",
     "src/gameplay",
     "src/gameplay/combat",
-    "src/towers",
+    "src/gameplay/towers",
     "src/ui",
     "src/util",
 ]

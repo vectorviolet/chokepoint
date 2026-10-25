@@ -4,7 +4,7 @@ from typing import Callable, TYPE_CHECKING
 from util.constants import TICK_MS
 
 if TYPE_CHECKING:
-    from towers.base_tower import BaseTower
+    from gameplay.towers.base_tower import BaseTower
 
 
 @dataclass

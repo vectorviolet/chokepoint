@@ -1,8 +1,8 @@
 from pygame.math import Vector2
 
 from domain.game_state import GameState
-from towers import TowerFactory
-from towers.base_tower import BTN_SIZE, SELL_BTN_OFFSET, UPGRADE_BTN_OFFSET
+from gameplay.towers import TowerFactory
+from gameplay.towers.base_tower import BTN_SIZE, SELL_BTN_OFFSET, UPGRADE_BTN_OFFSET
 
 PLANE_TYPE = 4
 GROUND_TYPE = 1
@@ -162,7 +162,7 @@ def test_sell_does_nothing_when_tower_is_not_selected(tower_config, assets):
 
 
 def test_sell_price_refunds_seventy_percent_of_everything_spent(tower_config, assets):
-    from towers.base_tower import SELL_REFUND
+    from gameplay.towers.base_tower import SELL_REFUND
 
     missile_prices = tower_config.prices[1]
     tower = make_tower(tower_config, assets, tower_type=2)
