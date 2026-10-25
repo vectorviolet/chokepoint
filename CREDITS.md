@@ -37,14 +37,17 @@ CC0 assets need no attribution; they are credited here anyway.
 
 ## Music
 
-**“Clown”** by **Sakura Girl** — used as the menu and in-game music.
+**“Clown”** by **Sakura Girl** — the menu and in-game music, downloaded from the artist's page on
+Hypeddit.
 
-> Clown by Sakura Girl | https://soundcloud.com/sakuragirl_official
-> Music promoted by https://www.chosic.com/free-music/all/
-> Creative Commons CC BY 3.0
-> https://creativecommons.org/licenses/by/3.0/
+> Music : Sakura Girl - Clown
+> Link : https://hypeddit.com/sakuragirl/clown
 
-Licensed under [Creative Commons Attribution 3.0 Unported (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/).
+That is the credit the artist asks for, verbatim, in the track's
+[SoundCloud description](https://soundcloud.com/sakuragirl_official/clown): her music is free to use
+as long as this credit and link are given. Music libraries that redistribute the track list it under
+[Creative Commons Attribution 3.0 (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/); the
+credit above satisfies those terms as well.
 
 ## Fonts
 
@@ -53,15 +56,18 @@ Licensed under [Creative Commons Attribution 3.0 Unported (CC BY 3.0)](https://c
 | [Anton](https://fonts.google.com/specimen/Anton) | Vernon Adams | [SIL Open Font License 1.1](https://openfontlicense.org) |
 | [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) | Craig Rozynski | [SIL Open Font License 1.1](https://openfontlicense.org) |
 
-The full license texts ship with the fonts, in `assets/fonts/OFL-Anton.txt` and
-`assets/fonts/OFL-ComicNeue.txt`.
+The full license texts are in `licenses/OFL-Anton.txt` and `licenses/OFL-ComicNeue.txt`.
 
 ## Software
 
 | Software | License |
 |---|---|
 | [pygame-ce](https://pyga.me) | [GNU LGPL 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
+| [SDL 2](https://www.libsdl.org) (bundled with pygame-ce) | [zlib](https://www.libsdl.org/license.php) |
 | [pygamine](https://github.com/vectorviolet/pygamine) (the game's engine layer) | [MIT](https://github.com/vectorviolet/pygamine/blob/main/LICENSE) |
+
+The full license texts ship with the game: `licenses/pygame-ce-LGPL-2.1.txt`,
+`licenses/SDL2-zlib.txt` and `licenses/pygamine-MIT.txt`.
 
 The startup splash shows the pygame-ce “powered” logo, which the pygame-ce project
 [offers for use in game projects](https://pyga.me/docs/logos.html).

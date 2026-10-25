@@ -154,6 +154,7 @@ panels:
           - credits_vfx
           - credits_music_title
           - credits_music
+          - credits_music_2
           - credits_fonts_title
           - credits_fonts
           - credits_fonts_2
@@ -234,18 +235,22 @@ panels:
       credits_music:
         extends: credits_entry
         position: [CENTER, 1057]
-        text: "“Clown” by Sakura Girl — CC BY 3.0"
+        text: "Sakura Girl - Clown"
+      credits_music_2:
+        extends: credits_entry
+        position: [CENTER, 1112]
+        text: "hypeddit.com/sakuragirl/clown"
       credits_fonts_title:
         extends: credits_heading
-        position: [CENTER, 1150]
+        position: [CENTER, 1205]
         text: "Fonts"
       credits_fonts:
         extends: credits_entry
-        position: [CENTER, 1192]
+        position: [CENTER, 1247]
         text: "Anton — Vernon Adams"
       credits_fonts_2:
         extends: credits_entry
-        position: [CENTER, 1247]
+        position: [CENTER, 1302]
         text: "Comic Neue — Craig Rozynski"
 
       back:

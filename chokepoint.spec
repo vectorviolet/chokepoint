@@ -26,6 +26,10 @@ datas = [
     # the music requires the credit to accompany the distributed game).
     (str(ROOT / "CREDITS.md"), "."),
     (str(ROOT / "LICENSE"), "."),
+    # Full license texts CREDITS.md refers to (pygame-ce's LGPL, SDL's zlib
+    # license, the fonts' OFL, pygamine's MIT) -- the LGPL requires its text
+    # to accompany the distributed library.
+    (str(ROOT / "licenses"), "licenses"),
     # pygamine's shared splash (standard_splash_media), resolved next to the
     # pygamine package rather than the game's assets/
     (str(ROOT / "src" / "pygamine" / "pygamine" / "branding"), "pygamine/branding"),
@@ -89,8 +93,10 @@ coll = COLLECT(
 # executable, where players actually look (the datas copies above sit in
 # _internal/, which the macOS .app below carries).
 import shutil  # noqa: E402
+_top = Path(DISTPATH) / "chokepoint"  # noqa: F821 -- injected by PyInstaller
 for doc in ("CREDITS.md", "LICENSE"):
-    shutil.copy2(ROOT / doc, Path(DISTPATH) / "chokepoint" / doc)  # noqa: F821 -- injected by PyInstaller
+    shutil.copy2(ROOT / doc, _top / doc)
+shutil.copytree(ROOT / "licenses", _top / "licenses", dirs_exist_ok=True)
 
 # On macOS, also wrap the onedir bundle as a .app for a native double-click.
 if sys.platform == "darwin":
