@@ -80,22 +80,19 @@ files:
     source: font-comic-neue
     original: "ofl/comicneue/OFL.txt"
     modified: "whitespace only"
-  "images/branding/bg.png":
-    source: unknown
-    todo: "A small render of the game's map on a 6144x8192 canvas; probably made from this game's own Tiled map (Kenney Tower Defense tiles). Its manifest key bg_main is no longer used anywhere -- confirm and mark own, or delete it with the key."
   "images/branding/logo.png":
-    source: unknown
-    todo: "The CHOKEPOINT wordmark (cyan/magenta glitch edge); who made it and which font it uses are not recorded. Confirm it's your own work (then source: own) or replace it."
+    source: own
+    note: "made by the developer in Canva: the Bungee font (SIL OFL) with the developer's own glitch effect"
   "images/buttons/max.png":
     source: unknown
-    todo: "Orange 'MAX' label; origin and font unknown. Confirm it's your own work or replace it."
+    todo: "redraw (was made on cooltext.com)"
   "images/buttons/sell.png":
     source: unknown
     todo: "Money-bag clip art; origin unknown (no metadata). Confirm or replace it, e.g. with a Kenney icon."
   "images/coins/MonedaD.png":
     source: laredgames-gems-coins
     original: "MonedaD.png"
-    note: "not byte-checked: itch.io's download needs a browser session; the pack page states CC0"
+    note: "byte-identical to MonedaD.png in the pack's Coin_Gems.zip"
   "images/enemies/E1.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile245.png"
@@ -323,7 +320,7 @@ files:
   "sounds/bg.mp3":
     source: music-sakura-girl-clown
     original: "Clown"
-    note: "downloaded from the artist's Hypeddit page (download gated, so not byte-checked); the SoundCloud track's license field is cc-by"
+    note: "byte-identical to the artist's Hypeddit download (Sakura Girl - Clown.mp3); the SoundCloud track's license field is cc-by"
   "sounds/click-a.ogg":
     source: kenney-ui-pack
     original: "Sounds/click-a.ogg"

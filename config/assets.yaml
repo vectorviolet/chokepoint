@@ -2,7 +2,6 @@
 
 images:
   # ── Backgrounds & general ─────────────────────────────────────────────
-  bg_main:           {folder: branding, name: bg}
   logo:              {folder: branding, name: logo}
   # Logos shipped with pygamine (src/pygamine/pygamine/branding)
   vv_lockup:         {source: branding, folder: vectorviolet, name: lockup-dark-solid}  # for dark backgrounds (white artwork)
