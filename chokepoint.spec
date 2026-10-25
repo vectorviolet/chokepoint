@@ -26,10 +26,12 @@ datas = [
     # the music requires the credit to accompany the distributed game).
     (str(ROOT / "CREDITS.md"), "."),
     (str(ROOT / "LICENSE"), "."),
-    # Full license texts CREDITS.md refers to (pygame-ce's LGPL, SDL's zlib
-    # license, the fonts' OFL, pygamine's MIT) -- the LGPL requires its text
-    # to accompany the distributed library.
+    # Full license texts CREDITS.md refers to: this game's own (the fonts' OFL)
+    # and pygamine's -- pygame-ce and the native libraries it bundles, whose
+    # licenses want their texts to travel with binary copies. Both land in
+    # one licenses/ folder (on macOS, inside the .app).
     (str(ROOT / "licenses"), "licenses"),
+    (str(ROOT / "src" / "pygamine" / "pygamine" / "licenses"), "licenses"),
     # pygamine's shared splash (standard_splash_media), resolved next to the
     # pygamine package rather than the game's assets/
     (str(ROOT / "src" / "pygamine" / "pygamine" / "branding"), "pygamine/branding"),
@@ -97,6 +99,7 @@ _top = Path(DISTPATH) / "chokepoint"  # noqa: F821 -- injected by PyInstaller
 for doc in ("CREDITS.md", "LICENSE"):
     shutil.copy2(ROOT / doc, _top / doc)
 shutil.copytree(ROOT / "licenses", _top / "licenses", dirs_exist_ok=True)
+shutil.copytree(ROOT / "src" / "pygamine" / "pygamine" / "licenses", _top / "licenses", dirs_exist_ok=True)
 
 # On macOS, also wrap the onedir bundle as a .app for a native double-click.
 if sys.platform == "darwin":

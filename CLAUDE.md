@@ -16,8 +16,21 @@ uv run --group dev pytest tests/ -q                      # this app's own logic 
 uv run --group dev pytest tests/ --cov --cov-report=term  # with coverage
 ```
 
-`tests/conftest.py` runs pygame headless (`SDL_VIDEODRIVER=dummy`). No lint configuration
+`tests/conftest.py` runs pygame headless (`SDL_VIDEODRIVER=dummy`) and points every
+`SaveStore` at a temporary folder (the autouse `saves_in_tmp` fixture). No lint configuration
 in this project.
+
+**Always run simulations and tests in a temporary folder, never against the real `saves/`.**
+A `Game()` saves and deletes its save exactly like the real game does: losing a run deletes
+`saves/save.json`, and one headless balance simulation once deleted the player's real save
+that way. So:
+
+- Tests rely on the `saves_in_tmp` fixture; don't bypass it.
+- Any ad-hoc script that builds a `Game()` (balance sims, screenshot or GIF recorders,
+  benchmarks) must redirect saves before it does. For example:
+  `monkeypatch`/patch `SaveStore` to `directory=<temp dir>`, or replace `SaveStore.save` and
+  `SaveStore.delete` with no-ops. Alternatively, run it with a temporary directory as the cwd.
+- Never run such a script in a way that can write to, overwrite or delete `saves/`.
 
 ### Building a distributable
 

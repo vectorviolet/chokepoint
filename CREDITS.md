@@ -37,17 +37,16 @@ CC0 assets need no attribution; they are credited here anyway.
 
 ## Music
 
-**“Clown”** by **Sakura Girl** — the menu and in-game music, downloaded from the artist's page on
+**“Clown”** by **Sakura Girl**, the menu and in-game music, downloaded from the artist's page on
 Hypeddit.
+
+The artist licenses the track on
+[SoundCloud](https://soundcloud.com/sakuragirl_official/clown) under
+[Creative Commons Attribution 3.0 (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/), and
+asks for these lines as attribution:
 
 > Music : Sakura Girl - Clown
 > Link : https://hypeddit.com/sakuragirl/clown
-
-That is the credit the artist asks for, verbatim, in the track's
-[SoundCloud description](https://soundcloud.com/sakuragirl_official/clown): her music is free to use
-as long as this credit and link are given. Music libraries that redistribute the track list it under
-[Creative Commons Attribution 3.0 (CC BY 3.0)](https://creativecommons.org/licenses/by/3.0/); the
-credit above satisfies those terms as well.
 
 ## Fonts
 
@@ -63,11 +62,11 @@ The full license texts are in `licenses/OFL-Anton.txt` and `licenses/OFL-ComicNe
 | Software | License |
 |---|---|
 | [pygame-ce](https://pyga.me) | [GNU LGPL 2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
-| [SDL 2](https://www.libsdl.org) (bundled with pygame-ce) | [zlib](https://www.libsdl.org/license.php) |
 | [pygamine](https://github.com/vectorviolet/pygamine) (the game's engine layer) | [MIT](https://github.com/vectorviolet/pygamine/blob/main/LICENSE) |
+| Native libraries bundled with pygame-ce: SDL 2 and its image, mixer and ttf libraries, FreeType, libpng, libjpeg, libtiff, libwebp, zlib, Ogg/Vorbis, Opus, WavPack, libxmp, PortMidi and, on macOS and Linux, FLAC, HarfBuzz, Brotli, mpg123, libsndfile and FluidSynth | zlib, BSD, MIT, FreeType, LGPL 2.1 and others, each listed in `licenses/README.md` |
 
-The full license texts ship with the game: `licenses/pygame-ce-LGPL-2.1.txt`,
-`licenses/SDL2-zlib.txt` and `licenses/pygamine-MIT.txt`.
+The full license texts ship with the game in `licenses/`, starting with `licenses/pygame-ce.txt`,
+`licenses/pygamine.txt` and `licenses/sdl2.txt`. `licenses/README.md` maps every library to its text.
 
 The startup splash shows the pygame-ce “powered” logo, which the pygame-ce project
 [offers for use in game projects](https://pyga.me/docs/logos.html).

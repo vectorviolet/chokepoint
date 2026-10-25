@@ -15,7 +15,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 import pygame
 import pytest
 
-from pygamine import AssetManager
+from pygamine import AssetManager, SaveStore
 from util.config_loader import load_tower_config
 
 pygame.init()
@@ -55,6 +55,14 @@ class FakeContext:
 
     def increase_money(self, amount: int) -> None:
         self.money_earned += amount
+
+
+@pytest.fixture(autouse=True)
+def saves_in_tmp(tmp_path, monkeypatch):
+    """Every test's SaveStore defaults to a temporary folder, never the
+    repo's real saves/ -- a Game() under test saves and deletes its save
+    like the real one does (a lost run deletes saves/save.json)."""
+    monkeypatch.setattr(SaveStore.__init__, "__defaults__", (str(tmp_path / "saves"),))
 
 
 @pytest.fixture

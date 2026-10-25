@@ -324,3 +324,16 @@ def test_sync_game_ui_reflects_paused_speed_1_and_no_plane_upgrade(tower_config,
     assert panel["upgrade_plane_button"].state is None
     assert ("_set_victory_popup_active", False) in game.calls
     assert ("_set_gameover_popup_active", False) in game.calls
+
+
+# ── test isolation ──────────────────────────────────────────────────────────
+
+def test_tests_never_save_into_the_real_saves_folder(tmp_path):
+    """conftest's saves_in_tmp: a SaveStore built with no directory, as
+    Game() builds its own, lands in this test's temporary folder."""
+    from pygamine import SaveStore
+    store = SaveStore("save")
+    store.save({"probe": 1})
+
+    assert store.path.parent == tmp_path / "saves"
+    assert store.path.is_file()
