@@ -130,9 +130,13 @@ panels:
         size: [1920, 800]
         speed: 90            # px/s
         targets:
-          - credits_logo
           - credits_title
           - credits_dev_1
+          - credits_dev_2
+          - credits_github_icon
+          - credits_github_name
+          - credits_itch_icon
+          - credits_itch_name
           - kenney_asset_1
           - kenney_asset_2
           - kenney_asset_3
@@ -153,15 +157,42 @@ panels:
         type: text
         font: comic_neue
         font_size: 46
-        position: [CENTER, 250]
+        position: [CENTER, 130]
         text: "Developer"
         color: white
-      credits_logo:
-        position: [ CENTER, 240 ]
-        size: [ 300, 300 ]
-        asset: social_media
+      credits_dev_2:
+        type: text
+        font: comic_neue_bold
+        font_size: 46
+        position: [CENTER, 190]
+        text: "Umutcan Ekinci"
+        color: white
+      # Profile links: platform icon + username, the pair centred as a row
+      # (icons right-aligned at x=837, names start at x=854).
+      credits_github_icon:
+        position: [786, 282]
+        size: [51, 50]
+        asset: github_icon
+      credits_github_name:
+        type: text
+        font: comic_neue
+        font_size: 46
+        position: [854, 280]
+        text: "umutcanekinci"
+        color: white
+      credits_itch_icon:
+        position: [781, 352]
+        size: [56, 50]
+        asset: itch_icon
+      credits_itch_name:
+        type: text
+        font: comic_neue
+        font_size: 46
+        position: [854, 350]
+        text: "umutcanekinci"
+        color: white
       kenney_assets:
-        layout: { direction: vertical, start: [CENTER, 630], spacing: 50 }
+        layout: { direction: vertical, start: [CENTER, 470], spacing: 50 }
         objects:
           kenney_asset_1:
             extends: credit_text

@@ -4,7 +4,9 @@ images:
   # ── Backgrounds & general ─────────────────────────────────────────────
   bg_main:           {folder: branding, name: bg}
   logo:              {folder: branding, name: logo}
-  social_media:      {folder: branding, name: social_media}
+  # Platform logos shipped with pygamine (src/pygamine/pygamine/branding)
+  github_icon:       {source: branding, folder: github, name: GitHub_Invertocat_White}
+  itch_icon:         {source: branding, folder: itch.io/logos, name: itchio-logo-textless-white}
   heart:             {folder: hud, name: heart}
 
   # ── Menu buttons (normal + hover pairs) ───────────────────────────────
