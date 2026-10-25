@@ -71,11 +71,7 @@ def render(data: dict) -> str:
     lines += [""]
     if own:
         lines += [
-            "Made for this game by its developer: "
-            + ", ".join(rel.split("/")[-1] for rel in own)
-            + " (in assets/"
-            + ", assets/".join(rel.rsplit("/", 1)[0] for rel in own)
-            + ").",
+            "Made for this game by its developer (in assets/): " + ", ".join(own) + ".",
             "",
         ]
     unknown = sorted(
