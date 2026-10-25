@@ -355,18 +355,15 @@ files:
   "sounds/switch-b.ogg":
     source: kenney-ui-pack
     original: "Sounds/switch-b.ogg"
-  "tiled_project/tiled_project.tiled-project":
+  "maps/tiled_project.tiled-project":
     source: own
     note: "Tiled map/project made for this game (uses the Tower Defense tilesheet)"
-  "tiled_project/tiled_project.tiled-session":
+  "maps/tiled_tilemap.tmx":
     source: own
     note: "Tiled map/project made for this game (uses the Tower Defense tilesheet)"
-  "tiled_project/tiled_tilemap.tmx":
+  "maps/tiled_tileset.tsx":
     source: own
     note: "Tiled map/project made for this game (uses the Tower Defense tilesheet)"
-  "tiled_project/tiled_tileset.tsx":
-    source: own
-    note: "Tiled map/project made for this game (uses the Tower Defense tilesheet)"
-  "tiled_project/tilesheet.png":
+  "maps/tilesheet.png":
     source: kenney-tower-defense-top-down
     original: "Tilesheet/towerDefense_tilesheet.png"

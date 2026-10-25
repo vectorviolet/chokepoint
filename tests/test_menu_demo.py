@@ -30,7 +30,7 @@ from util.constants import TILE_SIZE, HALF_TILE
 
 @pytest.fixture(scope="module")
 def tilemap():
-    return Tilemap("assets/tiled_project/tiled_tilemap.tmx")
+    return Tilemap("assets/maps/tiled_tilemap.tmx")
 
 
 @pytest.fixture

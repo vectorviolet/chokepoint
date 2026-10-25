@@ -3,7 +3,7 @@ from pygame.math import Vector2
 
 from gameplay.tilemap import Tilemap
 
-TMX_PATH = "assets/tiled_project/tiled_tilemap.tmx"
+TMX_PATH = "assets/maps/tiled_tilemap.tmx"
 
 
 @pytest.fixture(scope="module")

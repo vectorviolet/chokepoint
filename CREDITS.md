@@ -25,7 +25,7 @@ freely available.
 | [Gems / Coins Free](https://laredgames.itch.io/gems-coins-free) | La Red Games | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | coin animation | 1 |
 | [Clown](https://hypeddit.com/sakuragirl/clown) | Sakura Girl | [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/) | menu and in-game music | 1 |
 
-Made for this game by its developer (in assets/): images/branding/logo.png, images/buttons/max.png, tiled_project/tiled_project.tiled-project, tiled_project/tiled_project.tiled-session, tiled_project/tiled_tilemap.tmx, tiled_project/tiled_tileset.tsx.
+Made for this game by its developer (in assets/): images/branding/logo.png, images/buttons/max.png, maps/tiled_project.tiled-project, maps/tiled_tilemap.tmx, maps/tiled_tileset.tsx.
 
 CC0 assets need no attribution; they are credited here anyway. Each source's own
 license text ships with the game: `licenses/assets/font-anton.txt`, `licenses/assets/font-comic-neue.txt`, `licenses/assets/kenney-board-game-icons.txt`, `licenses/assets/kenney-impact-sounds.txt`, `licenses/assets/kenney-mobile-controls.txt`, `licenses/assets/kenney-platformer-art-deluxe.txt`, `licenses/assets/kenney-smoke-particles.txt`, `licenses/assets/kenney-tower-defense-top-down.txt`, `licenses/assets/kenney-ui-pack.txt`, `licenses/assets/laredgames-gems-coins.txt`, `licenses/assets/music-sakura-girl-clown.txt`.

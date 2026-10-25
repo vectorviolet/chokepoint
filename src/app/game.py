@@ -144,7 +144,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._tick_backlog_ms = 0.0  # real time not yet simulated as whole ticks
         self.assets = AssetManager()
         self.tower_config = load_tower_config()
-        self.tilemap = Tilemap("assets/tiled_project/tiled_tilemap.tmx")
+        self.tilemap = Tilemap("assets/maps/tiled_tilemap.tmx")
         self.camera = Camera(
             self.game_area,
             self.tilemap.map_width,
