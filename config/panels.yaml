@@ -43,10 +43,16 @@ object_templates:
     font: comic_neue_bold
     font_size: 31
     color: white
-  credit_text:
+  # Credits screen: a small accent-coloured heading per section, entries below.
+  credits_heading:
     type: text
-    font: anton
-    font_size: 35
+    font: comic_neue_bold
+    font_size: 36
+    color: [168, 224, 99]   # the logo's green
+  credits_entry:
+    type: text
+    font: comic_neue
+    font_size: 46
     color: white
 
 panels:
@@ -131,20 +137,26 @@ panels:
         speed: 90            # px/s
         targets:
           - credits_title
-          - credits_dev_1
-          - credits_dev_2
+          - credits_dev_title
+          - credits_dev
           - credits_github_icon
           - credits_github_name
           - credits_itch_icon
           - credits_itch_name
-          - kenney_asset_1
-          - kenney_asset_2
-          - kenney_asset_3
-          - kenney_asset_4
-          - other_asset_1
-          - font_credit_1
-          - font_credit_2
-          - music_credit_1
+          - credits_art_title
+          - credits_art
+          - credits_ui_title
+          - credits_ui
+          - credits_ui_2
+          - credits_sound_title
+          - credits_sound
+          - credits_vfx_title
+          - credits_vfx
+          - credits_music_title
+          - credits_music
+          - credits_fonts_title
+          - credits_fonts
+          - credits_fonts_2
 
       credits_title:
         type: text
@@ -153,71 +165,88 @@ panels:
         position: [CENTER, 0]
         text: "CREDITS"
         color: white
-      credits_dev_1:
-        type: text
-        font: comic_neue
-        font_size: 46
+      credits_dev_title:
+        extends: credits_heading
         position: [CENTER, 130]
         text: "Developer"
-        color: white
-      credits_dev_2:
-        type: text
-        font: comic_neue_bold
-        font_size: 46
-        position: [CENTER, 190]
+      credits_dev:
+        extends: credits_entry
+        position: [CENTER, 172]
         text: "Umutcan Ekinci"
-        color: white
       # Profile links: platform icon + username, the pair centred as a row
       # (icons right-aligned at x=837, names start at x=854).
       credits_github_icon:
-        position: [786, 282]
+        position: [786, 257]
         size: [51, 50]
         asset: github_icon
       credits_github_name:
-        type: text
-        font: comic_neue
-        font_size: 46
-        position: [854, 280]
+        extends: credits_entry
+        position: [854, 255]
         text: "umutcanekinci"
-        color: white
       credits_itch_icon:
-        position: [781, 352]
+        position: [781, 322]
         size: [56, 50]
         asset: itch_icon
       credits_itch_name:
-        type: text
-        font: comic_neue
-        font_size: 46
-        position: [854, 350]
+        extends: credits_entry
+        position: [854, 320]
         text: "umutcanekinci"
-        color: white
-      kenney_assets:
-        layout: { direction: vertical, start: [CENTER, 470], spacing: 50 }
-        objects:
-          kenney_asset_1:
-            extends: credit_text
-            text: "UI IMAGES & SOUNDS https://www.kenney.nl/assets/ui-pack"
-          kenney_asset_2:
-            extends: credit_text
-            text: "TOWER DEFENSE TOP-DOWN https://www.kenney.nl/assets/tower-defense-top-down"
-          kenney_asset_3:
-            extends: credit_text
-            text: "IMPACT SOUNDS https://www.kenney.nl/assets/impact-sounds"
-          kenney_asset_4:
-            extends: credit_text
-            text: "SMOKE PARTICLES https://www.kenney.nl/assets/smoke-particles"
-          other_asset_1:
-            extends: credit_text
-            text: "Gems & Coins https://laredgames.itch.io/gems-coins-free"
-          font_credit_1:
-            extends: credit_text
-            text: "ANTON FONT https://fonts.google.com/specimen/Anton"
-          font_credit_2:
-            extends: credit_text
-            text: "COMIC NEUE FONT https://fonts.google.com/specimen/Comic+Neue"
-          music_credit_1:
-            extends: credit_text
-            text: "MUSIC Sakura Girl - Clown https://hypeddit.com/sakuragirl/clown"
+      credits_art_title:
+        extends: credits_heading
+        position: [CENTER, 420]
+        text: "Art"
+      credits_art:
+        extends: credits_entry
+        position: [CENTER, 462]
+        text: "Kenney - Tower Defense (Top-Down)"
+      credits_ui_title:
+        extends: credits_heading
+        position: [CENTER, 555]
+        text: "UI"
+      credits_ui:
+        extends: credits_entry
+        position: [CENTER, 597]
+        text: "Kenney - UI Pack"
+      credits_ui_2:
+        extends: credits_entry
+        position: [CENTER, 652]
+        text: "La Red Games - Gems / Coins Free"
+      credits_sound_title:
+        extends: credits_heading
+        position: [CENTER, 745]
+        text: "Sound"
+      credits_sound:
+        extends: credits_entry
+        position: [CENTER, 787]
+        text: "Kenney - Impact Sounds"
+      credits_vfx_title:
+        extends: credits_heading
+        position: [CENTER, 880]
+        text: "VFX"
+      credits_vfx:
+        extends: credits_entry
+        position: [CENTER, 922]
+        text: "Kenney - Smoke Particles"
+      credits_music_title:
+        extends: credits_heading
+        position: [CENTER, 1015]
+        text: "Music"
+      credits_music:
+        extends: credits_entry
+        position: [CENTER, 1057]
+        text: "“Clown” by Sakura Girl — CC BY 3.0"
+      credits_fonts_title:
+        extends: credits_heading
+        position: [CENTER, 1150]
+        text: "Fonts"
+      credits_fonts:
+        extends: credits_entry
+        position: [CENTER, 1192]
+        text: "Anton — Vernon Adams"
+      credits_fonts_2:
+        extends: credits_entry
+        position: [CENTER, 1247]
+        text: "Comic Neue — Craig Rozynski"
 
       back:
         extends: btn-sm
