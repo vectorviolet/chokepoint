@@ -6,7 +6,7 @@ images:
   logo:              {folder: branding, name: logo}
   # Platform logos shipped with pygamine (src/pygamine/pygamine/branding)
   github_icon:       {source: branding, folder: github, name: GitHub_Invertocat_White}
-  itch_icon:         {source: branding, folder: itch.io/logos, name: itchio-logo-textless-white}
+  itch_icon:         {source: branding, folder: itchio/logos, name: itchio-logo-textless-white}
   heart:             {folder: hud, name: heart}
 
   # ── Menu buttons (normal + hover pairs) ───────────────────────────────
