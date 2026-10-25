@@ -17,8 +17,13 @@ uv run --group dev pytest tests/ --cov --cov-report=term  # with coverage
 ```
 
 `tests/conftest.py` runs pygame headless (`SDL_VIDEODRIVER=dummy`) and points every
-`SaveStore` at a temporary folder (the autouse `saves_in_tmp` fixture). No lint configuration
-in this project.
+`SaveStore` at a temporary folder (the autouse `saves_in_tmp` fixture).
+
+**Code style:** run `uv run --group dev ruff format .` and `uv run --group dev ruff check .`
+before every commit. Formatting is Black-compatible (`[tool.ruff.format]` in `pyproject.toml`);
+lint is pyflakes-only (`[tool.ruff.lint]`). CI fails on `ruff format --check .` and on lint
+errors. Keep pure reformatting out of feature commits; a repo-wide reformat goes in its own
+commit, with its hash added to `.git-blame-ignore-revs`.
 
 **Always run simulations and tests in a temporary folder, never against the real `saves/`.**
 A `Game()` saves and deletes its save exactly like the real game does: losing a run deletes

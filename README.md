@@ -134,6 +134,28 @@ See [CLAUDE.md](CLAUDE.md) for the full architecture overview.
 
 Art, UI, and sound from [Kenney](https://www.kenney.nl/) — [Tower Defense (Top-Down)](https://www.kenney.nl/assets/tower-defense-top-down), [UI Pack](https://www.kenney.nl/assets/ui-pack), [Impact Sounds](https://www.kenney.nl/assets/impact-sounds), and [Smoke Particles](https://www.kenney.nl/assets/smoke-particles). Coin pickup art from [La Red Games — Gems & Coins](https://laredgames.itch.io/gems-coins-free). Fonts: [Anton](https://fonts.google.com/specimen/Anton) and [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) (SIL OFL). Music: [Sakura Girl - Clown](https://hypeddit.com/sakuragirl/clown). Full list with licenses in [CREDITS.md](CREDITS.md).
 
+## Code style
+
+- **Formatting:** Black-compatible, enforced by `ruff format` (line length 88, double quotes,
+  otherwise Black's defaults; see `[tool.ruff.format]` in `pyproject.toml`).
+- **Lint:** `ruff check`, deliberately narrow (pyflakes rules only).
+- **CI:** runs both. The `src/pygamine` submodule is excluded; it has its own setup.
+
+Run both locally before committing:
+
+```bash
+uv run --group dev ruff format .          # reformat
+uv run --group dev ruff check .           # lint
+uv run --group dev ruff format --check .  # what CI runs: fails if anything would be reformatted
+```
+
+The commit that first applied the formatter is listed in `.git-blame-ignore-revs`. To have
+`git blame` skip it and show the real author of each line:
+
+```bash
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 ## Contributing
 
 1. Fork this repository.
