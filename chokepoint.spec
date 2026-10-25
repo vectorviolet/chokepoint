@@ -22,6 +22,10 @@ ROOT = Path(SPECPATH)  # noqa: F821 — injected by PyInstaller
 datas = [
     (str(ROOT / "assets"), "assets"),
     (str(ROOT / "config"), "config"),
+    # Attribution and license texts travel with every build (CC BY 3.0 for
+    # the music requires the credit to accompany the distributed game).
+    (str(ROOT / "CREDITS.md"), "."),
+    (str(ROOT / "LICENSE"), "."),
     # pygamine's shared splash (standard_splash_media), resolved next to the
     # pygamine package rather than the game's assets/
     (str(ROOT / "src" / "pygamine" / "pygamine" / "branding"), "pygamine/branding"),
@@ -80,6 +84,13 @@ coll = COLLECT(
     upx_exclude=[],
     name="chokepoint",
 )
+
+# Also put the credits and license at the top of the bundle, next to the
+# executable, where players actually look (the datas copies above sit in
+# _internal/, which the macOS .app below carries).
+import shutil  # noqa: E402
+for doc in ("CREDITS.md", "LICENSE"):
+    shutil.copy2(ROOT / doc, Path(DISTPATH) / "chokepoint" / doc)  # noqa: F821 -- injected by PyInstaller
 
 # On macOS, also wrap the onedir bundle as a .app for a native double-click.
 if sys.platform == "darwin":
