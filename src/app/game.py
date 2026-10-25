@@ -14,7 +14,13 @@ from pygamine import Mouse
 from pygamine import PanelManager
 from pygamine import PanelLoaderExt
 
-from pygamine import make_factory, make_text_factory, make_animated_factory, make_slider_factory, make_scrolling_panel_factory
+from pygamine import (
+    make_factory,
+    make_text_factory,
+    make_animated_factory,
+    make_slider_factory,
+    make_scrolling_panel_factory,
+)
 from util.config_loader import load_tower_config
 from pygamine import Camera
 from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS
@@ -36,7 +42,7 @@ from gameplay.menu_demo import MenuDemo
 WINDOW_MODE_LABELS = {
     "fullscreen": "FULLSCREEN",
     "borderless": "BORDERLESS",
-    "windowed":   "WINDOWED",
+    "windowed": "WINDOWED",
 }
 
 # Clearing this wave triggers the victory popup once per run (config/waves.yaml
@@ -47,16 +53,27 @@ WIN_WAVE = 25
 # system has no group-visibility concept, so each object's .active is set
 # individually (see config/panels.yaml's victory_* objects).
 _VICTORY_POPUP_OBJECTS = (
-    "victory_overlay", "victory_panel_bg", "victory_title_text", "victory_subtitle_text",
-    "victory_continue", "victory_continue_text",
-    "victory_play_again", "victory_play_again_text",
-    "victory_main_menu", "victory_main_menu_text",
+    "victory_overlay",
+    "victory_panel_bg",
+    "victory_title_text",
+    "victory_subtitle_text",
+    "victory_continue",
+    "victory_continue_text",
+    "victory_play_again",
+    "victory_play_again_text",
+    "victory_main_menu",
+    "victory_main_menu_text",
 )
 
 _GAMEOVER_POPUP_OBJECTS = (
-    "gameover_overlay", "gameover_panel_bg", "gameover_title_text", "gameover_subtitle_text",
-    "gameover_play_again", "gameover_play_again_text",
-    "gameover_main_menu", "gameover_main_menu_text",
+    "gameover_overlay",
+    "gameover_panel_bg",
+    "gameover_title_text",
+    "gameover_subtitle_text",
+    "gameover_play_again",
+    "gameover_play_again_text",
+    "gameover_main_menu",
+    "gameover_main_menu_text",
 )
 
 
@@ -79,18 +96,20 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._construction_complete = False
 
         self.settings = yaml.safe_load(Path("config/settings.yaml").read_text())
-        window   = self.settings["window"]
+        window = self.settings["window"]
         gameplay = self.settings["gameplay"]
-        camera   = self.settings["camera"]
-        audio    = self.settings["audio"]
+        camera = self.settings["camera"]
+        audio = self.settings["audio"]
         self._default_audio_settings = dict(audio)  # kept for "reset to defaults"
 
         self.settings_store = SaveStore("settings")
         saved_settings = self.settings_store.load()
-        audio["music_volume"] = saved_settings.get("music_volume", audio["music_volume"])
-        audio["sfx_volume"]   = saved_settings.get("sfx_volume", audio["sfx_volume"])
+        audio["music_volume"] = saved_settings.get(
+            "music_volume", audio["music_volume"]
+        )
+        audio["sfx_volume"] = saved_settings.get("sfx_volume", audio["sfx_volume"])
 
-        self.save_store      = SaveStore("save")
+        self.save_store = SaveStore("save")
         self._starting_money = gameplay["starting_money"]
         self._starting_lives = gameplay["starting_lives"]
         # panels.yaml's positions/sizes/font sizes are authored for this
@@ -99,31 +118,37 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         # stay fully on-screen at smaller windows instead of overflowing.
         self._authored_ui_size = tuple(window["size"])
 
-        super().__init__(tuple(window["size"]), window["title"], window["fps"], Mouse(TILE_SIZE))
+        super().__init__(
+            tuple(window["size"]), window["title"], window["fps"], Mouse(TILE_SIZE)
+        )
         self.restore_window_settings(saved_settings)
 
         window_transform = Transform((0, 0), self.size)
-        self.towers:       list[BaseTower] = []
-        self.enemies:      list[Enemy]     = []
+        self.towers: list[BaseTower] = []
+        self.enemies: list[Enemy] = []
         self.wave_manager: WaveManager | None = None
 
         # The map viewport is the whole canvas. self.size is the canvas as
         # restored from the saved window settings above -- on_canvas_resized()
         # is skipped during construction, so this is the only place a saved
         # non-default size reaches the viewport at startup.
-        self.game_area        = Rect(0, 0, *self.size)
-        self.game_state       = GameState(start_money=gameplay["starting_money"], start_lives=gameplay["starting_lives"])
+        self.game_area = Rect(0, 0, *self.size)
+        self.game_state = GameState(
+            start_money=gameplay["starting_money"],
+            start_lives=gameplay["starting_lives"],
+        )
         self.game_state.add_level_listener(self._on_level_changed)
-        self._victory_popup_open  = False
+        self._victory_popup_open = False
         self._gameover_popup_open = False
         self._last_frame_ticks: int | None = None  # wall clock of the previous update()
-        self._tick_backlog_ms = 0.0               # real time not yet simulated as whole ticks
-        self.assets           = AssetManager()
-        self.tower_config     = load_tower_config()
-        self.tilemap          = Tilemap("assets/tiled_project/tiled_tilemap.tmx")
-        self.camera           = Camera(
+        self._tick_backlog_ms = 0.0  # real time not yet simulated as whole ticks
+        self.assets = AssetManager()
+        self.tower_config = load_tower_config()
+        self.tilemap = Tilemap("assets/tiled_project/tiled_tilemap.tmx")
+        self.camera = Camera(
             self.game_area,
-            self.tilemap.map_width, self.tilemap.map_height,
+            self.tilemap.map_width,
+            self.tilemap.map_height,
             scroll_rect=Rect(0, 0, *self.size),
             edge_scroll_zone=camera["edge_scroll_zone"],
             speed=camera["speed"],
@@ -131,31 +156,46 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             zoom_min=camera["zoom_min"],
             zoom_max=camera["zoom_max"],
         )
-        self.panel_manager    = PanelManager(starting_tab="main_menu")
+        self.panel_manager = PanelManager(starting_tab="main_menu")
 
         self.load_panels(window_transform)
 
-        self.audio            = GameAudio(str(self.assets.sound_path("bg_music")), autoplay=False)
+        self.audio = GameAudio(str(self.assets.sound_path("bg_music")), autoplay=False)
         self.audio.set_music_volume(audio["music_volume"])
         self.audio.set_sfx_volume(audio["sfx_volume"])
 
-        self.hud              = GameHUD(self.game_state, self.tower_config, self.panel_manager)
-        self.tower_controller = TowerPlacementController(self.towers, self.tower_config, self.assets, self.audio, self.game_state, self.camera, self.panel_manager, self.tilemap.buildable_grid, self.tilemap.map_width, self.game_area)
+        self.hud = GameHUD(self.game_state, self.tower_config, self.panel_manager)
+        self.tower_controller = TowerPlacementController(
+            self.towers,
+            self.tower_config,
+            self.assets,
+            self.audio,
+            self.game_state,
+            self.camera,
+            self.panel_manager,
+            self.tilemap.buildable_grid,
+            self.tilemap.map_width,
+            self.game_area,
+        )
 
         # Behind the menus: a battle playing itself, in a world of its own.
-        self.menu_demo = MenuDemo(self.tilemap, self.assets, self.tower_config, self.size)
+        self.menu_demo = MenuDemo(
+            self.tilemap, self.assets, self.tower_config, self.size
+        )
         self.menu_overlay = pygame.Surface(self.size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
-        self.splash = SplashScreen(standard_splash_media(self.audio), skip_completely=True)
+        self.splash = SplashScreen(
+            standard_splash_media(self.audio), skip_completely=True
+        )
         self._init_wave_manager()
 
         self.click_sound_path = self.assets.sound_path("click")
         self.handlers = {
             "main_menu": self._handle_main_menu_event,
             "play_menu": self._handle_play_menu_event,
-            "credits":   self._handle_credits_event,
-            "settings":  self._handle_settings_event,
-            "game":      self._handle_game_event,
+            "credits": self._handle_credits_event,
+            "settings": self._handle_settings_event,
+            "game": self._handle_game_event,
         }
         self._bind_settings_ui()
         self._build_menu_controllers()
@@ -185,8 +225,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         """(Re-)builds the keyboard-nav controllers from the current panel
         objects -- they hold direct button references, so a canvas resize
         (which rebuilds those objects) must rebuild these too."""
-        main_menu_buttons = [self.panel_manager["main_menu"][n] for n in ("play", "credits", "settings", "exit")]
-        play_menu_buttons = [self.panel_manager["play_menu"][n] for n in ("continue_game", "new_game", "back")]
+        main_menu_buttons = [
+            self.panel_manager["main_menu"][n]
+            for n in ("play", "credits", "settings", "exit")
+        ]
+        play_menu_buttons = [
+            self.panel_manager["play_menu"][n]
+            for n in ("continue_game", "new_game", "back")
+        ]
         self.menu_controllers = {
             "main_menu": MenuController(
                 main_menu_buttons,
@@ -217,7 +263,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         loader.authored_size = self._authored_ui_size
         loader.scale = min(
             1.0,
-            window_transform.width  / self._authored_ui_size[0],
+            window_transform.width / self._authored_ui_size[0],
             window_transform.height / self._authored_ui_size[1],
         )
         loader.register("object", make_factory(self.assets), default=True)
@@ -233,13 +279,19 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.panel_manager["settings"]["window_size_value_text"].set_text(f"{w}x{h}")
 
     def _refresh_window_mode_label(self) -> None:
-        self.panel_manager["settings"]["window_mode_value_text"].set_text(WINDOW_MODE_LABELS[self._window_mode])
+        self.panel_manager["settings"]["window_mode_value_text"].set_text(
+            WINDOW_MODE_LABELS[self._window_mode]
+        )
 
     def _refresh_sfx_volume_label(self) -> None:
-        self.panel_manager["settings"]["sfx_volume_value_text"].set_text(f"{round(self.audio.sfx_volume() * 100)}%")
+        self.panel_manager["settings"]["sfx_volume_value_text"].set_text(
+            f"{round(self.audio.sfx_volume() * 100)}%"
+        )
 
     def _refresh_music_volume_label(self) -> None:
-        self.panel_manager["settings"]["music_volume_value_text"].set_text(f"{round(self.audio.music_volume() * 100)}%")
+        self.panel_manager["settings"]["music_volume_value_text"].set_text(
+            f"{round(self.audio.music_volume() * 100)}%"
+        )
 
     # ── settings persistence ─────────────────────────────────────────────────
     #
@@ -248,11 +300,13 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     # these just merge that with this project's own audio settings.
 
     def _save_settings(self) -> None:
-        self.settings_store.save({
-            **self.window_settings(),
-            "sfx_volume":   self.audio.sfx_volume(),
-            "music_volume": self.audio.music_volume(),
-        })
+        self.settings_store.save(
+            {
+                **self.window_settings(),
+                "sfx_volume": self.audio.sfx_volume(),
+                "music_volume": self.audio.music_volume(),
+            }
+        )
 
     def _reset_settings(self) -> None:
         """Restores window mode/size and both volumes to config/settings.yaml's
@@ -443,12 +497,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if isinstance(selected, GroundTower):
             selected.draw_selected_ui(self.window, self.game_state, self.camera)
 
-
     # ── debug ─────────────────────────────────────────────────────────────────
 
     @override
     def draw_debug(self):
-        if not self._is_in_debug_mode: return
+        if not self._is_in_debug_mode:
+            return
 
         debug_info = [
             self.mouse.info(),

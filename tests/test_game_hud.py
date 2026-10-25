@@ -129,7 +129,6 @@ def test_rebind_panel_refetches_text_objects_and_reapplies_prices(tower_config):
     assert new_panel["coin_text"].text == "100"
 
 
-
 def test_plane_upgrade_button_shows_its_configured_price_on_hover(tower_config):
     hud, panel, _ = make_hud(tower_config)
     price = tower_config.prices[3][1]

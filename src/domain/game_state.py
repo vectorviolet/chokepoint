@@ -13,7 +13,8 @@ class WaveDef:
 
     `spawn_interval_ms` is `None` when the wave defers to WaveManager's default.
     """
-    groups:            list[tuple[int, int]]   # [(enemy_type, count), ...]
+
+    groups: list[tuple[int, int]]  # [(enemy_type, count), ...]
     spawn_interval_ms: int | None = None
 
 
@@ -25,38 +26,38 @@ class TowerConfig:
     (same index scheme used by the original code throughout). For planes,
     whose level is a global upgrade, prices[3][1] is that upgrade's cost.
     """
-    prices:       list[list[int]]
-    max_levels:   list[int]
-    ranges:       list[list[int]]
-    damages:      list[list[int]]
-    speeds:       list[list[int]]
-    hps:          list[list[int] | None]  # None = invulnerable (e.g. planes)
-    shoot_sounds: list[str | None]   # asset key per tower type; None = silent
+
+    prices: list[list[int]]
+    max_levels: list[int]
+    ranges: list[list[int]]
+    damages: list[list[int]]
+    speeds: list[list[int]]
+    hps: list[list[int] | None]  # None = invulnerable (e.g. planes)
+    shoot_sounds: list[str | None]  # asset key per tower type; None = silent
 
 
 class GameState:
     """Pure game state — no pygame, no rendering, no game-object lists."""
 
     def __init__(self, start_money: int, start_lives: int) -> None:
-        self.money:          int  = start_money
-        self.lives:          int  = start_lives
-        self.level:          int  = 1
-        self.speed:          int  = 1
-        self.is_started:     bool = False
+        self.money: int = start_money
+        self.lives: int = start_lives
+        self.level: int = 1
+        self.speed: int = 1
+        self.is_started: bool = False
         self.selected_tower: "BaseTower | None" = None
-        self.plane_level:    int  = 1
-        self.has_won:        bool = False
+        self.plane_level: int = 1
+        self.has_won: bool = False
         # Game time in ms: advances one TICK_MS * speed per tick while the
         # game runs, and stands still while it's paused. Every gameplay
         # timer (spawn intervals, reloads, fuses, ...) reads this rather
         # than the wall clock, so pausing freezes them and x2/x4 speed
         # runs them faster along with movement.
-        self.time_ms:        float = 0.0
+        self.time_ms: float = 0.0
 
         self._money_cbs: list[Callable[[int], None]] = []
         self._lives_cbs: list[Callable[[int], None]] = []
         self._level_cbs: list[Callable[[int], None]] = []
-
 
     # ── listeners ────────────────────────────────────────────────────────────
 
@@ -68,7 +69,6 @@ class GameState:
 
     def add_level_listener(self, cb: Callable[[int], None]) -> None:
         self._level_cbs.append(cb)
-
 
     # ── mutations ─────────────────────────────────────────────────────────────
 

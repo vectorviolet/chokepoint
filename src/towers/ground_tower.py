@@ -7,7 +7,7 @@ from gameplay.combat.projectile import MuzzleFlash, Projectile
 from towers.base_tower import BaseTower
 
 BARREL_FORWARD = 26  # px from tower center to barrel tip along aim direction
-BARREL_SPREAD  = 8   # px lateral offset from center for twin-barrel towers
+BARREL_SPREAD = 8  # px lateral offset from center for twin-barrel towers
 
 
 class GroundTower(BaseTower):
@@ -18,7 +18,9 @@ class GroundTower(BaseTower):
     without callers noticing.
     """
 
-    def __init__(self, tower_type: int, row: int, col: int, config: TowerConfig, assets, audio) -> None:
+    def __init__(
+        self, tower_type: int, row: int, col: int, config: TowerConfig, assets, audio
+    ) -> None:
         super().__init__(tower_type, row, col, config, assets, audio)
         self.platform = RotatableObject(
             assets.image_path(f"tower_{tower_type}_platform"),
@@ -41,10 +43,10 @@ class GroundTower(BaseTower):
         if not is_started or not enemies:
             return
 
-        distances       = [enemy.position - self.position for enemy in enemies]
-        lengths         = [d.length() for d in distances]
-        nearest_dist    = min(lengths)
-        nearest_idx     = lengths.index(nearest_dist)
+        distances = [enemy.position - self.position for enemy in enemies]
+        lengths = [d.length() for d in distances]
+        nearest_dist = min(lengths)
+        nearest_idx = lengths.index(nearest_dist)
 
         if nearest_dist > self.range:
             return
@@ -70,9 +72,9 @@ class GroundTower(BaseTower):
         self.last_reload_time = self.now
 
     def _muzzle_positions(self, target) -> list[tuple[Vector2, bool]]:
-        fwd  = (target.position - self.position).normalize()
+        fwd = (target.position - self.position).normalize()
         perp = Vector2(-fwd.y, fwd.x)
-        tip  = self.position + fwd * BARREL_FORWARD
+        tip = self.position + fwd * BARREL_FORWARD
 
         twin = self.tower_type == 1 or (self.tower_type == 3 and self.level == 2)
         if twin:

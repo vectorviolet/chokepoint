@@ -13,11 +13,10 @@ class GameEventsMixin:
     def _activate(self, button, event) -> bool:
         """True when the button was activated (click or focused-Space/Enter).
         Plays the button's `on_click_sound` (or the default click) on success."""
-        activated = (
-            button.is_clicked(event, self.mouse.position)
-            or (event.type == pygame.KEYUP
-                and event.key in (pygame.K_SPACE, pygame.K_RETURN)
-                and getattr(button, "focused", False))
+        activated = button.is_clicked(event, self.mouse.position) or (
+            event.type == pygame.KEYUP
+            and event.key in (pygame.K_SPACE, pygame.K_RETURN)
+            and getattr(button, "focused", False)
         )
         if activated:
             sound = getattr(button, "on_click_sound", None) or self.click_sound_path
@@ -33,7 +32,9 @@ class GameEventsMixin:
             else:
                 self._start_new_game()
         elif self._activate(panel["credits"], event):
-            self.panel_manager["credits"]["credits_scroller"].reset()  # replay from the top
+            self.panel_manager["credits"][
+                "credits_scroller"
+            ].reset()  # replay from the top
             self.panel_manager.current_panel = "credits"
         elif self._activate(panel["settings"], event):
             self.panel_manager.current_panel = "settings"
@@ -157,7 +158,9 @@ class GameEventsMixin:
             if sound is not None:
                 self.audio.play_sfx(str(sound))
         self.game_state.is_started = not self.game_state.is_started
-        panel["start_pause_button_icon"].set_state("pause" if self.game_state.is_started else None)
+        panel["start_pause_button_icon"].set_state(
+            "pause" if self.game_state.is_started else None
+        )
 
     def _handle_speed_toggle(self, event) -> None:
         panel = self.panel_manager["game"]

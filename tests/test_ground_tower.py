@@ -23,10 +23,12 @@ class FakeAudio:
 
 def make_tower(tower_config, assets, tower_type=1, row=0, col=0, audio=None):
     return TowerFactory.create(
-        tower_type, row, col, tower_config, assets, audio or FakeAudio(), MAP_WIDTH)
+        tower_type, row, col, tower_config, assets, audio or FakeAudio(), MAP_WIDTH
+    )
 
 
 # ── work() targeting ─────────────────────────────────────────────────────────
+
 
 def test_work_does_nothing_when_not_started(tower_config, assets):
     tower = make_tower(tower_config, assets)
@@ -59,7 +61,7 @@ def test_work_ignores_enemies_out_of_range(tower_config, assets):
 def test_work_rotates_toward_the_nearest_in_range_enemy(tower_config, assets):
     tower = make_tower(tower_config, assets)
     near = FakeEnemy(tower.position + Vector2(20, 0))
-    far  = FakeEnemy(tower.position + Vector2(tower.range - 5, 0))
+    far = FakeEnemy(tower.position + Vector2(tower.range - 5, 0))
 
     tower.work([far, near], is_started=True)
 
@@ -90,7 +92,10 @@ def test_work_does_not_shoot_before_the_cooldown_elapses(tower_config, assets):
 
 # ── _shoot() branches ────────────────────────────────────────────────────────
 
-def test_shoot_type1_fires_twin_muzzle_flashes_and_plays_its_shoot_sound(tower_config, assets):
+
+def test_shoot_type1_fires_twin_muzzle_flashes_and_plays_its_shoot_sound(
+    tower_config, assets
+):
     audio = FakeAudio()
     tower = make_tower(tower_config, assets, tower_type=1, audio=audio)
     target = FakeEnemy(tower.position + Vector2(0, -100))
@@ -122,7 +127,9 @@ def test_shoot_type3_level2_fires_twin_muzzle_flashes(tower_config, assets):
     assert len(tower.bullets) == 2
 
 
-def test_shoot_type2_fires_a_homing_projectile_instead_of_a_muzzle_flash(tower_config, assets):
+def test_shoot_type2_fires_a_homing_projectile_instead_of_a_muzzle_flash(
+    tower_config, assets
+):
     tower = make_tower(tower_config, assets, tower_type=2)
     target = FakeEnemy(tower.position + Vector2(0, -100))
 
@@ -150,6 +157,7 @@ def test_shoot_with_no_shoot_sound_configured_plays_nothing(tower_config, assets
 
 
 # ── _muzzle_positions() geometry ─────────────────────────────────────────────
+
 
 def test_muzzle_positions_are_offset_forward_and_split_laterally(tower_config, assets):
     tower = make_tower(tower_config, assets, tower_type=1)

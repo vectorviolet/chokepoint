@@ -6,6 +6,7 @@ required key). Run locally with:
 
 Requires cwd = repo root (matches how __main__.py and CI both invoke it).
 """
+
 import sys
 from pathlib import Path
 

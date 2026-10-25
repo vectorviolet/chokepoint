@@ -1,4 +1,3 @@
-
 import pygame
 
 from domain.game_state import GameState
@@ -11,7 +10,9 @@ MAP_WIDTH = 3008
 
 
 def make_plane(tower_config, assets, row=5, col=3):
-    return TowerFactory.create(PLANE_TYPE, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH)
+    return TowerFactory.create(
+        PLANE_TYPE, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH
+    )
 
 
 def running_state(speed=1, time_ms=0.0) -> GameState:
@@ -89,6 +90,7 @@ def test_never_blocks_a_build_tile_and_is_untargetable(tower_config, assets):
 
 def test_draw_renders_shadow_plane_and_range_when_selected(tower_config, assets):
     from pygamine import Camera
+
     plane = make_plane(tower_config, assets)
     gs = running_state()
     gs.selected_tower = plane

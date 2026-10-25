@@ -4,13 +4,14 @@ Only renders when hp is below max — entities at full health show nothing.
 The bar scales with camera zoom and uses a 3-stop colour ramp
 (green -> yellow -> red) to make low health read at a glance.
 """
+
 import pygame
 
-BAR_WIDTH       = 36
-BAR_HEIGHT      = 4
-DEFAULT_OFFSET  = 30          # world-px from entity center to bar bottom
-BG_COLOR        = (40, 40, 40)
-BORDER_COLOR    = (0, 0, 0)
+BAR_WIDTH = 36
+BAR_HEIGHT = 4
+DEFAULT_OFFSET = 30  # world-px from entity center to bar bottom
+BG_COLOR = (40, 40, 40)
+BORDER_COLOR = (0, 0, 0)
 
 
 def _color(ratio: float) -> tuple[int, int, int]:
@@ -21,8 +22,15 @@ def _color(ratio: float) -> tuple[int, int, int]:
     return (220, 60, 60)
 
 
-def draw(surface: pygame.Surface, camera, world_pos, hp, max_hp,
-         offset: int = DEFAULT_OFFSET, force: bool = False) -> None:
+def draw(
+    surface: pygame.Surface,
+    camera,
+    world_pos,
+    hp,
+    max_hp,
+    offset: int = DEFAULT_OFFSET,
+    force: bool = False,
+) -> None:
     if max_hp is None or hp is None:
         return
     if not force and hp >= max_hp:
@@ -36,6 +44,6 @@ def draw(surface: pygame.Surface, camera, world_pos, hp, max_hp,
     x = int(center.x - w / 2)
     y = int(center.y - off - h)
 
-    pygame.draw.rect(surface, BG_COLOR,    (x, y, w, h))
+    pygame.draw.rect(surface, BG_COLOR, (x, y, w, h))
     pygame.draw.rect(surface, _color(ratio), (x, y, max(0, int(w * ratio)), h))
-    pygame.draw.rect(surface, BORDER_COLOR,(x, y, w, h), 1)
+    pygame.draw.rect(surface, BORDER_COLOR, (x, y, w, h), 1)

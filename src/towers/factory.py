@@ -14,7 +14,15 @@ class TowerFactory:
     _PLANE_TYPE = 4
 
     @staticmethod
-    def create(tower_type: int, row: int, col: int, config: TowerConfig, assets, audio, map_width: int) -> BaseTower:
+    def create(
+        tower_type: int,
+        row: int,
+        col: int,
+        config: TowerConfig,
+        assets,
+        audio,
+        map_width: int,
+    ) -> BaseTower:
         if tower_type == TowerFactory._PLANE_TYPE:
             return PlaneTower(tower_type, row, col, config, assets, audio, map_width)
         return GroundTower(tower_type, row, col, config, assets, audio)

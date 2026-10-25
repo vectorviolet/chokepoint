@@ -19,16 +19,17 @@ class Enemy(RotatableObject):
     the last vertex (caller checks `reached_end()` to deduct a life).
     """
 
-    def __init__(self, id: int, enemy_type: int, level: int,
-                 waypoints: list[Vector2], assets) -> None:
+    def __init__(
+        self, id: int, enemy_type: int, level: int, waypoints: list[Vector2], assets
+    ) -> None:
         if not waypoints:
             raise ValueError("Enemy requires at least one waypoint")
         spawn = waypoints[0]
         super().__init__(assets.image_path(f"enemy_{enemy_type}"), (spawn.x, spawn.y))
-        self.id          = id
-        self.enemy_type  = enemy_type
-        self.is_walking  = True
-        self.waypoints   = waypoints
+        self.id = id
+        self.enemy_type = enemy_type
+        self.is_walking = True
+        self.waypoints = waypoints
         self.waypoint_index = 1  # index of the *next* waypoint to walk to
         self._calculate_stats(enemy_type, level)
         if len(waypoints) > 1:
@@ -37,10 +38,10 @@ class Enemy(RotatableObject):
     def _calculate_stats(self, enemy_type: int, level: int) -> None:
         stats = _BASE_STATS[enemy_type]
         scale = 1.0 + (level - 1) * 0.25
-        self.maxHP     = int(stats.hp * scale)
-        self.hp        = self.maxHP
+        self.maxHP = int(stats.hp * scale)
+        self.hp = self.maxHP
         self.killMoney = max(1, int(stats.kill_money * scale))
-        self.damage    = stats.damage
+        self.damage = stats.damage
         self.mov_speed = stats.speed
 
     def destroy(self, ctx: "IGameContext") -> None:
@@ -63,8 +64,8 @@ class Enemy(RotatableObject):
             return
 
         target = self.waypoints[self.waypoint_index]
-        step   = self.mov_speed * game_speed
-        delta  = target - self.position
+        step = self.mov_speed * game_speed
+        delta = target - self.position
 
         if delta.length() <= step:
             self.position = Vector2(target)

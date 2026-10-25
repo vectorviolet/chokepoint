@@ -4,6 +4,7 @@ It runs the real BattleSimulation in a world of its own, so these check
 that it stays busy and keeps going, and that nothing it does reaches the
 player: no saves, no sound, no shared state with the real game.
 """
+
 import random
 
 import pygame
@@ -12,8 +13,15 @@ from pygame.math import Vector2
 
 from gameplay import menu_demo
 from gameplay.menu_demo import (
-    FADE_S, GROUND_TOWER_TYPES, MIN_TOWERS_LEFT, PLANE_TYPE, START_LEVELS, TOWER_PATH_DISTANCE,
-    WAVE_SIZE_FACTOR, MenuDemo, _distance_to_path,
+    FADE_S,
+    GROUND_TOWER_TYPES,
+    MIN_TOWERS_LEFT,
+    PLANE_TYPE,
+    START_LEVELS,
+    TOWER_PATH_DISTANCE,
+    WAVE_SIZE_FACTOR,
+    MenuDemo,
+    _distance_to_path,
 )
 from gameplay.tilemap import Tilemap
 from pygamine import GameAudio, SaveStore
@@ -29,6 +37,7 @@ def tilemap():
 def make_demo(tilemap, assets, tower_config):
     def build(seed=1, size=(1280, 720)):
         return MenuDemo(tilemap, assets, tower_config, size, random.Random(seed))
+
     return build
 
 
@@ -43,13 +52,16 @@ def finish_fade_out(demo):
 
 # ── a run ────────────────────────────────────────────────────────────────────
 
+
 def test_a_run_opens_on_a_battle_under_way(make_demo):
     demo = make_demo()
 
     assert START_LEVELS[0] <= demo.game_state.level <= START_LEVELS[1]
     assert demo.game_state.is_started
     assert demo.enemies, "the pre-warm should already have enemies on the path"
-    assert sum(t.tower_type in GROUND_TOWER_TYPES for t in demo.towers) >= MIN_TOWERS_LEFT
+    assert (
+        sum(t.tower_type in GROUND_TOWER_TYPES for t in demo.towers) >= MIN_TOWERS_LEFT
+    )
 
 
 def test_towers_stand_on_free_build_tiles_within_reach_of_the_path(make_demo, tilemap):
@@ -76,11 +88,14 @@ def test_planes_fly_bombing_runs(make_demo):
 def test_its_waves_are_denser_than_the_real_games(make_demo):
     demo = make_demo()
     from gameplay.combat.wave_manager import WaveManager
+
     real = WaveManager(demo.tilemap.waypoints, demo._assets)
     real._build_queue(demo.game_state.level)
     demo.wave_manager._build_queue(demo.game_state.level)
 
-    assert len(demo.wave_manager._spawn_queue) == WAVE_SIZE_FACTOR * len(real._spawn_queue)
+    assert len(demo.wave_manager._spawn_queue) == WAVE_SIZE_FACTOR * len(
+        real._spawn_queue
+    )
     assert demo.wave_manager._spawn_interval_ms < real._spawn_interval_ms
 
 
@@ -98,6 +113,7 @@ def test_different_seeds_play_different_runs(make_demo):
 
 
 # ── it keeps going ───────────────────────────────────────────────────────────
+
 
 def test_enemies_reaching_the_end_cost_nothing(make_demo):
     demo = make_demo()
@@ -160,6 +176,7 @@ def test_a_long_session_keeps_running(make_demo):
 
 # ── the camera ───────────────────────────────────────────────────────────────
 
+
 def test_the_camera_follows_the_fighting(make_demo):
     demo = make_demo()
     run(demo, 8)
@@ -196,9 +213,11 @@ def test_resize_keeps_the_view_on_the_same_spot(make_demo):
 
 # ── nothing reaches the player ───────────────────────────────────────────────
 
+
 def test_it_never_saves(make_demo, monkeypatch):
     def forbidden(*args, **kwargs):
         raise AssertionError("the menu demo touched a save")
+
     monkeypatch.setattr(SaveStore, "save", forbidden)
     monkeypatch.setattr(SaveStore, "delete", forbidden)
 
@@ -211,6 +230,7 @@ def test_it_never_saves(make_demo, monkeypatch):
 def test_its_towers_make_no_sound(make_demo, monkeypatch):
     def forbidden(*args, **kwargs):
         raise AssertionError("the menu demo played a sound")
+
     monkeypatch.setattr(GameAudio, "play_sfx", staticmethod(forbidden))
 
     demo = make_demo()
@@ -221,12 +241,16 @@ def test_its_towers_make_no_sound(make_demo, monkeypatch):
 
 # ── geometry helper ──────────────────────────────────────────────────────────
 
-@pytest.mark.parametrize("point, expected", [
-    ((50, 0), 0),       # on the first segment
-    ((50, 30), 30),     # beside it
-    ((-40, 0), 40),     # before its start
-    ((130, 50), 30),    # beside the second segment
-])
+
+@pytest.mark.parametrize(
+    "point, expected",
+    [
+        ((50, 0), 0),  # on the first segment
+        ((50, 30), 30),  # beside it
+        ((-40, 0), 40),  # before its start
+        ((130, 50), 30),  # beside the second segment
+    ],
+)
 def test_distance_to_path(point, expected):
     path = [Vector2(0, 0), Vector2(100, 0), Vector2(100, 100)]
     assert _distance_to_path(Vector2(point), path) == pytest.approx(expected)

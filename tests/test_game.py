@@ -8,6 +8,7 @@ fake), every inherited method -- GameEventsMixin._activate, GameSaveMixin's
 _sync_game_ui, Game's own _close_victory_popup, etc. -- resolves normally
 through the real MRO with no manual rebinding needed.
 """
+
 from types import SimpleNamespace
 
 import pygame
@@ -96,6 +97,7 @@ def make_game(**overrides):
 
 # ── IGameContext properties ──────────────────────────────────────────────────
 
+
 def test_speed_reads_from_game_state():
     game = make_game()
     game.game_state.speed = 3
@@ -115,6 +117,7 @@ def test_increase_money_delegates_to_game_state():
 
 
 # ── victory popup ────────────────────────────────────────────────────────────
+
 
 def test_reaching_the_win_wave_triggers_victory():
     game = make_game()
@@ -158,6 +161,7 @@ def test_close_victory_popup_deactivates_every_victory_object():
 
 # ── game over popup ──────────────────────────────────────────────────────────
 
+
 def test_trigger_game_over_activates_every_gameover_object():
     game = make_game()
 
@@ -176,10 +180,13 @@ def test_close_gameover_popup_deactivates_every_gameover_object():
     game._close_gameover_popup()
 
     assert game._gameover_popup_open is False
-    assert all(not game.panel_manager["game"][n].active for n in _GAMEOVER_POPUP_OBJECTS)
+    assert all(
+        not game.panel_manager["game"][n].active for n in _GAMEOVER_POPUP_OBJECTS
+    )
 
 
 # ── canvas resize ─────────────────────────────────────────────────────────────
+
 
 def test_on_canvas_resized_is_a_no_op_before_construction_completes():
     game = make_game(_construction_complete=False)
@@ -215,6 +222,7 @@ def test_reflow_camera_updates_game_area_and_clamps_the_camera():
 
 
 # ── update dispatch ──────────────────────────────────────────────────────────
+
 
 def test_update_on_a_menu_panel_runs_the_menu_demo_by_elapsed_real_time(fake_ticks):
     game = make_game()
@@ -317,7 +325,10 @@ def test_tick_advances_game_time_before_updating_towers_and_enemies():
 
     game._tick()
 
-    assert order == [("towers", pytest.approx(TICK_MS)), ("enemies", pytest.approx(TICK_MS))]
+    assert order == [
+        ("towers", pytest.approx(TICK_MS)),
+        ("enemies", pytest.approx(TICK_MS)),
+    ]
 
 
 def test_time_ms_reads_from_game_state():
@@ -454,6 +465,7 @@ def test_update_enemies_moves_at_game_speed_while_started():
 
 # ── event dispatch ───────────────────────────────────────────────────────────
 
+
 def test_handle_event_dispatches_to_the_current_panels_handler():
     game = make_game()
     game.panel_manager.current_panel = "game"
@@ -477,8 +489,12 @@ def test_handle_event_music_toggle_button_click_toggles_music():
     game.click_sound_path = "assets/sfx/click.ogg"
     game.audio = SimpleNamespace(play_sfx=Spy())
     game._toggle_music = Spy()
-    game.panel_manager["game"]["music_toggle_button"].rect = None  # is_clicked stubbed below
-    game.panel_manager["game"]["music_toggle_button"].is_clicked = lambda event, pos: True
+    game.panel_manager["game"][
+        "music_toggle_button"
+    ].rect = None  # is_clicked stubbed below
+    game.panel_manager["game"]["music_toggle_button"].is_clicked = lambda event, pos: (
+        True
+    )
 
     game.handle_event(pygame.event.Event(pygame.MOUSEBUTTONUP, button=1))
 
@@ -486,6 +502,7 @@ def test_handle_event_music_toggle_button_click_toggles_music():
 
 
 # ── draw dispatch ────────────────────────────────────────────────────────────
+
 
 def test_draw_on_the_game_panel_calls_draw_game_and_shortcuts():
     game = make_game()
@@ -528,6 +545,7 @@ def test_draw_selected_tower_ui_is_a_no_op_when_selected_tower_was_already_sold(
 
 
 # ── exit flow ────────────────────────────────────────────────────────────────
+
 
 def test_on_exit_request_from_main_menu_exits():
     game = make_game()
@@ -589,6 +607,7 @@ def test_exit_saves_settings_before_delegating_to_the_base_application(monkeypat
 
 # ── wave manager init ────────────────────────────────────────────────────────
 
+
 def test_init_wave_manager_raises_without_any_waypoints():
     game = make_game(tilemap=SimpleNamespace(waypoints=[]))
 
@@ -598,7 +617,10 @@ def test_init_wave_manager_raises_without_any_waypoints():
 
 def test_init_wave_manager_builds_a_real_wave_manager(assets):
     from pygame.math import Vector2
-    game = make_game(tilemap=SimpleNamespace(waypoints=[Vector2(0, 0), Vector2(1, 1)]), assets=assets)
+
+    game = make_game(
+        tilemap=SimpleNamespace(waypoints=[Vector2(0, 0), Vector2(1, 1)]), assets=assets
+    )
 
     game._init_wave_manager()
 

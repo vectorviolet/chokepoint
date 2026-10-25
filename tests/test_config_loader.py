@@ -2,10 +2,14 @@
 drift (e.g. a new tower type added without hps, or a wave referencing an
 enemy type nothing defines) that a synthetic-fixture test would miss."""
 
-from util.config_loader import load_enemy_stats, load_tower_config, load_wave_compositions
+from util.config_loader import (
+    load_enemy_stats,
+    load_tower_config,
+    load_wave_compositions,
+)
 
 TOWER_TYPES = (1, 2, 3, 4)
-PLANE_TYPE  = 4
+PLANE_TYPE = 4
 TANK_ENEMY_TYPES = (5, 6)
 
 
@@ -22,10 +26,10 @@ def test_tower_config_has_one_entry_per_type_in_type_order():
 def test_tower_config_per_level_lists_match_max_level():
     cfg = load_tower_config()
     for i, max_level in enumerate(cfg.max_levels):
-        assert len(cfg.prices[i])  == max_level
-        assert len(cfg.ranges[i])  == max_level
+        assert len(cfg.prices[i]) == max_level
+        assert len(cfg.ranges[i]) == max_level
         assert len(cfg.damages[i]) == max_level
-        assert len(cfg.speeds[i])  == max_level
+        assert len(cfg.speeds[i]) == max_level
 
 
 def test_tower_prices_strictly_increase_per_level():

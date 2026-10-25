@@ -6,6 +6,7 @@ and play it, to catch what only shows up when the pieces run together:
 the viewport at startup, the fixed simulation tick, game speed, pausing,
 saving. Saves go to a temporary directory, never the repo's saves/.
 """
+
 from functools import partial
 
 import pygame
@@ -32,6 +33,7 @@ def make_game(monkeypatch, tmp_path, fake_ticks):
         if settings is not None:
             SaveStore("settings", directory=tmp_path).save(settings)
         return Game()
+
     return build
 
 
@@ -54,25 +56,40 @@ def place_defence(game, types=(1, 1, 2)):
     path = [a + (b - a) * (i / 20) for i in range(21)]
     grid = game.tilemap.buildable_grid
     tiles = [
-        (r, c) for r, row in enumerate(grid) for c, ok in enumerate(row)
-        if ok and min((Vector2(c * TILE_SIZE + HALF_TILE, r * TILE_SIZE + HALF_TILE) - p).length() for p in path) < 120
+        (r, c)
+        for r, row in enumerate(grid)
+        for c, ok in enumerate(row)
+        if ok
+        and min(
+            (Vector2(c * TILE_SIZE + HALF_TILE, r * TILE_SIZE + HALF_TILE) - p).length()
+            for p in path
+        )
+        < 120
     ]
     controller = game.tower_controller
     game.camera.center_on(a)  # purchases only land on tiles in view
     for tower_type, (r, c) in zip(types, tiles):
         controller.buying_tower_type = tower_type
         controller.cursor_row, controller.cursor_col = r, c
-        controller._handle_tower_purchase(game.camera.world_to_screen((c * TILE_SIZE, r * TILE_SIZE)))
+        controller._handle_tower_purchase(
+            game.camera.world_to_screen((c * TILE_SIZE, r * TILE_SIZE))
+        )
     assert len(game.towers) == len(types)
 
 
 def snapshot(game):
     gs = game.game_state
-    return (gs.money, gs.lives, gs.level, len(game.enemies),
-            sorted((round(e.position.x), round(e.position.y)) for e in game.enemies))
+    return (
+        gs.money,
+        gs.lives,
+        gs.level,
+        len(game.enemies),
+        sorted((round(e.position.x), round(e.position.y)) for e in game.enemies),
+    )
 
 
 # ── startup ─────────────────────────────────────────────────────────────────
+
 
 def test_a_saved_window_size_reaches_the_viewport_at_startup(make_game):
     """Startup used to keep config's 1920x1080 viewport whatever size the
@@ -98,6 +115,7 @@ def test_a_new_game_opens_with_the_path_entrance_in_view(make_game):
 
 # ── playing ─────────────────────────────────────────────────────────────────
 
+
 def test_a_defended_opening_wave_is_fought_through_the_real_loop(make_game, fake_ticks):
     game = make_game()
     game._start_new_game()
@@ -107,12 +125,14 @@ def test_a_defended_opening_wave_is_fought_through_the_real_loop(make_game, fake
 
     play(game, fake_ticks, seconds=30, draw_every=15)
 
-    assert game.game_state.money > money_after_buying   # kills paid out
-    assert game.game_state.level >= 2                    # wave 1 cleared
+    assert game.game_state.money > money_after_buying  # kills paid out
+    assert game.game_state.level >= 2  # wave 1 cleared
     assert game.game_state.lives > 0
 
 
-def test_the_same_session_plays_out_identically_at_any_frame_rate(make_game, fake_ticks):
+def test_the_same_session_plays_out_identically_at_any_frame_rate(
+    make_game, fake_ticks
+):
     """The bug this guards: movement was per rendered frame while timers
     were in ms, so a 60 fps machine played a slower, different game."""
     results = []
@@ -139,7 +159,9 @@ def test_x4_speed_runs_the_game_clock_four_times_as_fast(make_game, fake_ticks):
 
     play(game, fake_ticks, seconds=2)
 
-    real_ms = 2000 - 1000 / 60  # the first update() has no previous frame to measure from
+    real_ms = (
+        2000 - 1000 / 60
+    )  # the first update() has no previous frame to measure from
     assert game.game_state.time_ms == pytest.approx(4 * real_ms, abs=4 * TICK_MS)
 
 
@@ -158,6 +180,7 @@ def test_pausing_freezes_the_game_clock_and_the_enemies(make_game, fake_ticks):
 
 
 # ── screens ─────────────────────────────────────────────────────────────────
+
 
 def test_every_screen_and_game_overlay_draws(make_game, fake_ticks):
     game = make_game()
@@ -183,6 +206,7 @@ def test_every_screen_and_game_overlay_draws(make_game, fake_ticks):
 
 
 # ── the main menu's live background ─────────────────────────────────────────
+
 
 def test_the_menu_demo_plays_in_a_world_of_its_own(make_game, fake_ticks, tmp_path):
     game = make_game()
@@ -215,6 +239,7 @@ def test_play_after_watching_the_menu_demo_starts_a_fresh_game(make_game, fake_t
 
 
 # ── leaving and coming back ─────────────────────────────────────────────────
+
 
 def test_leaving_a_game_saves_it_and_continue_restores_it(make_game, fake_ticks):
     game = make_game()

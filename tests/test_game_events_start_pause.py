@@ -4,6 +4,7 @@ unbound method against a lightweight fake (same pattern used elsewhere in
 this codebase's sibling projects for Game-level methods), since constructing
 a real Game() would load the actual map/panels/assets for no benefit here.
 """
+
 from types import SimpleNamespace
 
 import pygame
@@ -44,7 +45,9 @@ def make_game(*, is_started=False):
     # _handle_start_pause calls self._activate(...), another mixin method --
     # a bare SimpleNamespace has no class relationship to GameEventsMixin,
     # so bind the real implementation directly rather than reimplementing it.
-    game._activate = lambda button, event: GameEventsMixin._activate(game, button, event)
+    game._activate = lambda button, event: GameEventsMixin._activate(
+        game, button, event
+    )
     return game, button
 
 
@@ -94,7 +97,9 @@ def test_space_bar_plays_the_click_sound():
 def test_other_keys_do_not_trigger_the_shortcut():
     game, _ = make_game(is_started=False)
 
-    GameEventsMixin._handle_start_pause(game, pygame.event.Event(pygame.KEYDOWN, key=pygame.K_a))
+    GameEventsMixin._handle_start_pause(
+        game, pygame.event.Event(pygame.KEYDOWN, key=pygame.K_a)
+    )
 
     assert game.game_state.is_started is False
     assert game.audio.played == []
@@ -107,7 +112,9 @@ def test_space_key_up_does_not_trigger_the_shortcut():
     system drives "game"-panel buttons)."""
     game, _ = make_game(is_started=False)
 
-    GameEventsMixin._handle_start_pause(game, pygame.event.Event(pygame.KEYUP, key=pygame.K_SPACE))
+    GameEventsMixin._handle_start_pause(
+        game, pygame.event.Event(pygame.KEYUP, key=pygame.K_SPACE)
+    )
 
     assert game.game_state.is_started is False
 
@@ -116,7 +123,9 @@ def test_mouse_click_on_the_button_still_works():
     game, button = make_game(is_started=False)
     button.clicked = True
 
-    GameEventsMixin._handle_start_pause(game, pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1))
+    GameEventsMixin._handle_start_pause(
+        game, pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1)
+    )
 
     assert game.game_state.is_started is True
     assert button.state == "pause"
@@ -127,7 +136,9 @@ def test_unrelated_mouse_event_does_not_trigger_anything():
     game, button = make_game(is_started=False)
     button.clicked = False
 
-    GameEventsMixin._handle_start_pause(game, pygame.event.Event(pygame.MOUSEMOTION, pos=(1, 1)))
+    GameEventsMixin._handle_start_pause(
+        game, pygame.event.Event(pygame.MOUSEMOTION, pos=(1, 1))
+    )
 
     assert game.game_state.is_started is False
     assert game.audio.played == []

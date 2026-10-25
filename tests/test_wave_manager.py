@@ -16,7 +16,9 @@ def make_started_state(level=1) -> GameState:
     return gs
 
 
-def drain_queue(wm: WaveManager, enemies: list, gs: GameState, start_t: float = 0) -> float:
+def drain_queue(
+    wm: WaveManager, enemies: list, gs: GameState, start_t: float = 0
+) -> float:
     """Advances game time until every queued enemy for the current wave has
     spawned. Returns the game time at which the last one spawned."""
     t = start_t
@@ -97,7 +99,9 @@ def test_wave_25_spawns_the_first_tank_type_as_a_tank_instance(assets):
     tanks = [e for e in enemies if e.enemy_type in (5, 6)]
     non_tanks = [e for e in enemies if e.enemy_type not in (5, 6)]
     assert tanks and all(isinstance(e, Tank) for e in tanks)
-    assert non_tanks and all(isinstance(e, Enemy) and not isinstance(e, Tank) for e in non_tanks)
+    assert non_tanks and all(
+        isinstance(e, Enemy) and not isinstance(e, Tank) for e in non_tanks
+    )
 
 
 def test_advances_level_after_queue_drains_and_delay_passes_with_no_enemies(assets):
@@ -144,6 +148,7 @@ def test_waves_beyond_the_last_authored_entry_are_generated_dynamically(assets):
 
 # ── endless waves ────────────────────────────────────────────────────────────
 
+
 def test_endless_waves_continue_from_the_last_authored_wave(assets):
     """Past the last wave in config/waves.yaml, each wave keeps that wave's
     mix and grows every group by one per wave (tanks by one per two waves),
@@ -166,10 +171,15 @@ def test_endless_waves_continue_from_the_last_authored_wave(assets):
 def test_endless_wave_spawn_interval_tightens_to_a_floor(assets):
     wm = WaveManager(WAYPOINTS, assets)
     last = max(WAVE_COMPOSITIONS)
-    base_interval = WAVE_COMPOSITIONS[last].spawn_interval_ms or WaveManager.SPAWN_INTERVAL_MS
+    base_interval = (
+        WAVE_COMPOSITIONS[last].spawn_interval_ms or WaveManager.SPAWN_INTERVAL_MS
+    )
 
     assert wm._wave_for(last + 1).spawn_interval_ms == base_interval - 10
-    assert wm._wave_for(last + 1000).spawn_interval_ms == WaveManager.MIN_ENDLESS_INTERVAL_MS
+    assert (
+        wm._wave_for(last + 1000).spawn_interval_ms
+        == WaveManager.MIN_ENDLESS_INTERVAL_MS
+    )
 
 
 def test_the_wave_after_the_last_authored_one_is_not_a_difficulty_spike(assets):

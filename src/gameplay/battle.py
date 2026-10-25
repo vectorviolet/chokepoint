@@ -13,6 +13,7 @@ simulation. A subclass provides the state it operates on:
 and may override the two hooks below for its own rules. It also satisfies
 domain.protocols.IGameContext, which projectiles and tanks are updated with.
 """
+
 from __future__ import annotations
 
 import pygame
@@ -99,8 +100,14 @@ class BattleSimulation:
             tower.draw(self.game_state, camera, surface)
             for bullet in tower.bullets:
                 camera.draw(surface, bullet)
-            hp_bar.draw(surface, camera, tower.position, tower.hp, tower.maxHP,
-                        force=tower is self.game_state.selected_tower)
+            hp_bar.draw(
+                surface,
+                camera,
+                tower.position,
+                tower.hp,
+                tower.maxHP,
+                force=tower is self.game_state.selected_tower,
+            )
 
         for enemy in self.enemies:
             camera.draw(surface, enemy)

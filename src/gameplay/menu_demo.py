@@ -11,6 +11,7 @@ pre-upgraded, starting at a mid-game wave with planes flying bombing runs.
 A camera eases between whatever is happening. After a few waves, or once
 the defence has been worn down, it fades to black and starts a new run.
 """
+
 from __future__ import annotations
 
 import math
@@ -30,15 +31,15 @@ from util.constants import TICK_MS, TILE_SIZE, HALF_TILE
 GROUND_TOWER_TYPES = (1, 2, 3)
 PLANE_TYPE = 4
 
-START_LEVELS = (8, 16)          # a run starts at a random wave in this range
-WAVES_PER_RUN = 3               # ...and is replaced after this many waves
+START_LEVELS = (8, 16)  # a run starts at a random wave in this range
+WAVES_PER_RUN = 3  # ...and is replaced after this many waves
 TOWER_COUNT = (16, 22)
-MIN_TOWERS_LEFT = 5             # fewer ground towers than this: start over
+MIN_TOWERS_LEFT = 5  # fewer ground towers than this: start over
 # Towers go on build tiles whose centre is this far from the path (world px):
 # close enough to reach it, never on it.
 TOWER_PATH_DISTANCE = (0.9 * TILE_SIZE, 2.6 * TILE_SIZE)
-PLANE_INTERVAL_MS = (5000, 11000)   # game time between bombing runs
-PREWARM_MS = 9000               # game time simulated before a run is shown
+PLANE_INTERVAL_MS = (5000, 11000)  # game time between bombing runs
+PREWARM_MS = 9000  # game time simulated before a run is shown
 # Denser than the real game's waves, so the screen stays busy: each wave's
 # enemies are doubled and spawn twice as fast, and the real game's 5 s
 # breather between waves (which would leave the screen empty) is cut short.
@@ -47,10 +48,10 @@ SPAWN_INTERVAL_FACTOR = 0.5
 MIN_SPAWN_INTERVAL_MS = 250
 WAVE_GAP_MS = 1200
 
-CAMERA_SMOOTHING_S = 1.6        # time constant of the camera's ease
-CAMERA_MAX_SPEED = 220          # world px/s
+CAMERA_SMOOTHING_S = 1.6  # time constant of the camera's ease
+CAMERA_MAX_SPEED = 220  # world px/s
 CAMERA_RETARGET_S = (6.0, 10.0)
-CLUSTER_RADIUS = 450            # enemies this close to the followed one count as its group
+CLUSTER_RADIUS = 450  # enemies this close to the followed one count as its group
 FADE_S = 0.6
 
 
@@ -70,13 +71,20 @@ class _DemoWaves(WaveManager):
     def _build_queue(self, level: int) -> None:
         super()._build_queue(level)
         self._spawn_queue = self._spawn_queue * WAVE_SIZE_FACTOR
-        self._spawn_interval_ms = max(MIN_SPAWN_INTERVAL_MS,
-                                      int(self._spawn_interval_ms * SPAWN_INTERVAL_FACTOR))
+        self._spawn_interval_ms = max(
+            MIN_SPAWN_INTERVAL_MS, int(self._spawn_interval_ms * SPAWN_INTERVAL_FACTOR)
+        )
 
 
 class MenuDemo(BattleSimulation):
-    def __init__(self, tilemap, assets, tower_config: TowerConfig,
-                 size: tuple[int, int], rng: random.Random | None = None) -> None:
+    def __init__(
+        self,
+        tilemap,
+        assets,
+        tower_config: TowerConfig,
+        size: tuple[int, int],
+        rng: random.Random | None = None,
+    ) -> None:
         self.tilemap = tilemap
         self._assets = assets
         self._tower_config = tower_config
@@ -88,7 +96,7 @@ class MenuDemo(BattleSimulation):
         self._candidate_tiles = self._tiles_along_path()
 
         self._tick_backlog_ms = 0.0
-        self._fade = 1.0          # black overlay opacity, 0..1
+        self._fade = 1.0  # black overlay opacity, 0..1
         self._fading_out = False
         self._start_run()
 
@@ -177,7 +185,9 @@ class MenuDemo(BattleSimulation):
             for col, buildable in enumerate(cells):
                 if not buildable:
                     continue
-                centre = Vector2(col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
+                centre = Vector2(
+                    col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE
+                )
                 if near <= _distance_to_path(centre, path) <= far:
                     tiles.append((row, col))
         return tiles
@@ -189,10 +199,13 @@ class MenuDemo(BattleSimulation):
             tower_type = rng.choice(GROUND_TOWER_TYPES)
             tower = self._create_tower(tower_type, row, col)
             # Upgraded more often than not: a run is set mid-game.
-            tower.level = rng.choices(range(1, tower.max_level + 1),
-                                      weights=range(1, tower.max_level + 1))[0]
+            tower.level = rng.choices(
+                range(1, tower.max_level + 1), weights=range(1, tower.max_level + 1)
+            )[0]
             if tower.level > 1:
-                tower.load(self._assets.image_path(f"tower_{tower_type}_lvl{tower.level}"))
+                tower.load(
+                    self._assets.image_path(f"tower_{tower_type}_lvl{tower.level}")
+                )
                 tower.hp = tower.maxHP
             self.towers.append(tower)
 
@@ -208,8 +221,15 @@ class MenuDemo(BattleSimulation):
         self.towers.append(self._create_tower(PLANE_TYPE, row, 0))
 
     def _create_tower(self, tower_type: int, row: int, col: int):
-        return TowerFactory.create(tower_type, row, col, self._tower_config,
-                                   self._assets, self._audio, self.tilemap.map_width)
+        return TowerFactory.create(
+            tower_type,
+            row,
+            col,
+            self._tower_config,
+            self._assets,
+            self._audio,
+            self.tilemap.map_width,
+        )
 
     # ── camera ────────────────────────────────────────────────────────────────
 
@@ -228,16 +248,21 @@ class MenuDemo(BattleSimulation):
         target = self._camera_target
         if target in self.enemies:
             # The middle of its group, so the whole fight is in frame.
-            group = [e.position for e in self.enemies
-                     if e.position.distance_to(target.position) <= CLUSTER_RADIUS]
+            group = [
+                e.position
+                for e in self.enemies
+                if e.position.distance_to(target.position) <= CLUSTER_RADIUS
+            ]
             return sum(group, Vector2()) / len(group)
         return target.position if hasattr(target, "position") else target
 
     def _update_camera(self, dt: float) -> None:
         self._retarget_in -= dt
-        target_gone = (self._camera_target not in self.enemies
-                       and self._camera_target not in self.towers
-                       and not isinstance(self._camera_target, Vector2))
+        target_gone = (
+            self._camera_target not in self.enemies
+            and self._camera_target not in self.towers
+            and not isinstance(self._camera_target, Vector2)
+        )
         if self._retarget_in <= 0 or target_gone:
             self._camera_target = self._pick_camera_target()
             self._retarget_in = self._rng.uniform(*CAMERA_RETARGET_S)
@@ -258,6 +283,10 @@ def _distance_to_path(point: Vector2, path: list[Vector2]) -> float:
     for a, b in zip(path, path[1:]):
         ab = b - a
         length_sq = ab.length_squared()
-        t = 0.0 if length_sq == 0 else max(0.0, min(1.0, (point - a).dot(ab) / length_sq))
+        t = (
+            0.0
+            if length_sq == 0
+            else max(0.0, min(1.0, (point - a).dot(ab) / length_sq))
+        )
         best = min(best, point.distance_to(a + ab * t))
     return best

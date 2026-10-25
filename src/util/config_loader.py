@@ -16,9 +16,9 @@ class EnemyStats:
     speed: float
     kill_money: int
     damage: int
-    range: int | None = None             # tanks only
+    range: int | None = None  # tanks only
     fire_interval_ms: int | None = None  # tanks only
-    bullet_damage: int | None = None     # tanks only
+    bullet_damage: int | None = None  # tanks only
 
 
 def load_tower_config() -> TowerConfig:
@@ -27,13 +27,13 @@ def load_tower_config() -> TowerConfig:
 
     towers = sorted(data["towers"], key=lambda t: t["type"])
     return TowerConfig(
-        prices       = [t["prices"]    for t in towers],
-        max_levels   = [t["max_level"] for t in towers],
-        ranges       = [t["ranges"]    for t in towers],
-        damages      = [t["damages"]   for t in towers],
-        speeds       = [t["speeds"]    for t in towers],
-        hps          = [t.get("hps")   for t in towers],
-        shoot_sounds = [t.get("shoot_sound") for t in towers],
+        prices=[t["prices"] for t in towers],
+        max_levels=[t["max_level"] for t in towers],
+        ranges=[t["ranges"] for t in towers],
+        damages=[t["damages"] for t in towers],
+        speeds=[t["speeds"] for t in towers],
+        hps=[t.get("hps") for t in towers],
+        shoot_sounds=[t.get("shoot_sound") for t in towers],
     )
 
 

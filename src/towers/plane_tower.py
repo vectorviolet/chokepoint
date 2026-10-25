@@ -9,10 +9,21 @@ BOMB_DROP_INTERVAL_MS = 500
 
 
 class PlaneTower(BaseTower):
-    def __init__(self, tower_type: int, row: int, col: int, config: TowerConfig, assets, audio, map_width: int) -> None:
+    def __init__(
+        self,
+        tower_type: int,
+        row: int,
+        col: int,
+        config: TowerConfig,
+        assets,
+        audio,
+        map_width: int,
+    ) -> None:
         super().__init__(tower_type, row, col, config, assets, audio)
         self._map_width = map_width
-        self._last_bomb_drop_at: float | None = None  # set on the first update, in game time
+        self._last_bomb_drop_at: float | None = (
+            None  # set on the first update, in game time
+        )
 
     def update(self, game_state: GameState, enemies: list) -> None:
         self.now = game_state.time_ms
@@ -21,7 +32,9 @@ class PlaneTower(BaseTower):
         new_level = game_state.plane_level
         if new_level != self.level:
             self.level = new_level
-            self.load(self.assets.image_path(f"tower_{self.tower_type}_lvl{self.level}"))
+            self.load(
+                self.assets.image_path(f"tower_{self.tower_type}_lvl{self.level}")
+            )
         if game_state.is_started and not self._is_off_map():
             self.position.x += self.speed * game_state.speed
             self.rect.center = self.position
@@ -37,9 +50,13 @@ class PlaneTower(BaseTower):
         self.bullets.append(Bomb(self, drop_velocity))
 
     def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
-        shadow = self.assets.get_image(f"tower_{self.tower_type}_shadow_lvl{self.level}")
+        shadow = self.assets.get_image(
+            f"tower_{self.tower_type}_shadow_lvl{self.level}"
+        )
         scaled_shadow = camera.scale_image(shadow)
-        shadow_screen = camera.world_to_screen((self.position.x - 20, self.position.y + 20))
+        shadow_screen = camera.world_to_screen(
+            (self.position.x - 20, self.position.y + 20)
+        )
         surface.blit(scaled_shadow, shadow_screen)
 
         if game_state.selected_tower is self:

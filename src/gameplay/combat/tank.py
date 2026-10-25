@@ -5,6 +5,7 @@ HP system on towers for now).
 E5 / E6 share this class; they differ only in the asset key suffix and the
 stats loaded from config/enemies.yaml.
 """
+
 from typing import TYPE_CHECKING
 
 import pygame
@@ -22,15 +23,16 @@ if TYPE_CHECKING:
 class Tank(Enemy):
     MUZZLE_TIP_FORWARD = 55  # px from tank center to muzzle tip along aim direction
 
-    def __init__(self, id: int, enemy_type: int, level: int,
-                 waypoints: list[Vector2], assets) -> None:
+    def __init__(
+        self, id: int, enemy_type: int, level: int, waypoints: list[Vector2], assets
+    ) -> None:
         super().__init__(id, enemy_type, level, waypoints, assets)
         self.assets = assets
 
         stats = _BASE_STATS[enemy_type]
-        self.range:            int = stats.range or 280
+        self.range: int = stats.range or 280
         self.fire_interval_ms: int = stats.fire_interval_ms or 2500
-        self.bullet_damage:    int = stats.bullet_damage or 20
+        self.bullet_damage: int = stats.bullet_damage or 20
 
         muzzle_path = assets.image_path(f"enemy_{enemy_type}_muzzle")
         self._muzzle_base: pygame.Surface = load_image(muzzle_path)
@@ -85,7 +87,9 @@ class Tank(Enemy):
         if delta.length_squared() == 0:
             return
         self._muzzle_angle = angle_between_delta(delta)
-        self._muzzle_image = pygame.transform.rotate(self._muzzle_base, -self._muzzle_angle)
+        self._muzzle_image = pygame.transform.rotate(
+            self._muzzle_base, -self._muzzle_angle
+        )
 
     # ── rendering hook ───────────────────────────────────────────────────────
 
@@ -98,10 +102,13 @@ class Tank(Enemy):
 
 class TankBullet(RotatableObject):
     """Travels toward a tower and chips at its HP on contact."""
+
     SPEED = 4
     EXPLODE_DISTANCE = 30
 
-    def __init__(self, tank: Tank, target_tower, spawn_pos: Vector2 | None = None) -> None:
+    def __init__(
+        self, tank: Tank, target_tower, spawn_pos: Vector2 | None = None
+    ) -> None:
         spawn = spawn_pos if spawn_pos is not None else tank.position
         super().__init__(tank.assets.image_path("tank_bullet"), spawn)
         self.tank = tank
@@ -123,13 +130,19 @@ class TankBullet(RotatableObject):
             self._remove()
             return
 
-        self.rotate_to_angle(angle_between_points(self.position, self.target_tower.position))
+        self.rotate_to_angle(
+            angle_between_points(self.position, self.target_tower.position)
+        )
         self.position += delta.normalize() * self.SPEED * ctx.speed
         self.rect.center = self.position
 
     def _is_out_of_bounds(self, ctx: "IGameContext") -> bool:
-        return (self.position.x < 0 or self.position.x > ctx.map_width
-                or self.position.y < 0 or self.position.y > ctx.map_height)
+        return (
+            self.position.x < 0
+            or self.position.x > ctx.map_width
+            or self.position.y < 0
+            or self.position.y > ctx.map_height
+        )
 
     def _remove(self) -> None:
         if self in self.tank.bullets:
@@ -138,6 +151,7 @@ class TankBullet(RotatableObject):
 
 class TankMuzzleFlash(RotatableObject):
     """Brief visual flash at the tank's muzzle tip when firing — no damage."""
+
     FLASH_DURATION_MS = 120
 
     def __init__(self, tank: Tank, pos: Vector2, angle: float) -> None:

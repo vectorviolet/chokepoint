@@ -84,7 +84,7 @@ class FakeGame(GameSaveMixin):
         self.wave_manager = WaveManager(WAYPOINTS, assets)
         self._starting_money = money
         self._starting_lives = lives
-        self._victory_popup_open = True   # deliberately "dirty" so tests can
+        self._victory_popup_open = True  # deliberately "dirty" so tests can
         self._gameover_popup_open = True  # observe these actually reset to False
         self.tower_controller = SimpleNamespace(buying_tower_type=1)
         self.panel_manager = FakePanelManager({"game": make_game_panel()})
@@ -104,8 +104,20 @@ class FakeGame(GameSaveMixin):
         self.calls.append("_show_path_entrance")
 
 
-def make_tower(tower_config, assets, *, tower_type=1, row=0, col=0, level=1, hp=None, position=(64.0, 64.0)):
-    tower = TowerFactory.create(tower_type, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH)
+def make_tower(
+    tower_config,
+    assets,
+    *,
+    tower_type=1,
+    row=0,
+    col=0,
+    level=1,
+    hp=None,
+    position=(64.0, 64.0),
+):
+    tower = TowerFactory.create(
+        tower_type, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH
+    )
     tower.level = level
     if hp is not None:
         tower.hp = hp
@@ -115,12 +127,17 @@ def make_tower(tower_config, assets, *, tower_type=1, row=0, col=0, level=1, hp=
 
 # ── has_saved_game ───────────────────────────────────────────────────────────
 
+
 def test_has_saved_game_reflects_the_save_store(tower_config, assets):
     assert FakeGame(tower_config, assets, saved_data=None)._has_saved_game() is False
-    assert FakeGame(tower_config, assets, saved_data={"game_state": {}})._has_saved_game() is True
+    assert (
+        FakeGame(tower_config, assets, saved_data={"game_state": {}})._has_saved_game()
+        is True
+    )
 
 
 # ── save ─────────────────────────────────────────────────────────────────────
+
 
 def test_save_game_captures_state_towers_and_enemies(tower_config, assets):
     game = FakeGame(tower_config, assets)
@@ -136,10 +153,16 @@ def test_save_game_captures_state_towers_and_enemies(tower_config, assets):
     saved = game.save_store.saved
     assert saved["game_state"]["money"] == 777
     assert saved["game_state"]["level"] == 3
-    assert saved["towers"] == [{
-        "tower_type": tower.tower_type, "row": 2, "col": 3, "level": 1,
-        "hp": 40, "position": [tower.position.x, tower.position.y],
-    }]
+    assert saved["towers"] == [
+        {
+            "tower_type": tower.tower_type,
+            "row": 2,
+            "col": 3,
+            "level": 1,
+            "hp": 40,
+            "position": [tower.position.x, tower.position.y],
+        }
+    ]
     assert saved["enemies"][0]["id"] == 9
     assert saved["enemies"][0]["enemy_type"] == 1
     assert saved["enemies"][0]["hp"] == enemy.hp
@@ -147,6 +170,7 @@ def test_save_game_captures_state_towers_and_enemies(tower_config, assets):
 
 
 # ── load: no saved data falls back to a new game ────────────────────────────
+
 
 def test_load_game_with_no_saved_data_starts_a_new_game(tower_config, assets):
     game = FakeGame(tower_config, assets, saved_data=None, money=250, lives=5)
@@ -162,24 +186,52 @@ def test_load_game_with_no_saved_data_starts_a_new_game(tower_config, assets):
 
 # ── load: restoring a real save ──────────────────────────────────────────────
 
+
 def make_saved_blob(tower_config, assets):
     tower = make_tower(tower_config, assets, tower_type=2, row=1, col=1, level=2, hp=77)
     return {
         "game_state": {
-            "money": 999, "lives": 3, "level": 4, "speed": 2,
-            "is_started": True, "plane_level": 2, "has_won": False,
+            "money": 999,
+            "lives": 3,
+            "level": 4,
+            "speed": 2,
+            "is_started": True,
+            "plane_level": 2,
+            "has_won": False,
         },
-        "towers": [{
-            "tower_type": tower.tower_type, "row": tower.row, "col": tower.col,
-            "level": 2, "hp": 77, "position": [200.0, 300.0],
-        }],
+        "towers": [
+            {
+                "tower_type": tower.tower_type,
+                "row": tower.row,
+                "col": tower.col,
+                "level": 2,
+                "hp": 77,
+                "position": [200.0, 300.0],
+            }
+        ],
         "enemies": [
-            {"id": 1, "enemy_type": 1, "position": [50.0, 0.0], "hp": 30, "waypoint_index": 1},
-            {"id": 2, "enemy_type": 5, "position": [100.0, 50.0], "hp": 60, "waypoint_index": 2},  # 5 -> Tank
+            {
+                "id": 1,
+                "enemy_type": 1,
+                "position": [50.0, 0.0],
+                "hp": 30,
+                "waypoint_index": 1,
+            },
+            {
+                "id": 2,
+                "enemy_type": 5,
+                "position": [100.0, 50.0],
+                "hp": 60,
+                "waypoint_index": 2,
+            },  # 5 -> Tank
         ],
         "wave_manager": {
-            "current_level": 4, "spawn_queue": [1, 1, 2], "queue_index": 1,
-            "spawn_interval_ms": 500, "level_finish_pending": True, "count_all_time": 12,
+            "current_level": 4,
+            "spawn_queue": [1, 1, 2],
+            "queue_index": 1,
+            "spawn_interval_ms": 500,
+            "level_finish_pending": True,
+            "count_all_time": 12,
         },
     }
 
@@ -212,7 +264,9 @@ def test_load_game_restores_full_state(tower_config, assets):
     assert game.wave_manager._current_level == 4
     assert game.wave_manager._spawn_queue == [1, 1, 2]
     assert game.wave_manager._queue_index == 1
-    assert game.wave_manager._level_finish_time is not None  # pending -> rebased to "now"
+    assert (
+        game.wave_manager._level_finish_time is not None
+    )  # pending -> rebased to "now"
 
     assert game._victory_popup_open is False
     assert game._gameover_popup_open is False
@@ -223,8 +277,22 @@ def test_load_game_restores_full_state(tower_config, assets):
 
 def test_restore_towers_only_reloads_the_image_above_level_one(tower_config, assets):
     game = FakeGame(tower_config, assets)
-    level1 = {"tower_type": 1, "row": 0, "col": 0, "level": 1, "hp": 50, "position": [0.0, 0.0]}
-    level2 = {"tower_type": 2, "row": 1, "col": 1, "level": 2, "hp": 100, "position": [64.0, 64.0]}
+    level1 = {
+        "tower_type": 1,
+        "row": 0,
+        "col": 0,
+        "level": 1,
+        "hp": 50,
+        "position": [0.0, 0.0],
+    }
+    level2 = {
+        "tower_type": 2,
+        "row": 1,
+        "col": 1,
+        "level": 2,
+        "hp": 100,
+        "position": [64.0, 64.0],
+    }
 
     game._restore_towers([level1, level2])
 
@@ -236,7 +304,15 @@ def test_restore_towers_only_reloads_the_image_above_level_one(tower_config, ass
 def test_restore_enemies_handles_an_enemy_already_at_the_end(tower_config, assets):
     game = FakeGame(tower_config, assets)
     past_end_index = len(WAYPOINTS)  # reached_end() is waypoint_index >= len(waypoints)
-    saved = [{"id": 1, "enemy_type": 1, "position": [100.0, 100.0], "hp": 1, "waypoint_index": past_end_index}]
+    saved = [
+        {
+            "id": 1,
+            "enemy_type": 1,
+            "position": [100.0, 100.0],
+            "hp": 1,
+            "waypoint_index": past_end_index,
+        }
+    ]
 
     game._restore_enemies(saved)
 
@@ -248,10 +324,16 @@ def test_restore_wave_manager_rebases_timestamps_to_now(tower_config, assets):
     game = FakeGame(tower_config, assets)
     game.game_state.time_ms = 5000
 
-    game._restore_wave_manager({
-        "current_level": 2, "spawn_queue": [], "queue_index": 0,
-        "spawn_interval_ms": 800, "level_finish_pending": False, "count_all_time": 7,
-    })
+    game._restore_wave_manager(
+        {
+            "current_level": 2,
+            "spawn_queue": [],
+            "queue_index": 0,
+            "spawn_interval_ms": 800,
+            "level_finish_pending": False,
+            "count_all_time": 7,
+        }
+    )
 
     assert game.wave_manager._last_spawn_time == 5000
     assert game.wave_manager._level_finish_time is None
@@ -259,6 +341,7 @@ def test_restore_wave_manager_rebases_timestamps_to_now(tower_config, assets):
 
 
 # ── start new game ───────────────────────────────────────────────────────────
+
 
 def test_start_new_game_resets_everything_to_starting_values(tower_config, assets):
     game = FakeGame(tower_config, assets, money=300, lives=4)
@@ -287,6 +370,7 @@ def test_start_new_game_resets_everything_to_starting_values(tower_config, asset
 
 # ── sync UI ──────────────────────────────────────────────────────────────────
 
+
 def test_sync_game_ui_reflects_started_and_speed_and_plane_state(tower_config, assets):
     game = FakeGame(tower_config, assets)
     game.game_state.is_started = True
@@ -305,7 +389,9 @@ def test_sync_game_ui_reflects_started_and_speed_and_plane_state(tower_config, a
     assert game.hud.refreshed is True
 
 
-def test_sync_game_ui_reflects_paused_speed_1_and_no_plane_upgrade(tower_config, assets):
+def test_sync_game_ui_reflects_paused_speed_1_and_no_plane_upgrade(
+    tower_config, assets
+):
     game = FakeGame(tower_config, assets)
     game._victory_popup_open = False
     game._gameover_popup_open = False
@@ -326,10 +412,12 @@ def test_sync_game_ui_reflects_paused_speed_1_and_no_plane_upgrade(tower_config,
 
 # ── test isolation ──────────────────────────────────────────────────────────
 
+
 def test_tests_never_save_into_the_real_saves_folder(tmp_path):
     """conftest's saves_in_tmp: a SaveStore built with no directory, as
     Game() builds its own, lands in this test's temporary folder."""
     from pygamine import SaveStore
+
     store = SaveStore("save")
     store.save({"probe": 1})
 

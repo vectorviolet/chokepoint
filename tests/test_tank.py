@@ -13,6 +13,7 @@ class FakeTower:
     """Only what Tank._nearest_tower/_fire touch (see domain/protocols.py's
     stub-friendly design): position and maxHP (None marks an untargetable
     tower, e.g. a plane -- see BaseTower.maxHP)."""
+
     position: Vector2
     maxHP: int | None = 100
 
@@ -40,7 +41,7 @@ def test_nearest_tower_skips_untargetable_towers(assets, ctx):
 
 def test_nearest_tower_picks_the_closest_one(assets, ctx):
     tank = make_tank(assets)  # spawns at (0, 0)
-    far   = FakeTower(Vector2(300, 0))
+    far = FakeTower(Vector2(300, 0))
     close = FakeTower(Vector2(50, 0))
     ctx.towers.extend([far, close])
 
@@ -80,7 +81,9 @@ def test_update_combat_respects_the_fire_cooldown(assets, ctx):
     tank.update_combat(ctx)
     assert len(tank.bullets) == 2
 
-    ctx.time_ms = tank.fire_interval_ms + 1  # nowhere near a full cooldown since last shot
+    ctx.time_ms = (
+        tank.fire_interval_ms + 1
+    )  # nowhere near a full cooldown since last shot
     tank.update_combat(ctx)
     assert len(tank.bullets) == 2  # unchanged -- still on cooldown
 
@@ -89,8 +92,8 @@ def test_update_combat_respects_the_fire_cooldown(assets, ctx):
     assert len(tank.bullets) == 4  # cooldown elapsed -- fired again
 
 
-
 # ── tank bullets ─────────────────────────────────────────────────────────────
+
 
 class HpTower:
     def __init__(self, position, hp=100):
@@ -148,7 +151,10 @@ def test_tank_muzzle_flash_expires_after_its_duration_of_game_time(assets, ctx):
 def test_draw_muzzle_renders_the_turret(assets):
     import pygame
     from pygamine import Camera
+
     tank = make_tank(assets)
     tank._aim_at(Vector2(100, 100))
 
-    tank.draw_muzzle(pygame.Surface((400, 300)), Camera(pygame.Rect(0, 0, 400, 300), 3008, 2176))
+    tank.draw_muzzle(
+        pygame.Surface((400, 300)), Camera(pygame.Rect(0, 0, 400, 300), 3008, 2176)
+    )

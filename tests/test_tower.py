@@ -18,20 +18,22 @@ class IdentityCamera:
 
 
 def make_tower(tower_config, assets, tower_type=GROUND_TYPE, row=0, col=0):
-    return TowerFactory.create(tower_type, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH)
+    return TowerFactory.create(
+        tower_type, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH
+    )
 
 
 def test_stats_come_from_tower_config(tower_config, assets):
     tower = make_tower(tower_config, assets)
-    assert tower.range  == tower_config.ranges[GROUND_TYPE - 1][0]
+    assert tower.range == tower_config.ranges[GROUND_TYPE - 1][0]
     assert tower.damage == tower_config.damages[GROUND_TYPE - 1][0]
-    assert tower.speed  == tower_config.speeds[GROUND_TYPE - 1][0]
+    assert tower.speed == tower_config.speeds[GROUND_TYPE - 1][0]
     assert tower.max_level == tower_config.max_levels[GROUND_TYPE - 1]
     assert tower.buy_price == tower_config.prices[GROUND_TYPE - 1][0]
 
 
 def test_plane_has_no_max_hp_and_ground_tower_does(tower_config, assets):
-    plane  = make_tower(tower_config, assets, tower_type=PLANE_TYPE)
+    plane = make_tower(tower_config, assets, tower_type=PLANE_TYPE)
     ground = make_tower(tower_config, assets, tower_type=GROUND_TYPE)
 
     assert plane.maxHP is None
@@ -118,7 +120,9 @@ def test_upgrade_does_nothing_when_money_is_insufficient(tower_config, assets):
 
 
 def test_upgrade_does_nothing_at_max_level(tower_config, assets):
-    tower = make_tower(tower_config, assets, tower_type=GROUND_TYPE)  # 1 level, already maxed
+    tower = make_tower(
+        tower_config, assets, tower_type=GROUND_TYPE
+    )  # 1 level, already maxed
     gs = GameState(start_money=1_000_000, start_lives=10)
     camera = IdentityCamera()
 
@@ -156,8 +160,10 @@ def test_sell_does_nothing_when_tower_is_not_selected(tower_config, assets):
 
 # ── sell price ───────────────────────────────────────────────────────────────
 
+
 def test_sell_price_refunds_seventy_percent_of_everything_spent(tower_config, assets):
     from towers.base_tower import SELL_REFUND
+
     missile_prices = tower_config.prices[1]
     tower = make_tower(tower_config, assets, tower_type=2)
 
@@ -168,10 +174,10 @@ def test_sell_price_refunds_seventy_percent_of_everything_spent(tower_config, as
     assert tower.sell_price == int(sum(missile_prices[:3]) * 0.7)
 
 
-
 def test_selected_tower_ui_draws_upgrade_and_sell_buttons(tower_config, assets):
     import pygame
     from pygamine import Camera
+
     camera = Camera(pygame.Rect(0, 0, 800, 600), 3008, 2176)
     surface = pygame.Surface((800, 600))
     gs = GameState(start_money=0, start_lives=10)

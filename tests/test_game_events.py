@@ -110,28 +110,38 @@ PLANE_UPGRADE_PRICE = load_tower_config().prices[3][1]
 
 class FakeGame(GameEventsMixin):
     def __init__(self, *, has_saved_game=False, money=10_000):
-        self.panel_manager = FakePanelManager({
-            "main_menu": {
-                "play": FakeButton(), "credits": FakeButton(),
-                "settings": FakeButton(), "exit": FakeButton(),
-                "music_toggle_icon": FakeButton(),
-            },
-            "play_menu": {
-                "continue_game": FakeButton(), "new_game": FakeButton(),
-                "back": FakeButton(), "music_toggle_icon": FakeButton(),
-            },
-            "credits": {
-                "back": FakeButton(), "music_toggle_icon": FakeButton(),
-                "credits_scroller": FakeScroller(),
-            },
-            "settings": {
-                "back": FakeButton(), "reset": FakeButton(),
-                "window_size_back_button": FakeButton(), "window_size_next_button": FakeButton(),
-                "window_mode_back_button": FakeButton(), "window_mode_next_button": FakeButton(),
-                "music_toggle_icon": FakeButton(),
-            },
-            "game": make_game_panel(),
-        })
+        self.panel_manager = FakePanelManager(
+            {
+                "main_menu": {
+                    "play": FakeButton(),
+                    "credits": FakeButton(),
+                    "settings": FakeButton(),
+                    "exit": FakeButton(),
+                    "music_toggle_icon": FakeButton(),
+                },
+                "play_menu": {
+                    "continue_game": FakeButton(),
+                    "new_game": FakeButton(),
+                    "back": FakeButton(),
+                    "music_toggle_icon": FakeButton(),
+                },
+                "credits": {
+                    "back": FakeButton(),
+                    "music_toggle_icon": FakeButton(),
+                    "credits_scroller": FakeScroller(),
+                },
+                "settings": {
+                    "back": FakeButton(),
+                    "reset": FakeButton(),
+                    "window_size_back_button": FakeButton(),
+                    "window_size_next_button": FakeButton(),
+                    "window_mode_back_button": FakeButton(),
+                    "window_mode_next_button": FakeButton(),
+                    "music_toggle_icon": FakeButton(),
+                },
+                "game": make_game_panel(),
+            }
+        )
         self.mouse = type("M", (), {"position": (0, 0)})()
         self.audio = FakeAudio()
         self.click_sound_path = "assets/sfx/click.ogg"
@@ -199,6 +209,7 @@ def click_up():
 
 # ── _activate ────────────────────────────────────────────────────────────────
 
+
 def test_activate_true_on_click_and_plays_the_default_click_sound():
     game = FakeGame()
     button = FakeButton(clicked=True)
@@ -234,6 +245,7 @@ def test_activate_prefers_the_buttons_own_click_sound():
 
 
 # ── main menu ────────────────────────────────────────────────────────────────
+
 
 def test_main_menu_play_with_a_saved_game_opens_play_menu():
     game = FakeGame(has_saved_game=True)
@@ -273,6 +285,7 @@ def test_main_menu_credits_and_settings_and_exit():
 
 # ── play menu ────────────────────────────────────────────────────────────────
 
+
 def test_play_menu_continue_loads_the_saved_game():
     game = FakeGame()
     game.panel_manager["play_menu"]["continue_game"].clicked = True
@@ -302,6 +315,7 @@ def test_play_menu_back_returns_to_main_menu():
 
 # ── credits ──────────────────────────────────────────────────────────────────
 
+
 def test_opening_credits_restarts_the_scroll_each_time():
     game = FakeGame()
     scroller = game.panel_manager["credits"]["credits_scroller"]
@@ -324,6 +338,7 @@ def test_credits_back_returns_to_main_menu():
 
 
 # ── settings ─────────────────────────────────────────────────────────────────
+
 
 def test_settings_back_saves_and_returns_to_main_menu():
     game = FakeGame()
@@ -385,6 +400,7 @@ def test_on_sfx_and_music_volume_changed():
 
 # ── game panel ───────────────────────────────────────────────────────────────
 
+
 def test_game_event_menu_button_pauses_saves_and_returns_to_menu():
     game = FakeGame()
     game.game_state.is_started = True
@@ -442,6 +458,7 @@ def test_game_event_routes_to_gameover_popup_when_open():
 
 # ── victory popup ────────────────────────────────────────────────────────────
 
+
 def test_victory_continue_resumes_the_game():
     game = FakeGame()
     game._victory_popup_open = True
@@ -469,6 +486,7 @@ def test_victory_main_menu_saves_and_exits_to_menu():
 
 # ── game over popup ──────────────────────────────────────────────────────────
 
+
 def test_gameover_main_menu_returns_to_menu():
     game = FakeGame()
     game._gameover_popup_open = True
@@ -481,6 +499,7 @@ def test_gameover_main_menu_returns_to_menu():
 
 
 # ── plane upgrade ────────────────────────────────────────────────────────────
+
 
 def test_upgrade_plane_succeeds_with_enough_money():
     game = FakeGame(money=PLANE_UPGRADE_PRICE)
@@ -525,6 +544,7 @@ def test_upgrade_plane_button_not_clicked_is_a_no_op():
 
 # ── speed toggle ─────────────────────────────────────────────────────────────
 
+
 def test_speed_toggle_cycles_1_2_4_and_back_to_1():
     game = FakeGame()
     game.panel_manager["game"]["speed_toggle_button"].clicked = True
@@ -551,6 +571,7 @@ def test_speed_toggle_not_clicked_is_a_no_op():
 
 
 # ── music toggle ─────────────────────────────────────────────────────────────
+
 
 def test_toggle_music_updates_every_panels_icon():
     game = FakeGame()
