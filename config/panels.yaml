@@ -140,10 +140,6 @@ panels:
           - credits_title
           - credits_dev_title
           - credits_dev
-          - credits_github_icon
-          - credits_github_name
-          - credits_itch_icon
-          - credits_itch_name
           - credits_art_title
           - credits_art
           - credits_ui_title
@@ -159,6 +155,10 @@ panels:
           - credits_fonts_title
           - credits_fonts
           - credits_fonts_2
+          - credits_github_icon
+          - credits_github_name
+          - credits_itch_icon
+          - credits_itch_name
 
       # "a VECTORVIOLET game" -- pygamine's lockup; the file's built-in clear
       # space puts the visible logo at ~700x63 inside this 880x120 box.
@@ -181,84 +181,85 @@ panels:
         extends: credits_entry
         position: [CENTER, 292]
         text: "Umutcan Ekinci"
-      # Profile links: platform icon + username, the pair centred as a row
+      credits_art_title:
+        extends: credits_heading
+        position: [CENTER, 372]
+        text: "Art"
+      credits_art:
+        extends: credits_entry
+        position: [CENTER, 414]
+        text: "Kenney - Tower Defense (Top-Down)"
+      credits_ui_title:
+        extends: credits_heading
+        position: [CENTER, 494]
+        text: "UI"
+      credits_ui:
+        extends: credits_entry
+        position: [CENTER, 536]
+        text: "Kenney - UI Pack"
+      credits_ui_2:
+        extends: credits_entry
+        position: [CENTER, 582]
+        text: "La Red Games - Gems / Coins Free"
+      credits_sound_title:
+        extends: credits_heading
+        position: [CENTER, 662]
+        text: "Sound"
+      credits_sound:
+        extends: credits_entry
+        position: [CENTER, 704]
+        text: "Kenney - Impact Sounds"
+      credits_vfx_title:
+        extends: credits_heading
+        position: [CENTER, 784]
+        text: "VFX"
+      credits_vfx:
+        extends: credits_entry
+        position: [CENTER, 826]
+        text: "Kenney - Smoke Particles"
+      credits_music_title:
+        extends: credits_heading
+        position: [CENTER, 906]
+        text: "Music"
+      credits_music:
+        extends: credits_entry
+        position: [CENTER, 948]
+        text: "Sakura Girl - Clown"
+      credits_music_2:
+        extends: credits_entry
+        position: [CENTER, 994]
+        text: "hypeddit.com/sakuragirl/clown"
+      credits_fonts_title:
+        extends: credits_heading
+        position: [CENTER, 1074]
+        text: "Fonts"
+      credits_fonts:
+        extends: credits_entry
+        position: [CENTER, 1116]
+        text: "Anton — Vernon Adams"
+      credits_fonts_2:
+        extends: credits_entry
+        position: [CENTER, 1162]
+        text: "Comic Neue — Craig Rozynski"
+      # Profile links, closing the scroll a little apart from the sections:
+      # platform icon + username, the pair centred as a row
       # (icons right-aligned at x=859, names start at x=873).
       credits_github_icon:
-        position: [817, 364]
+        position: [817, 1284]
         size: [42, 41]
         asset: github_icon
       credits_github_name:
         extends: credits_entry
-        position: [873, 362]
+        position: [873, 1282]
         text: "umutcanekinci"
       credits_itch_icon:
-        position: [813, 418]
+        position: [813, 1338]
         size: [46, 41]
         asset: itch_icon
       credits_itch_name:
         extends: credits_entry
-        position: [873, 416]
+        position: [873, 1336]
         text: "umutcanekinci"
-      credits_art_title:
-        extends: credits_heading
-        position: [CENTER, 500]
-        text: "Art"
-      credits_art:
-        extends: credits_entry
-        position: [CENTER, 542]
-        text: "Kenney - Tower Defense (Top-Down)"
-      credits_ui_title:
-        extends: credits_heading
-        position: [CENTER, 622]
-        text: "UI"
-      credits_ui:
-        extends: credits_entry
-        position: [CENTER, 664]
-        text: "Kenney - UI Pack"
-      credits_ui_2:
-        extends: credits_entry
-        position: [CENTER, 710]
-        text: "La Red Games - Gems / Coins Free"
-      credits_sound_title:
-        extends: credits_heading
-        position: [CENTER, 790]
-        text: "Sound"
-      credits_sound:
-        extends: credits_entry
-        position: [CENTER, 832]
-        text: "Kenney - Impact Sounds"
-      credits_vfx_title:
-        extends: credits_heading
-        position: [CENTER, 912]
-        text: "VFX"
-      credits_vfx:
-        extends: credits_entry
-        position: [CENTER, 954]
-        text: "Kenney - Smoke Particles"
-      credits_music_title:
-        extends: credits_heading
-        position: [CENTER, 1034]
-        text: "Music"
-      credits_music:
-        extends: credits_entry
-        position: [CENTER, 1076]
-        text: "Sakura Girl - Clown"
-      credits_music_2:
-        extends: credits_entry
-        position: [CENTER, 1122]
-        text: "hypeddit.com/sakuragirl/clown"
-      credits_fonts_title:
-        extends: credits_heading
-        position: [CENTER, 1202]
-        text: "Fonts"
-      credits_fonts:
-        extends: credits_entry
-        position: [CENTER, 1244]
-        text: "Anton — Vernon Adams"
-      credits_fonts_2:
-        extends: credits_entry
-        position: [CENTER, 1290]
-        text: "Comic Neue — Craig Rozynski"
 
       back:
         extends: btn-sm
