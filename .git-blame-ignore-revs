@@ -1,0 +1,5 @@
+# Commits git blame should skip (pure reformatting).
+# Enable with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: apply ruff format
+179f4b7fa53547fe8cbefca80daed2e2c87d3b6c
