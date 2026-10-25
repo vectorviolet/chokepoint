@@ -63,6 +63,19 @@ packs:
     license: CC-BY-3.0
     used_for: "menu and in-game music"
 
+  kenney-board-game-icons:
+    name: "Board Game Icons"
+    author: "Kenney"
+    url: https://kenney.nl/assets/board-game-icons
+    license: CC0-1.0
+    used_for: "sell button icon"
+  kenney-platformer-art-deluxe:
+    name: "Platformer Art Deluxe"
+    author: "Kenney"
+    url: https://kenney.nl/assets/platformer-art-deluxe
+    license: CC0-1.0
+    used_for: "lives heart (temporary)"
+
 files:
   "fonts/Anton-Regular.ttf":
     source: font-anton
@@ -84,11 +97,12 @@ files:
     source: own
     note: "made by the developer in Canva: the Bungee font (SIL OFL) with the developer's own glitch effect"
   "images/buttons/max.png":
-    source: unknown
-    todo: "redraw (was made on cooltext.com)"
+    source: own
+    note: "Canva, redrawn 2026-10-26"
   "images/buttons/sell.png":
-    source: unknown
-    todo: "Money-bag clip art; origin unknown (no metadata). Confirm or replace it, e.g. with a Kenney icon."
+    source: kenney-board-game-icons
+    original: "PNG/Double (128px)/pouch.png"
+    modified: "scaled onto the previous icon's 219x230 canvas, in the box its art occupied"
   "images/coins/MonedaD.png":
     source: laredgames-gems-coins
     original: "MonedaD.png"
@@ -130,8 +144,10 @@ files:
     source: kenney-ui-pack
     original: "PNG/Yellow/Default/button_rectangle_depth_flat.png"
   "images/hud/heart.png":
-    source: unknown
-    todo: "Pixel heart made in Inkscape (PNG metadata); origin unknown. Confirm it's your own work or replace it."
+    source: kenney-platformer-art-deluxe
+    original: "Base pack/HUD/hud_heartFull.png"
+    modified: "scaled onto the previous heart's 254x254 canvas, in the box its art occupied"
+    todo: "to be replaced by my brother's own heart art + animation"
   "images/icons/Large/icon_jump.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_jump.png"
