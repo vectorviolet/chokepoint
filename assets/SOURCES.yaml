@@ -352,9 +352,9 @@ files:
   "sounds/sfx/impactMetal_light_000.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactMetal_light_000.ogg"
-  "sounds/sfx/impactWood_heavy_000.ogg":
+  "sounds/sfx/impactPlank_medium_001.ogg":
     source: kenney-impact-sounds
-    original: "Audio/impactWood_heavy_000.ogg"
+    original: "Audio/impactPlank_medium_001.ogg"
   "sounds/sfx/impactMining_000.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactMining_000.ogg"
