@@ -9,6 +9,9 @@ simulation. A subclass provides the state it operates on:
     game_state        a GameState (game clock, speed, money, lives, level)
     wave_manager      a WaveManager, or None
     tilemap           the Tilemap (map size, terrain to draw)
+    bomb_impacts      a ui.bomb_impact_feedback.BombImpactFeedback, or None:
+                      the explosions where bombs land (drawn over towers,
+                      under enemies); the owner updates and clears it
 
 and may override the two hooks below for its own rules. It also satisfies
 domain.protocols.IGameContext, which projectiles and tanks are updated with.
@@ -22,6 +25,8 @@ from ui import hp_bar
 
 
 class BattleSimulation:
+    bomb_impacts = None
+
     # ── IGameContext interface ────────────────────────────────────────────────
 
     @property
@@ -46,6 +51,11 @@ class BattleSimulation:
     def enemy_killed(self, enemy) -> None:
         self.increase_money(enemy.killMoney)
         self._on_enemy_killed(enemy)
+
+    def bomb_landed(self, position, radius: float) -> None:
+        """A bomb landed (its damage is already dealt): show its explosion."""
+        if self.bomb_impacts is not None:
+            self.bomb_impacts.bomb_landed(position, radius)
 
     # ── hooks ─────────────────────────────────────────────────────────────────
 
@@ -76,7 +86,7 @@ class BattleSimulation:
             pos = tower.get_blocking_position()
             if pos:
                 positions.add(pos)
-            for bullet in tower.bullets:
+            for bullet in list(tower.bullets):  # copy: a landing bomb removes itself
                 if self.game_state.is_started:
                     bullet.update(self)
         self._on_tower_positions(positions)
@@ -115,6 +125,9 @@ class BattleSimulation:
                 tower.maxHP,
                 force=tower is self.game_state.selected_tower,
             )
+
+        if self.bomb_impacts is not None:
+            self.bomb_impacts.draw(surface, camera)
 
         for enemy in self.enemies:
             camera.draw(surface, enemy)

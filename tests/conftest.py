@@ -53,6 +53,7 @@ class FakeContext:
         self.map_height = map_height
         self.money_earned = 0
         self.killed = []
+        self.bombs_landed = []
 
     def increase_money(self, amount: int) -> None:
         self.money_earned += amount
@@ -60,6 +61,9 @@ class FakeContext:
     def enemy_killed(self, enemy) -> None:
         self.killed.append(enemy)
         self.increase_money(enemy.killMoney)
+
+    def bomb_landed(self, position, radius: float) -> None:
+        self.bombs_landed.append((position, radius))
 
 
 @pytest.fixture(autouse=True)

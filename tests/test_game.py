@@ -295,6 +295,7 @@ def make_updating_game():
     game.hud_slide = SimpleNamespace(update=Spy(), shown=True, is_sliding=False)
     game.kill_feedback = SimpleNamespace(update=Spy())
     game.place_sell_feedback = SimpleNamespace(update=Spy())
+    game.bomb_impacts = SimpleNamespace(update=Spy())
     game._tick = Spy()
     return game
 

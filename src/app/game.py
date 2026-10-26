@@ -31,6 +31,7 @@ from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
+from ui.bomb_impact_feedback import BombImpactFeedback
 from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
 from ui.place_sell_feedback import PlaceSellFeedback
@@ -180,6 +181,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.audio.play_sfx,
             self.assets.sound_path("tower_placed"),
             self.assets.sound_path("tower_sold"),
+        )
+        self.bomb_impacts = BombImpactFeedback(
+            self.assets, self.audio.play_sfx, self.assets.sound_path("bomb_impact")
         )
         self.tower_controller = TowerPlacementController(
             self.towers,
@@ -507,6 +511,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.hud_slide.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
         self.place_sell_feedback.update(frame_ms)
+        self.bomb_impacts.update(frame_ms)
         self.life_lost_feedback.update(frame_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)

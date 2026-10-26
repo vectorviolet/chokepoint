@@ -11,7 +11,7 @@ from pygame.math import Vector2
 import app.game
 from app.game import Game
 from gameplay.combat.enemy import Enemy
-from gameplay.combat.projectile import Explosion, MuzzleFlash, Projectile
+from gameplay.combat.projectile import Bomb, MuzzleFlash, Projectile
 from gameplay.towers import TowerFactory
 from gameplay.towers.base_tower import BTN_SIZE, UPGRADE_BTN_OFFSET
 from pygamine import SaveStore
@@ -104,7 +104,11 @@ def test_a_bomb_kill_is_credited_to_its_plane(assets, tower_config, ctx):
         enemy.hp = 1
     ctx.enemies.extend(enemies)
 
-    Explosion(center, plane, plane.damage, plane.range, created_at=0).update(ctx)
+    plane.position = Vector2(center)
+    bomb = Bomb(plane, Vector2(0, 0))
+    plane.bullets = [bomb]
+    ctx.time_ms = Bomb.FALL_DURATION_MS
+    bomb.update(ctx)
 
     assert plane.kills == 3
     assert plane.money_earned == sum(e.killMoney for e in enemies)

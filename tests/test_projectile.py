@@ -1,7 +1,7 @@
 from pygame.math import Vector2
 
 from gameplay.combat.enemy import Enemy
-from gameplay.combat.projectile import Bomb, Explosion
+from gameplay.combat.projectile import Bomb
 from gameplay.towers import TowerFactory
 
 PLANE_TYPE = 4
@@ -36,9 +36,7 @@ def test_bomb_moves_by_velocity_and_decelerates_via_drag(tower_config, assets, c
     assert bomb._velocity == velocity * Bomb.DRAG
 
 
-def test_bomb_detonates_into_an_explosion_after_fall_duration(
-    tower_config, assets, ctx
-):
+def test_bomb_lands_after_fall_duration_and_reports_where(tower_config, assets, ctx):
     plane = make_plane(tower_config, assets)
     plane.bullets = []
     bomb = Bomb(plane, Vector2(5, 0))
@@ -46,14 +44,13 @@ def test_bomb_detonates_into_an_explosion_after_fall_duration(
 
     ctx.time_ms = Bomb.FALL_DURATION_MS - 1
     bomb.update(ctx)
-    assert bomb in plane.bullets  # not yet
+    assert bomb in plane.bullets and not ctx.bombs_landed  # not yet
 
     ctx.time_ms = Bomb.FALL_DURATION_MS
     bomb.update(ctx)
 
-    assert bomb not in plane.bullets
-    assert len(plane.bullets) == 1
-    assert isinstance(plane.bullets[0], Explosion)
+    assert bomb not in plane.bullets and not plane.bullets
+    assert ctx.bombs_landed == [(bomb.position, plane.range)]
 
 
 def test_bomb_tick_at_x2_covers_two_x1_ticks_of_motion_and_drag(
@@ -74,12 +71,19 @@ def test_bomb_tick_at_x2_covers_two_x1_ticks_of_motion_and_drag(
     assert bomb._velocity == velocity * Bomb.DRAG**2
 
 
-def test_explosion_damages_enemies_inside_radius_but_not_outside(
+def land(bomb, ctx):
+    ctx.time_ms = bomb._created_at + Bomb.FALL_DURATION_MS
+    bomb.update(ctx)
+
+
+def test_a_landing_bomb_damages_enemies_inside_its_radius_but_not_outside(
     tower_config, assets, ctx
 ):
     plane = make_plane(tower_config, assets)
     plane.bullets = []
-    center = Vector2(1000, 1000)
+    bomb = Bomb(plane, Vector2(0, 0))
+    plane.bullets.append(bomb)
+    center = Vector2(bomb.position)
 
     inside = Enemy(1, 1, level=1, waypoints=WAYPOINTS, assets=assets)
     outside = Enemy(2, 1, level=1, waypoints=WAYPOINTS, assets=assets)
@@ -87,58 +91,29 @@ def test_explosion_damages_enemies_inside_radius_but_not_outside(
     outside.position = center + Vector2(plane.range + 50, 0)
     ctx.enemies.extend([inside, outside])
 
-    explosion = Explosion(
-        center, plane, damage=plane.damage, radius=plane.range, created_at=0
-    )
-    plane.bullets.append(explosion)
+    land(bomb, ctx)
 
-    explosion.update(ctx)
-
+    # at the moment of impact, on game time; the explosion is only cosmetic
     assert inside.hp == inside.maxHP - plane.damage
     assert outside.hp == outside.maxHP
 
 
-def test_explosion_only_deals_damage_once_across_multiple_updates(
-    tower_config, assets, ctx
-):
+def test_a_bomb_deals_its_damage_only_once(tower_config, assets, ctx):
     plane = make_plane(tower_config, assets)
     plane.bullets = []
-    center = Vector2(1000, 1000)
-
+    bomb = Bomb(plane, Vector2(0, 0))
+    plane.bullets.append(bomb)
     victim = Enemy(1, 1, level=1, waypoints=WAYPOINTS, assets=assets)
-    victim.position = Vector2(center)
+    victim.position = Vector2(bomb.position)
     ctx.enemies.append(victim)
 
-    explosion = Explosion(
-        center, plane, damage=plane.damage, radius=plane.range, created_at=0
-    )
-    plane.bullets.append(explosion)
+    land(bomb, ctx)
+    for _ in range(3):  # whatever still holds it can't land it twice
+        for bullet in list(plane.bullets):
+            bullet.update(ctx)
 
-    ctx.time_ms = 0
-    explosion.update(ctx)
-    ctx.time_ms = Explosion.FRAME_DURATION_MS
-    explosion.update(ctx)
-
-    assert victim.hp == victim.maxHP - plane.damage  # not hit twice
-
-
-def test_explosion_removes_itself_once_all_frames_have_played(
-    tower_config, assets, ctx
-):
-    plane = make_plane(tower_config, assets)
-    plane.bullets = []
-    explosion = Explosion(
-        Vector2(0, 0), plane, damage=plane.damage, radius=plane.range, created_at=0
-    )
-    plane.bullets.append(explosion)
-
-    ctx.time_ms = Explosion.FRAME_DURATION_MS * (Explosion.TOTAL_FRAMES - 1)
-    explosion.update(ctx)
-    assert explosion in plane.bullets  # last frame still playing
-
-    ctx.time_ms = Explosion.FRAME_DURATION_MS * Explosion.TOTAL_FRAMES
-    explosion.update(ctx)
-    assert explosion not in plane.bullets
+    assert victim.hp == victim.maxHP - plane.damage
+    assert len(ctx.bombs_landed) == 1
 
 
 # ── homing missile ───────────────────────────────────────────────────────────
