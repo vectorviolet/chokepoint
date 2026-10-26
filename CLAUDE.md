@@ -54,6 +54,15 @@ GitHub Release. Because the game loads assets/config by **cwd-relative** paths,
 project root from source and `sys._MEIPASS` when frozen — so the same relative
 paths resolve in both. `config_loader` anchors to that root too.
 
+## Working with git
+
+- Before every push, run `git fetch` and `git log origin/main..HEAD --oneline`; push only if
+  every listed commit is intended. Otherwise stop and report.
+- Never push a commit that points a submodule at a commit not yet on its remote; push the
+  submodule first and check it's on origin.
+- Only one agent session works in a repo at a time. If HEAD or the working tree changes
+  unexpectedly, stop and report.
+
 ## Architecture
 
 ### Entry point → Game class
