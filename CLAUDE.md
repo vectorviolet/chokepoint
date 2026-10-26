@@ -84,6 +84,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
 | `hud_slide` | `HudSlide` | Tab slides the in-game HUD (counters, control buttons, tower bar) off the screen edges and back, drawn-only and on real time; money/lives counters peek back for 1.5 s when they change. `toggle()` is the entry point for a future on-screen button |
 | `tower_info` | `TowerInfoPanel` | The selected tower's info panel (`tower_info_*` objects in `config/panels.yaml`): kills, money earned, range, damage, fire rate, HP bar, and "current → next" upgrade previews below max level. Refreshed every frame from `_selected_tower()`; slides away with the HUD on Tab. Kills/money are credited to the tower whose shot or bomb landed the killing blow (`Enemy.decrease_hp(..., source=tower)`) and saved with it |
+| `buy_tooltip` | `BuyTooltip` | Hovering a buy button shows the tower's name and one-line strength/weakness (`name` + `tooltip` per tower in `config/towers.yaml`, loaded by `config_loader.load_tower_tooltips()`) on the `buy_tooltip_*` objects in `config/panels.yaml`, sized to the text and placed above the button, clamped to the screen. Hidden while the HUD is hidden or sliding; takes no clicks |
 | `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none |
 | `life_lost_feedback` | `LifeLostFeedback` | A bell (own mixer channel, at the SFX volume) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
 
@@ -122,7 +123,7 @@ Tilemap → towers + bullets → enemies → border lines → HUD → tower plac
 | File | Loaded by | Structure |
 |------|-----------|-----------|
 | `config/assets.yaml` | `AssetManager.load_manifest()` | `{images: {key: {folder, name}}, sounds: {key: {folder, name}}}` |
-| `config/towers.yaml` | `config_loader.load_tower_config()` | Produces `TowerConfig` dataclass with `.prices`, `.max_levels`, `.ranges`, `.damages`, `.speeds` |
+| `config/towers.yaml` | `config_loader.load_tower_config()`, `load_tower_tooltips()` | Produces `TowerConfig` dataclass with `.prices`, `.max_levels`, `.ranges`, `.damages`, `.speeds`; plus each tower's buy-tooltip `name` and `tooltip: {strength, weakness}` |
 | `config/enemies.yaml` | `config_loader.load_enemy_stats()` | HP/speed/kill_money/damage per enemy type |
 | `config/waves.yaml` | `config_loader.load_wave_compositions()` | `{wave_num: [[enemy_type, count], ...]}` |
 | `config/panels.yaml` | `PanelLoaderExt.load()` | Panels + groups + optional `object_templates` |

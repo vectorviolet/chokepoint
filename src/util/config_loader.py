@@ -37,6 +37,43 @@ def load_tower_config() -> TowerConfig:
     )
 
 
+@dataclass(frozen=True)
+class TowerTooltip:
+    """A buy button's hover tooltip: the tower's name and one line each for
+    what it's good and bad at (config/towers.yaml `name` + `tooltip`)."""
+
+    name: str
+    strength: str
+    weakness: str
+
+
+def parse_tower_tooltips(data: dict) -> dict[int, TowerTooltip]:
+    """Tooltips keyed by tower type, from parsed towers.yaml data. Raises
+    ValueError naming the tower type if a name or line is missing or blank."""
+    tooltips = {}
+    for tower in data["towers"]:
+        tower_type = tower["type"]
+        tooltip = tower.get("tooltip") or {}
+        texts = {
+            "name": tower.get("name"),
+            "strength": tooltip.get("strength"),
+            "weakness": tooltip.get("weakness"),
+        }
+        for key, text in texts.items():
+            if not isinstance(text, str) or not text.strip():
+                raise ValueError(
+                    f"config/towers.yaml: tower type {tower_type} needs a "
+                    f"non-empty {'name' if key == 'name' else 'tooltip.' + key}"
+                )
+        tooltips[tower_type] = TowerTooltip(**{k: v.strip() for k, v in texts.items()})
+    return tooltips
+
+
+def load_tower_tooltips() -> dict[int, TowerTooltip]:
+    with open(_CONFIG_DIR / "towers.yaml", encoding="utf-8") as f:
+        return parse_tower_tooltips(yaml.safe_load(f))
+
+
 def load_enemy_stats() -> dict[int, EnemyStats]:
     with open(_CONFIG_DIR / "enemies.yaml") as f:
         data = yaml.safe_load(f)

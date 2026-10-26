@@ -1,6 +1,8 @@
 # Tower stats — all lists are per-level (index 0 = level 1, etc.)
 # speeds = milliseconds between shots (LOWER = faster fire). Type 4 uses speeds as movement.
 # shoot_sound = key into config/assets.yaml sounds; omit for silent towers (e.g. plane).
+# name + tooltip = what the buy button's hover tooltip shows (ui/buy_tooltip.py):
+#   the tower's name, then one line each for what it's good and bad at.
 #
 # Balance (2026-10-25, from headless whole-game simulations): gun-only,
 # missile/cannon-only and mixed builds can all clear wave 25; the mixed
@@ -20,6 +22,10 @@ towers:
     speeds:      [600]      # DPS = 20.0
     hps:         [50]
     shoot_sound: tower_1_shoot
+    name: Rapid gun
+    tooltip:
+      strength: Cheap and fires fast
+      weakness: Short range, low damage, no upgrades
 
   - type: 2  # Homing missile — medium range, upgrades scale DPS up
     prices:      [160, 340, 600]
@@ -29,6 +35,10 @@ towers:
     speeds:      [1200, 1000, 900]   # DPS = 33.3 / 70.0 / 133.3
     hps:         [80, 120, 180]
     shoot_sound: tower_2_shoot
+    name: Homing missile
+    tooltip:
+      strength: Missiles home in; damage grows fast with upgrades
+      weakness: Slow reload; full power needs costly upgrades
 
   - type: 3  # Heavy cannon — long range artillery, slow heavy hits
     prices:      [280, 560]
@@ -38,6 +48,10 @@ towers:
     speeds:      [2200, 1800]        # DPS = 40.9 / 94.4
     hps:         [120, 200]
     shoot_sound: tower_3_shoot
+    name: Heavy cannon
+    tooltip:
+      strength: Long range, heavy hits, sturdy
+      weakness: Slowest to fire, and expensive
 
   - type: 4  # Plane — drops bombs along flight path; ranges = explosion radius
     # prices[1] is the one-time global upgrade making every later plane level 2.
@@ -47,3 +61,7 @@ towers:
     damages:   [100, 200]
     speeds:    [2, 1]
     # No hps: planes are not targetable by tanks and don't track HP.
+    name: Plane
+    tooltip:
+      strength: Splash bombs along its flight; tanks can't hit it
+      weakness: Flies once to the map's right edge, then it's gone

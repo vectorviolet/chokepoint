@@ -61,6 +61,13 @@ object_templates:
     font: anton
     font_size: 24
     color: white
+  # Buy button tooltip lines (game panel): sentences, so Comic Neue.
+  buy_tooltip_line:
+    type: text
+    parent: buy_tooltip_bg
+    font: comic_neue
+    font_size: 25
+    color: white
   # Credits screen: a small accent-colored heading per section, entries below.
   credits_heading:
     type: text
@@ -616,6 +623,24 @@ panels:
         position: [16, 282]
         size: [308, 16]
         color: [40, 40, 40]
+
+      # Buy button tooltip -- shown while a buy button is hovered
+      # (ui/buy_tooltip.py toggles .active, fills in the tower's name and
+      # its strength/weakness from config/towers.yaml, sizes the background
+      # to the longest line and moves it all above the hovered button,
+      # clamped to the screen). Styled like the tower info panel.
+      buy_tooltip_bg:
+        position: [0, 0]
+        size: [200, 124]   # the width follows the text
+        color: [50, 50, 50, 200]
+      buy_tooltip_title_text:
+        extends: tower_info_title
+        parent: buy_tooltip_bg
+        position: [16, 8]
+      buy_tooltip_strength_label: { extends: tower_info_label, parent: buy_tooltip_bg, position: [16, 50], text: "Good" }
+      buy_tooltip_weakness_label: { extends: tower_info_label, parent: buy_tooltip_bg, position: [16, 84], text: "Weak" }
+      buy_tooltip_strength_text:  { extends: buy_tooltip_line, position: [96, 51] }
+      buy_tooltip_weakness_text:  { extends: buy_tooltip_line, position: [96, 85] }
 
       # Victory popup -- hidden by default (Game toggles .active on each of
       # these when wave 25 clears); declared last so it draws on top.
