@@ -190,3 +190,58 @@ def test_the_wave_after_the_last_authored_one_is_not_a_difficulty_spike(assets):
     total_next = sum(count for _, count in wm._wave_for(last + 1).groups)
 
     assert total_last < total_next <= total_last + len(WAVE_COMPOSITIONS[last].groups)
+
+
+# ── spawn interval from waves.yaml (Refs #25) ─────────────────────────────────
+
+
+@pytest.mark.parametrize("interval, expected", [(None, 1000), (0, 0), (650, 650)])
+def test_a_waves_spawn_interval_keeps_an_explicit_zero(
+    assets, monkeypatch, interval, expected
+):
+    from domain.game_state import WaveDef
+    import gameplay.combat.wave_manager as wm_module
+
+    monkeypatch.setitem(
+        wm_module.WAVE_COMPOSITIONS,
+        3,
+        WaveDef(groups=[(1, 4)], spawn_interval_ms=interval),
+    )
+    wm = WaveManager(WAYPOINTS, assets)
+
+    wm._build_queue(3)
+
+    assert wm._spawn_interval_ms == expected
+
+
+def test_a_zero_interval_wave_spawns_one_enemy_per_tick(assets, monkeypatch):
+    from domain.game_state import WaveDef
+    import gameplay.combat.wave_manager as wm_module
+
+    monkeypatch.setitem(
+        wm_module.WAVE_COMPOSITIONS, 3, WaveDef(groups=[(1, 4)], spawn_interval_ms=0)
+    )
+    wm = WaveManager(WAYPOINTS, assets)
+    gs = make_started_state(level=3)
+    enemies = []
+
+    for tick in range(4):
+        gs.time_ms = tick
+        wm.update(enemies, gs)
+
+    assert len(enemies) == 4
+
+
+def test_endless_waves_after_a_zero_interval_wave_use_the_floor(assets, monkeypatch):
+    from domain.game_state import WaveDef
+    import gameplay.combat.wave_manager as wm_module
+
+    last = max(WAVE_COMPOSITIONS)
+    monkeypatch.setitem(
+        wm_module.WAVE_COMPOSITIONS, last, WaveDef(groups=[(1, 4)], spawn_interval_ms=0)
+    )
+    wm = WaveManager(WAYPOINTS, assets)
+
+    assert (
+        wm._wave_for(last + 1).spawn_interval_ms == WaveManager.MIN_ENDLESS_INTERVAL_MS
+    )

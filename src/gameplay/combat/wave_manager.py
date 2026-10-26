@@ -35,9 +35,16 @@ class WaveManager:
         self._spawn_queue = [
             enemy_type for enemy_type, count in wave.groups for _ in range(count)
         ]
-        self._spawn_interval_ms = wave.spawn_interval_ms or self.SPAWN_INTERVAL_MS
+        self._spawn_interval_ms = self._interval_of(wave)
         self._queue_index = 0
         self._level_finish_time = None
+
+    def _interval_of(self, wave: WaveDef) -> int:
+        """A wave's own spawn interval, which may be 0 (all at once), or the
+        default when it gives none."""
+        if wave.spawn_interval_ms is None:
+            return self.SPAWN_INTERVAL_MS
+        return wave.spawn_interval_ms
 
     def _wave_for(self, level: int) -> WaveDef:
         """Endless-mode waves past the last authored one: keep its mix and
@@ -51,7 +58,7 @@ class WaveManager:
             (enemy_type, count + (extra // 2 if enemy_type in TANK_TYPES else extra))
             for enemy_type, count in base.groups
         ]
-        interval = base.spawn_interval_ms or self.SPAWN_INTERVAL_MS
+        interval = self._interval_of(base)
         return WaveDef(
             groups=groups,
             spawn_interval_ms=max(self.MIN_ENDLESS_INTERVAL_MS, interval - 10 * extra),
