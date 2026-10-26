@@ -20,6 +20,10 @@ if TYPE_CHECKING:
     from domain.protocols import IGameContext
 
 
+def _given(value: int | None, default: int) -> int:
+    return default if value is None else value
+
+
 class Tank(Enemy):
     MUZZLE_TIP_FORWARD = 55  # px from tank center to muzzle tip along aim direction
 
@@ -30,9 +34,10 @@ class Tank(Enemy):
         self.assets = assets
 
         stats = _BASE_STATS[enemy_type]
-        self.range: int = stats.range or 280
-        self.fire_interval_ms: int = stats.fire_interval_ms or 2500
-        self.bullet_damage: int = stats.bullet_damage or 20
+        # None means "not in enemies.yaml"; an explicit 0 is kept.
+        self.range: int = _given(stats.range, 280)
+        self.fire_interval_ms: int = _given(stats.fire_interval_ms, 2500)
+        self.bullet_damage: int = _given(stats.bullet_damage, 20)
 
         muzzle_path = assets.image_path(f"enemy_{enemy_type}_muzzle")
         self._muzzle_base: pygame.Surface = load_image(muzzle_path)

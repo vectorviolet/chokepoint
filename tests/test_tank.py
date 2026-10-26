@@ -158,3 +158,29 @@ def test_draw_muzzle_renders_the_turret(assets):
     tank.draw_muzzle(
         pygame.Surface((400, 300)), Camera(pygame.Rect(0, 0, 400, 300), 3008, 2176)
     )
+
+
+# ── stats from enemies.yaml (Refs #25) ───────────────────────────────────────
+
+
+@pytest.mark.parametrize(
+    "given, expected",
+    [
+        ({}, (280, 2500, 20)),  # not in enemies.yaml: the defaults
+        ({"range": 0, "fire_interval_ms": 0, "bullet_damage": 0}, (0, 0, 0)),
+        ({"range": 150, "fire_interval_ms": 900, "bullet_damage": 7}, (150, 900, 7)),
+    ],
+)
+def test_tank_stats_keep_an_explicit_zero(assets, monkeypatch, given, expected):
+    import dataclasses
+
+    import gameplay.combat.tank as tank_module
+
+    base = tank_module._BASE_STATS[5]
+    unset = {"range": None, "fire_interval_ms": None, "bullet_damage": None}
+    stats = dataclasses.replace(base, **{**unset, **given})
+    monkeypatch.setitem(tank_module._BASE_STATS, 5, stats)
+
+    tank = make_tank(assets)
+
+    assert (tank.range, tank.fire_interval_ms, tank.bullet_damage) == expected
