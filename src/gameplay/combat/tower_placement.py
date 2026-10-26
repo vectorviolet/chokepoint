@@ -29,6 +29,15 @@ SHORTCUT_TEXT_COLOR = (255, 255, 255)
 ENEMY_CLICK_PADDING = 8
 
 
+def _shift_held(event) -> bool:
+    """True when either Shift key is held for this event. Mouse events
+    carry no `mod`, so this falls back to the keyboard state."""
+    mods = getattr(event, "mod", None)
+    if mods is None:
+        mods = pygame.key.get_mods()
+    return bool(mods & pygame.KMOD_SHIFT)
+
+
 class TowerPlacementController:
     def __init__(
         self,
@@ -120,7 +129,7 @@ class TowerPlacementController:
             # a click elsewhere.
             if not self._handle_tower_actions(mouse_pos):
                 self._handle_selection(mouse_pos)
-            self._handle_tower_purchase(mouse_pos)
+            self._handle_tower_purchase(mouse_pos, keep_type=_shift_held(event))
         if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
             self.cancel()
         if event.type == pygame.KEYDOWN:
@@ -188,15 +197,15 @@ class TowerPlacementController:
         is_selected = self._game_state.selected_tower is clicked
         self._game_state.selected_tower = None if is_selected else clicked
 
-    def _handle_tower_purchase(self, mouse_pos: tuple) -> None:
+    def _handle_tower_purchase(self, mouse_pos: tuple, keep_type: bool = False) -> None:
+        """Place the tower being bought on the cursor's tile. Placement mode
+        then ends, unless `keep_type` (Shift held) and another tower of the
+        same type is still affordable."""
         if not self._game_area.collidepoint(mouse_pos) or not self.buying_tower_type:
             return
         if not self._is_placeable(self.cursor_row, self.cursor_col):
             return
-        if (
-            self._game_state.money
-            < self._tower_config.prices[self.buying_tower_type - 1][0]
-        ):
+        if not self._can_afford(self.buying_tower_type):
             return
         tower = TowerFactory.create(
             self.buying_tower_type,
@@ -212,9 +221,18 @@ class TowerPlacementController:
         else:
             self._towers.insert(0, tower)
         self._game_state.decrease_money(tower.buy_price)
-        self.buying_tower_type = 0
+        blocking = tower.get_blocking_position()
+        if blocking is not None:
+            # Taken at once, so a quick second click before the next tick
+            # can't build on the same tile.
+            self.tower_positions.add(blocking)
+        if not (keep_type and self._can_afford(self.buying_tower_type)):
+            self.buying_tower_type = 0
         if self._feedback is not None:
             self._feedback.tower_placed(tower.position)
+
+    def _can_afford(self, tower_type: int) -> bool:
+        return self._game_state.money >= self._tower_config.prices[tower_type - 1][0]
 
     def _handle_buy_tower_buttons(self, event, mouse_pos: tuple) -> None:
         for i in range(4):
