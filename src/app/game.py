@@ -30,6 +30,7 @@ from pygamine import SaveStore
 from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
+from ui.tower_bar import TowerBar
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -177,6 +178,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.tilemap.map_width,
             self.game_area,
         )
+        self.tower_bar = TowerBar(self.panel_manager, self.size[1])
 
         # Behind the menus: a battle playing itself, in a world of its own.
         self.menu_demo = MenuDemo(
@@ -416,6 +418,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         has no listener-removal mechanism)."""
         self._load_panel_layout(Transform((0, 0), new_size))
         self.hud.rebind_panel(self.panel_manager)
+        self.tower_bar.rebind(self.panel_manager, new_size[1])
         self._bind_settings_ui()
         self._build_menu_controllers()
         self._sync_game_ui()
@@ -448,6 +451,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         # Input-driven motion follows real time; the simulation runs in fixed
         # ticks so the same game plays out at any frame rate.
         self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
+        self.tower_bar.update(frame_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)
         self._tick_backlog_ms += frame_ms

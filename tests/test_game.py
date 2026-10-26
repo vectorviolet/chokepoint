@@ -275,6 +275,7 @@ def make_updating_game():
     game.camera = SimpleNamespace(update_with_mouse=Spy())
     game.mouse = SimpleNamespace(position=(1, 2), update=Spy())
     game.tower_controller = SimpleNamespace(update_cursor=Spy())
+    game.tower_bar = SimpleNamespace(update=Spy())
     game._tick = Spy()
     return game
 
@@ -287,6 +288,7 @@ def test_update_game_forwards_input_motion_scaled_to_the_frame_time():
     assert game.camera.update_with_mouse.calls == [((1, 2), pytest.approx(2.0))]
     assert len(game.mouse.update.calls) == 1
     assert game.tower_controller.update_cursor.calls == [((1, 2),)]
+    assert game.tower_bar.update.calls == [(pytest.approx(2 * TICK_MS),)]
 
 
 def test_update_game_runs_one_tick_per_tick_ms_of_frame_time():

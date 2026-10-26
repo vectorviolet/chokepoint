@@ -101,6 +101,8 @@ class GameEventsMixin:
             self._save_game()
             self.panel_manager.current_panel = "main_menu"
             return
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
+            self.tower_bar.toggle()
         self.camera.handle_event(event, self.mouse.position)
         self.tower_controller.handle_event(event, self.mouse.position)
         self._handle_upgrade_plane_button(event)

@@ -73,6 +73,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners |
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference |
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
+| `tower_bar` | `TowerBar` | Tab slides the bottom tower bar off-screen and back (real time, so it works while paused); `toggle()` is the entry point for a future on-screen button |
 
 ### Panel / UI system
 
