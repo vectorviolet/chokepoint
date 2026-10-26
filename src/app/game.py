@@ -32,6 +32,7 @@ from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
 from ui.kill_feedback import KillFeedback
+from ui.life_lost_feedback import LifeLostFeedback
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -183,6 +184,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.kill_feedback = KillFeedback(
             self.assets.get_image("coin_sheet"),
             self.assets.font_path("comic_neue_bold"),
+        )
+        self.life_lost_feedback = LifeLostFeedback(
+            self.assets.sound_path("life_lost"), self.audio.sfx_volume
         )
 
         # Behind the menus: a battle playing itself, in a world of its own.
@@ -350,10 +354,15 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     @override
     def _on_enemy_escaped(self, enemy) -> None:
+        lives_before = self.game_state.lives
         super()._on_enemy_escaped(enemy)
-        if self.game_state.lives == 0 and not self._gameover_popup_open:
-            self.save_store.delete()  # a lost run isn't continuable
-            self._trigger_game_over()
+        if self.game_state.lives == 0:
+            # The last life: the game-over screen takes over, no pulse.
+            if not self._gameover_popup_open:
+                self.save_store.delete()  # a lost run isn't continuable
+                self._trigger_game_over()
+            return
+        self.life_lost_feedback.lives_lost(lives_before - self.game_state.lives)
 
     def _show_path_entrance(self) -> None:
         """Point the camera at where enemies spawn -- the map's top-left
@@ -467,6 +476,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.hud_slide.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
+        self.life_lost_feedback.update(frame_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)
         self._tick_backlog_ms += frame_ms
@@ -512,6 +522,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.kill_feedback.draw_texts(self.window, self.camera, self.game_state.time_ms)
         self.tower_controller.draw(self.window, self.mouse.position)
         self._draw_selected_tower_ui()
+        self.life_lost_feedback.draw(self.window)  # under the HUD
         self.window.set_clip(old_clip)
 
     def _draw_kill_coins(self) -> None:

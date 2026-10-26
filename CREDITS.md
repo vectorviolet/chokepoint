@@ -17,8 +17,8 @@ freely available.
 | [Smoke Particles](https://kenney.nl/assets/smoke-particles) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | explosions, smoke | 22 |
 | [UI Pack](https://kenney.nl/assets/ui-pack) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | buttons, menu sounds | 7 |
 | [Mobile Controls](https://kenney.nl/assets/mobile-controls) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | HUD icons (play, pause, music, menu) | 6 |
+| [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | shot, hit and life-lost sounds | 4 |
 | [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) | Craig Rozynski | [SIL Open Font License 1.1](https://openfontlicense.org) | text font | 3 |
-| [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | shot and hit sounds | 3 |
 | [Anton](https://fonts.google.com/specimen/Anton) | Vernon Adams | [SIL Open Font License 1.1](https://openfontlicense.org) | display font | 2 |
 | [Board Game Icons](https://kenney.nl/assets/board-game-icons) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | sell button icon | 1 |
 | [Platformer Art Deluxe](https://kenney.nl/assets/platformer-art-deluxe) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | lives heart (temporary) | 1 |
