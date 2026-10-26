@@ -91,6 +91,7 @@ def make_game(**overrides):
     game._construction_complete = True
     game._last_frame_ticks = None
     game._tick_backlog_ms = 0.0
+    game.life_lost_feedback = SimpleNamespace(lives_lost=Spy(), update=Spy())
     for key, value in overrides.items():
         setattr(game, key, value)
     return game
@@ -428,6 +429,7 @@ def test_update_enemies_removes_one_that_reached_the_end_and_deducts_a_life():
 
     assert game.enemies == []
     assert game.game_state.lives == 3
+    assert game.life_lost_feedback.lives_lost.calls == [(7,)]
 
 
 def test_update_enemies_triggers_game_over_when_lives_reach_zero():
@@ -441,6 +443,7 @@ def test_update_enemies_triggers_game_over_when_lives_reach_zero():
 
     assert game.game_state.lives == 0
     assert len(game.save_store.delete.calls) == 1
+    assert game.life_lost_feedback.lives_lost.calls == []  # game over instead
     assert len(game._trigger_game_over.calls) == 1
 
 

@@ -126,3 +126,6 @@ sounds:
   tower_1_shoot:     {folder: sfx, name: impactGeneric_light_000}
   tower_2_shoot:     {folder: sfx, name: impactMining_000}
   tower_3_shoot:     {folder: sfx, name: impactMetal_heavy_000}
+
+  # ── Feedback SFX ──────────────────────────────────────────────────────
+  life_lost:         {folder: sfx, name: impactBell_heavy_003}
