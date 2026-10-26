@@ -278,6 +278,64 @@ def test_tab_during_a_peek_hides_or_shows_everything(make_game, fake_ticks):
         assert_shown(game, group)  # the peek's timer didn't hide money again
 
 
+# ── counters whose text grows ────────────────────────────────────────────────
+
+
+def widen_counters(game):
+    """Longer level, lives and money texts, which lay themselves out wider."""
+    panel = game.panel_manager["game"]
+    before = {n: panel[n].rect.right for n in ("level_text", "live_text", "coin_text")}
+    gs = game.game_state
+    for _ in range(11):  # "Level 1" -> "Level 12", as in issue #43
+        gs.advance_level()
+    gs.increase_money(1_000_000)
+    gs.lives = 100_000
+    gs.decrease_lives(1)
+    for name, right in before.items():
+        assert panel[name].rect.right > right, name  # really wider now
+
+
+def test_counters_widened_before_hiding_leave_the_screen(make_game, fake_ticks):
+    game = make_game()
+    widen_counters(game)
+
+    hide(game, fake_ticks)
+
+    for group in GROUPS:
+        assert_hidden(game, group)
+
+
+def test_counters_widened_while_hidden_stay_off_the_screen(make_game, fake_ticks):
+    game = make_game()
+    hide(game, fake_ticks)
+
+    widen_counters(game)  # the level stays hidden; money and lives peek back
+    for group in ("level", "tower_info", "controls", "tower_bar"):
+        assert_hidden(game, group)
+    play(game, fake_ticks, PEEK_MS + DONE)
+
+    assert not game.hud_slide.shown
+    for group in GROUPS:
+        assert_hidden(game, group)
+
+
+def test_no_sliver_of_a_two_digit_level_is_drawn(make_game, fake_ticks):
+    """Drawn, the strip just left of the screen edge shows the same with the
+    level at 12 as at 1 (the map, not the counter's background)."""
+    game = make_game()
+    level = game.panel_manager["game"]["level_text"].rect
+    probes = [(x, level.centery) for x in range(0, 12)]
+    hide(game, fake_ticks)
+    game.draw()
+    clean = [game.window.get_at(p) for p in probes]
+
+    for _ in range(11):
+        game.game_state.advance_level()
+    game.draw()
+
+    assert [game.window.get_at(p) for p in probes] == clean
+
+
 # ── window size, pause, speed ─────────────────────────────────────────────────
 
 
