@@ -32,17 +32,6 @@ class FakeAudio:
         self.played.append(path)
 
 
-class FakePausePanel:
-    def __init__(self):
-        self.is_open = False
-
-    def open(self) -> None:
-        self.is_open = True
-
-    def close(self) -> None:
-        self.is_open = False
-
-
 def make_game(*, is_started=False):
     button = FakeButton()
     panel = {"start_pause_button": button, "start_pause_button_icon": button}
@@ -52,8 +41,6 @@ def make_game(*, is_started=False):
         audio=FakeAudio(),
         click_sound_path="assets/sfx/click.ogg",
         game_state=SimpleNamespace(is_started=is_started),
-        pause_panel=FakePausePanel(),
-        _save_settings=lambda: None,
     )
     # _handle_start_pause calls self._activate(...), another mixin method --
     # a bare SimpleNamespace has no class relationship to GameEventsMixin,
@@ -61,8 +48,6 @@ def make_game(*, is_started=False):
     game._activate = lambda button, event: GameEventsMixin._activate(
         game, button, event
     )
-    game._set_running = lambda running: GameEventsMixin._set_running(game, running)
-    game._close_pause_panel = lambda: GameEventsMixin._close_pause_panel(game)
     return game, button
 
 

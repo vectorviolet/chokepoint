@@ -37,6 +37,7 @@ class GameEventsMixin:
             ].reset()  # replay from the top
             self.panel_manager.current_panel = "credits"
         elif self._activate(panel["settings"], event):
+            self._settings_return_panel = "main_menu"
             self.panel_manager.current_panel = "settings"
         elif self._activate(panel["exit"], event):
             self.on_exit_request()
@@ -58,8 +59,7 @@ class GameEventsMixin:
     def _handle_settings_event(self, event) -> None:
         panel = self.panel_manager["settings"]
         if self._activate(panel["back"], event):
-            self._save_settings()
-            self.panel_manager.current_panel = "main_menu"
+            self._leave_settings()
         elif self._activate(panel["reset"], event):
             self._reset_settings()
         elif self._activate(panel["window_size_back_button"], event):
@@ -70,6 +70,13 @@ class GameEventsMixin:
             self._cycle_window_mode(-1)
         elif self._activate(panel["window_mode_next_button"], event):
             self._cycle_window_mode(1)
+
+    def _leave_settings(self) -> None:
+        """Settings' Back (and Esc there): save, then return to where the
+        screen was opened from -- the main menu, or the pause menu."""
+        self._save_settings()
+        self.panel_manager.current_panel = self._settings_return_panel
+        self._settings_return_panel = "main_menu"
 
     def _cycle_window_size(self, step: int) -> None:
         self.cycle_resolution(step)
@@ -95,12 +102,12 @@ class GameEventsMixin:
         if self._gameover_popup_open:
             self._handle_gameover_popup_event(event)
             return
+        if self.pause_panel.is_open:
+            self._handle_pause_menu_event(event)
+            return
         panel = self.panel_manager["game"]
         if self._activate(panel["menu_button"], event):
-            self.game_state.is_started = False
-            self._close_pause_panel()
-            self._save_game()
-            self.panel_manager.current_panel = "main_menu"
+            self._open_pause_menu()
             return
         if event.type == pygame.KEYDOWN and event.key == pygame.K_TAB:
             self.hud_slide.toggle()
@@ -108,8 +115,55 @@ class GameEventsMixin:
         self.tower_controller.handle_event(event, self.mouse.position)
         self._handle_upgrade_plane_button(event)
         self._handle_start_pause(event)
-        self._handle_pause_resume_button(event)
         self._handle_speed_toggle(event)
+
+    # ── pause menu ───────────────────────────────────────────────────────────
+
+    def _handle_pause_menu_event(self, event) -> None:
+        """While the pause menu is open it takes all of the game panel's
+        input: the rest of the HUD, the map and the hotkeys wait."""
+        panel = self.panel_manager["game"]
+        if self._activate(panel["pause_back"], event):
+            self._close_pause_menu()
+        elif self._activate(panel["pause_settings"], event):
+            self._settings_return_panel = "game"
+            self.panel_manager.current_panel = "settings"
+        elif self._activate(panel["pause_music"], event):
+            self._toggle_music()
+        elif self._activate(panel["pause_main_menu"], event):
+            self._leave_game_for_main_menu()
+
+    def _open_pause_menu(self) -> None:
+        """Opens the pause menu and pauses the game, remembering whether it
+        was running so that closing the menu puts it back as it was."""
+        if self.pause_panel.is_open:
+            return
+        self._resume_on_unpause = self.game_state.is_started
+        self._set_started(False)
+        self.pause_panel.open()
+
+    def _close_pause_menu(self) -> None:
+        if not self.pause_panel.is_open:
+            return
+        self.pause_panel.close()
+        if self._resume_on_unpause:
+            self._set_started(True)
+        self._resume_on_unpause = False
+
+    def _leave_game_for_main_menu(self) -> None:
+        """The pause menu's Main menu: what the HUD menu button did before
+        the pause menu -- pause, save the run, go to the main menu."""
+        self.pause_panel.close()
+        self._resume_on_unpause = False
+        self.game_state.is_started = False
+        self._save_game()
+        self.panel_manager.current_panel = "main_menu"
+
+    def _set_started(self, started: bool) -> None:
+        self.game_state.is_started = started
+        self.panel_manager["game"]["start_pause_button_icon"].set_state(
+            "pause" if started else None
+        )
 
     def _handle_victory_popup_event(self, event) -> None:
         panel = self.panel_manager["game"]
@@ -161,34 +215,10 @@ class GameEventsMixin:
             sound = getattr(button, "on_click_sound", None) or self.click_sound_path
             if sound is not None:
                 self.audio.play_sfx(str(sound))
-        self._set_running(not self.game_state.is_started)
-
-    def _handle_pause_resume_button(self, event) -> None:
-        if self.pause_panel.is_open and self._activate(
-            self.panel_manager["game"]["pause_resume"], event
-        ):
-            self._set_running(True)
-
-    def _set_running(self, running: bool) -> None:
-        """Start/resume or pause the game. Pausing a running game opens the
-        pause panel and resuming closes it; the first start of a run (from
-        "not started yet") has no panel to close."""
-        self.game_state.is_started = running
-        self.panel_manager["game"]["start_pause_button_icon"].set_state(
-            "pause" if running else None
+        self.game_state.is_started = not self.game_state.is_started
+        panel["start_pause_button_icon"].set_state(
+            "pause" if self.game_state.is_started else None
         )
-        if running:
-            self._close_pause_panel()
-        else:
-            self.pause_panel.open()
-
-    def _close_pause_panel(self) -> None:
-        """Close the pause panel, saving the settings if it was open -- its
-        volume sliders change them live, like the settings screen's, and
-        are saved when it closes, like that screen's are on Back."""
-        if self.pause_panel.is_open:
-            self.pause_panel.close()
-            self._save_settings()
 
     def _handle_speed_toggle(self, event) -> None:
         panel = self.panel_manager["game"]
@@ -202,9 +232,19 @@ class GameEventsMixin:
         button.set_state(next_state)
 
     def _toggle_music(self) -> None:
+        """The menus' music button and the pause menu's Music: one switch,
+        shown the same everywhere and saved with the settings at once."""
         self.audio.toggle_music()
-        state = "paused" if self.audio.is_music_paused else None
+        self._refresh_music_toggles()
+        self._save_settings()
+
+    def _refresh_music_toggles(self) -> None:
+        paused = self.audio.is_music_paused
         for tab in self.panel_manager.keys():
             panel = self.panel_manager[tab]
-            if "music_toggle_icon" in panel:  # the game panel has none
-                panel["music_toggle_icon"].set_state(state)
+            if "music_toggle_icon" in panel:  # the menus' icon buttons
+                panel["music_toggle_icon"].set_state("paused" if paused else None)
+            if "pause_music_text" in panel:  # the pause menu's Music button
+                panel["pause_music_text"].set_text(
+                    "MUSIC: OFF" if paused else "MUSIC: ON"
+                )

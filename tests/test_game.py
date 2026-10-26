@@ -96,6 +96,8 @@ def make_game(**overrides):
     game._victory_popup_open = False
     game._gameover_popup_open = False
     game.pause_panel = FakePausePanel()
+    game._resume_on_unpause = False
+    game._settings_return_panel = "main_menu"
     game.towers = []
     game.enemies = []
     game.wave_manager = None
@@ -602,7 +604,7 @@ def test_on_exit_request_from_settings_saves_and_returns_to_menu():
     assert game.panel_manager.current_panel == "main_menu"
 
 
-def test_on_exit_request_from_game_pauses_and_saves():
+def test_on_exit_request_from_game_opens_the_pause_menu():
     game = make_game()
     game.panel_manager.current_panel = "game"
     game.game_state.is_started = True
@@ -610,7 +612,46 @@ def test_on_exit_request_from_game_pauses_and_saves():
 
     game.on_exit_request()
 
+    assert game.pause_panel.is_open
     assert game.game_state.is_started is False
+    assert game._save_game.calls == []
+    assert game.panel_manager.current_panel == "game"
+
+
+def test_on_exit_request_with_the_pause_menu_open_closes_it_and_resumes():
+    game = make_game()
+    game.panel_manager.current_panel = "game"
+    game.game_state.is_started = True
+    game.on_exit_request()
+
+    game.on_exit_request()
+
+    assert not game.pause_panel.is_open
+    assert game.game_state.is_started is True
+
+
+def test_on_exit_request_from_settings_opened_in_a_run_returns_to_it():
+    game = make_game()
+    game.panel_manager.current_panel = "settings"
+    game._settings_return_panel = "game"
+    game._save_settings = Spy()
+
+    game.on_exit_request()
+
+    assert len(game._save_settings.calls) == 1
+    assert game.panel_manager.current_panel == "game"
+    assert game._settings_return_panel == "main_menu"
+
+
+def test_on_exit_request_with_the_victory_popup_open_saves_and_leaves():
+    game = make_game()
+    game.panel_manager.current_panel = "game"
+    game._victory_popup_open = True
+    game._save_game = Spy()
+
+    game.on_exit_request()
+
+    assert not game.pause_panel.is_open
     assert len(game._save_game.calls) == 1
     assert game.panel_manager.current_panel == "main_menu"
 

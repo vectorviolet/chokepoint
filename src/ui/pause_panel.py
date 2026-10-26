@@ -1,27 +1,27 @@
-"""The pause panel: opens when the player pauses a running game and closes
-when they resume. It holds the music and SFX volume sliders (the same
-controls as the settings screen's, kept in step with them by Game) and a
-Resume button.
+"""The pause menu: Esc or the HUD menu button opens it at any time in a run,
+pausing the game; Back (or Esc again) closes it. It offers Back, Settings,
+a Music toggle and Main menu -- Game handles those buttons and the pausing.
 
-The panel's objects are declared in config/panels.yaml (`pause_*` on the
-game panel), so they scale with the rest of the HUD; this module only
-toggles them on and off. It isn't part of the HUD slide: Tab hides the HUD
-but leaves the pause panel up, since it's how a paused game says so.
+The menu's objects are declared in config/panels.yaml (`pause_*` on the
+game panel), so they scale with the rest of the UI; this module only
+toggles them on and off. It isn't part of the HUD slide (Tab), and while
+it's open its full-screen overlay sits over the HUD.
 """
 
 from pygamine import PanelManager
 
 PAUSE_PANEL_OBJECTS = (
+    "pause_overlay",
     "pause_panel_bg",
     "pause_title_text",
-    "pause_music_label",
-    "pause_music_volume_value_text",
-    "pause_music_volume_slider",
-    "pause_sfx_label",
-    "pause_sfx_volume_value_text",
-    "pause_sfx_volume_slider",
-    "pause_resume",
-    "pause_resume_text",
+    "pause_back",
+    "pause_back_text",
+    "pause_settings",
+    "pause_settings_text",
+    "pause_music",
+    "pause_music_text",
+    "pause_main_menu",
+    "pause_main_menu_text",
 )
 
 

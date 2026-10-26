@@ -249,7 +249,8 @@ def test_leaving_a_game_saves_it_and_continue_restores_it(make_game, fake_ticks)
     play(game, fake_ticks, seconds=5)
     towers, money = len(game.towers), game.game_state.money
 
-    game.on_exit_request()  # Esc on the game panel
+    game.on_exit_request()  # Esc on the game panel opens the pause menu
+    game._leave_game_for_main_menu()  # and its Main menu leaves
     assert game.panel_manager.current_panel == "main_menu"
     assert game._has_saved_game()
 

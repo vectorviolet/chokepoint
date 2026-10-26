@@ -1,8 +1,8 @@
-"""The pause panel in a real Game() (saves and settings in a temporary
-directory): opening when a running game is paused and closing on resume,
-its music/SFX sliders changing the volume live and being saved with the
-settings, the in-game music toggle being gone (the menus keep theirs), and
-the panel fitting on screen at every window size."""
+"""The pause menu in a real Game() (saves and settings in a temporary
+directory): Esc or the HUD menu button opening it at any point of a run and
+pausing it, closing it restoring the run as it was, its Main menu / Settings
+/ Music / Back buttons, the in-game music button being gone (the menus keep
+theirs) and the menu fitting on screen at every window size."""
 
 from functools import partial
 
@@ -52,47 +52,31 @@ def panel(game):
     return game.panel_manager["game"]
 
 
-def pause_objects(game):
-    return [panel(game)[name] for name in PAUSE_PANEL_OBJECTS]
-
-
 def is_shown(game) -> bool:
-    shown = [obj.active for obj in pause_objects(game)]
-    assert all(shown) or not any(shown), "the panel shows only in part"
+    shown = [panel(game)[name].active for name in PAUSE_PANEL_OBJECTS]
+    assert all(shown) or not any(shown), "the menu shows only in part"
     return game.pause_panel.is_open and all(shown)
 
 
-def press_space(game):
-    game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE))
+def key(game, k):
+    """A key press as the real loop delivers it: pygamine's core handling
+    (Esc -> on_exit_request) first, then Game.handle_event."""
+    event = pygame.event.Event(pygame.KEYDOWN, key=k)
+    if k == pygame.K_ESCAPE:
+        game.on_exit_request()
+    game.handle_event(event)
 
 
-def click(game, mouse, pos):
+def esc(game):
+    key(game, pygame.K_ESCAPE)
+
+
+def click(game, mouse, obj):
+    pos = obj.rect.center
     mouse["pos"] = pos
     game.mouse.update()
     for kind in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP):
         game.handle_event(pygame.event.Event(kind, button=1, pos=pos))
-
-
-def slide_to(game, mouse, slider, ratio):
-    """Press on the slider and drag to `ratio` of its width, then release."""
-    rect = slider.rect
-    start = (rect.left + 1, rect.centery)
-    end = (round(rect.left + rect.width * ratio), rect.centery)
-    for kind, pos in (
-        (pygame.MOUSEBUTTONDOWN, start),
-        (pygame.MOUSEMOTION, end),
-        (pygame.MOUSEBUTTONUP, end),
-    ):
-        mouse["pos"] = pos
-        game.mouse.update()
-        extra = {"button": 1} if kind != pygame.MOUSEMOTION else {"rel": (0, 0)}
-        game.handle_event(pygame.event.Event(kind, pos=pos, **extra))
-
-
-def start_and_pause(game):
-    game.panel_manager.current_panel = "game"
-    press_space(game)  # start the first wave
-    press_space(game)  # pause
 
 
 def resize(game, size):
@@ -101,111 +85,162 @@ def resize(game, size):
     game.on_canvas_resized(size)
 
 
-# ── opening and closing ──────────────────────────────────────────────────────
-
-
-def test_the_panel_is_hidden_in_a_new_game(game):
-    assert not is_shown(game)
-
-
-def test_starting_the_first_wave_does_not_open_it(game):
-    press_space(game)
-
+def run_waves(game):
+    key(game, pygame.K_SPACE)
     assert game.game_state.is_started
+
+
+# ── opening ──────────────────────────────────────────────────────────────────
+
+
+def test_the_menu_is_hidden_in_a_new_game(game):
     assert not is_shown(game)
 
 
-def test_pausing_a_running_game_opens_it(game):
-    start_and_pause(game)
+def test_esc_opens_it_before_the_first_wave(game):
+    esc(game)
+
+    assert is_shown(game)
+    assert not game.game_state.is_started
+    assert game.panel_manager.current_panel == "game"
+
+
+def test_esc_opens_it_during_a_wave_and_pauses(game):
+    run_waves(game)
+
+    esc(game)
+
+    assert is_shown(game)
+    assert not game.game_state.is_started
+    assert panel(game)["start_pause_button_icon"].state is None
+
+
+def test_esc_opens_it_between_waves(game):
+    run_waves(game)
+    game.enemies.clear()  # the wave is cleared; the next one is on its timer
+
+    esc(game)
+
+    assert is_shown(game)
+    assert not game.game_state.is_started
+
+
+def test_the_hud_menu_button_opens_it(game, mouse):
+    run_waves(game)
+
+    click(game, mouse, panel(game)["menu_button"])
+
+    assert is_shown(game)
+    assert not game.game_state.is_started
+    assert game.panel_manager.current_panel == "game"
+
+
+def test_space_still_pauses_without_the_menu(game):
+    run_waves(game)
+
+    key(game, pygame.K_SPACE)
 
     assert not game.game_state.is_started
-    assert is_shown(game)
-
-
-def test_the_hud_pause_button_opens_it_too(game, mouse):
-    press_space(game)
-
-    click(game, mouse, panel(game)["start_pause_button"].rect.center)
-
-    assert not game.game_state.is_started
-    assert is_shown(game)
-
-
-def test_resuming_with_space_closes_it(game):
-    start_and_pause(game)
-
-    press_space(game)
-
-    assert game.game_state.is_started
     assert not is_shown(game)
+
+
+def test_the_game_stands_still_while_it_is_open(game, fake_ticks):
+    run_waves(game)
+    esc(game)
+    before = game.game_state.time_ms
+
+    for t in range(16, 1000, 16):
+        fake_ticks["t"] = t
+        game.update()
+
+    assert game.game_state.time_ms == before
+
+
+# ── closing ──────────────────────────────────────────────────────────────────
+
+
+def test_esc_closes_it_and_a_running_game_resumes(game):
+    run_waves(game)
+    esc(game)
+
+    esc(game)
+
+    assert not is_shown(game)
+    assert game.game_state.is_started
     assert panel(game)["start_pause_button_icon"].state == "pause"
 
 
-def test_resuming_with_the_hud_button_closes_it(game, mouse):
-    start_and_pause(game)
+def test_back_closes_it_and_a_running_game_resumes(game, mouse):
+    run_waves(game)
+    esc(game)
 
-    click(game, mouse, panel(game)["start_pause_button"].rect.center)
+    click(game, mouse, panel(game)["pause_back"])
 
-    assert game.game_state.is_started
     assert not is_shown(game)
-
-
-def test_the_resume_button_closes_it(game, mouse):
-    start_and_pause(game)
-
-    click(game, mouse, panel(game)["pause_resume"].rect.center)
-
     assert game.game_state.is_started
+
+
+def test_a_game_paused_before_stays_paused(game, mouse):
+    run_waves(game)
+    key(game, pygame.K_SPACE)  # paused with Space
+    esc(game)
+
+    click(game, mouse, panel(game)["pause_back"])
+
     assert not is_shown(game)
-    assert panel(game)["start_pause_button_icon"].state == "pause"
+    assert not game.game_state.is_started
 
 
-def test_the_panel_does_not_cover_the_hud_resume_button(game):
-    start_and_pause(game)
+def test_a_game_not_started_yet_stays_waiting(game):
+    esc(game)
+    esc(game)
 
-    bg = panel(game)["pause_panel_bg"].rect
-    assert not bg.colliderect(panel(game)["start_pause_button"].rect)
-
-
-def test_clicks_on_the_panel_do_not_reach_the_map(game):
-    start_and_pause(game)
-
-    assert game.tower_controller._is_over_ui(panel(game)["pause_panel_bg"].rect.center)
+    assert not is_shown(game)
+    assert not game.game_state.is_started
 
 
-def test_tab_hides_the_hud_but_leaves_the_panel_and_its_resume_button(game, mouse):
-    start_and_pause(game)
+def test_while_open_it_takes_the_game_input(game, mouse):
+    esc(game)
 
-    game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_TAB))
-    game.hud_slide.update(1000)
+    key(game, pygame.K_SPACE)
+    key(game, pygame.K_TAB)
+    click(game, mouse, panel(game)["buy_tower_1"])
 
-    assert not game.hud_slide.shown
     assert is_shown(game)
-    click(game, mouse, panel(game)["pause_resume"].rect.center)
-    assert game.game_state.is_started
+    assert not game.game_state.is_started
+    assert game.hud_slide.shown
+    assert game.tower_controller.buying_tower_type == 0
 
 
-def test_leaving_for_the_menu_closes_it(game, mouse):
-    start_and_pause(game)
+def test_it_stays_open_through_a_window_resize(game):
+    esc(game)
 
-    click(game, mouse, panel(game)["menu_button"].rect.center)
+    resize(game, (1280, 720))
+
+    assert is_shown(game)
+
+
+# ── main menu ────────────────────────────────────────────────────────────────
+
+
+def test_main_menu_saves_the_run_and_leaves(game, mouse):
+    run_waves(game)
+    game.game_state.money = 345
+    esc(game)
+
+    click(game, mouse, panel(game)["pause_main_menu"])
 
     assert game.panel_manager.current_panel == "main_menu"
     assert not is_shown(game)
+    assert game._has_saved_game()
+    saved = game.save_store.load()["game_state"]
+    assert saved["money"] == 345
+    assert saved["is_started"] is False
 
 
-def test_escape_closes_it(game):
-    start_and_pause(game)
-
-    game.on_exit_request()
-
-    assert game.panel_manager.current_panel == "main_menu"
-    assert not is_shown(game)
-
-
-def test_continuing_a_saved_game_does_not_open_it(game, mouse):
-    start_and_pause(game)
-    game.on_exit_request()  # saves the run
+def test_continue_after_main_menu_has_no_menu_open(game, mouse):
+    esc(game)
+    click(game, mouse, panel(game)["pause_main_menu"])
 
     game._load_game()
 
@@ -213,97 +248,126 @@ def test_continuing_a_saved_game_does_not_open_it(game, mouse):
     assert not is_shown(game)
 
 
-def test_it_stays_open_through_a_window_resize(game):
-    start_and_pause(game)
+# ── settings ─────────────────────────────────────────────────────────────────
 
-    resize(game, (1280, 720))
 
+def test_settings_opens_the_settings_screen(game, mouse):
+    esc(game)
+
+    click(game, mouse, panel(game)["pause_settings"])
+
+    assert game.panel_manager.current_panel == "settings"
+
+
+def test_settings_back_returns_to_the_pause_menu(game, mouse):
+    run_waves(game)
+    esc(game)
+    click(game, mouse, panel(game)["pause_settings"])
+
+    click(game, mouse, game.panel_manager["settings"]["back"])
+
+    assert game.panel_manager.current_panel == "game"
+    assert is_shown(game)
+    assert not game.game_state.is_started  # still paused under the menu
+
+
+def test_esc_on_settings_returns_to_the_pause_menu(game, mouse):
+    esc(game)
+    click(game, mouse, panel(game)["pause_settings"])
+
+    esc(game)
+
+    assert game.panel_manager.current_panel == "game"
     assert is_shown(game)
 
 
-def test_drawing_the_open_panel_does_not_raise(game):
-    start_and_pause(game)
-    game.draw()
+def test_settings_from_the_main_menu_still_goes_back_there(game, mouse):
+    esc(game)
+    click(game, mouse, panel(game)["pause_settings"])
+    esc(game)  # back to the pause menu
+    click(game, mouse, panel(game)["pause_main_menu"])
+
+    click(game, mouse, game.panel_manager["main_menu"]["settings"])
+    click(game, mouse, game.panel_manager["settings"]["back"])
+
+    assert game.panel_manager.current_panel == "main_menu"
 
 
-# ── volume ───────────────────────────────────────────────────────────────────
+def test_the_run_stays_paused_while_on_settings(game, mouse, fake_ticks):
+    run_waves(game)
+    esc(game)
+    click(game, mouse, panel(game)["pause_settings"])
+    before = game.game_state.time_ms
+
+    for t in range(16, 500, 16):
+        fake_ticks["t"] = t
+        game.update()
+
+    assert game.game_state.time_ms == before
 
 
-@pytest.mark.parametrize(
-    "kind, volume", [("music", "music_volume"), ("sfx", "sfx_volume")]
-)
-def test_a_slider_changes_the_volume_live(game, mouse, kind, volume):
-    start_and_pause(game)
-
-    slide_to(game, mouse, panel(game)[f"pause_{kind}_volume_slider"], 0.25)
-
-    level = getattr(game.audio, volume)()
-    assert level == pytest.approx(0.25, abs=0.01)
-    label = panel(game)[f"pause_{kind}_volume_value_text"].text
-    assert label == f"{round(level * 100)}%"
+# ── music ────────────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("kind", ["music", "sfx"])
-def test_the_settings_screen_shows_the_same_volume(game, mouse, kind):
-    start_and_pause(game)
+def test_music_toggles_the_music_and_every_toggle_follows(game, mouse):
+    esc(game)
 
-    slide_to(game, mouse, panel(game)[f"pause_{kind}_volume_slider"], 0.4)
+    click(game, mouse, panel(game)["pause_music"])
 
-    pause_slider = panel(game)[f"pause_{kind}_volume_slider"]
-    settings = game.panel_manager["settings"]
-    assert settings[f"{kind}_volume_slider"].value == pause_slider.value
-    assert (
-        settings[f"{kind}_volume_value_text"].text
-        == panel(game)[f"pause_{kind}_volume_value_text"].text
-    )
+    assert game.audio.is_music_paused
+    assert panel(game)["pause_music_text"].text == "MUSIC: OFF"
+    for tab in MENU_PANELS:
+        assert game.panel_manager[tab]["music_toggle_icon"].state == "paused"
 
+    click(game, mouse, panel(game)["pause_music"])
 
-def test_a_settings_screen_change_shows_on_the_pause_panel(game):
-    game._on_music_volume_changed(0.3)
-
-    level = game.audio.music_volume()  # the mixer rounds to its own steps
-    assert level == pytest.approx(0.3, abs=0.01)
-    assert panel(game)["pause_music_volume_slider"].value == pytest.approx(level)
-    assert panel(game)["pause_music_volume_value_text"].text == "30%"
+    assert not game.audio.is_music_paused
+    assert panel(game)["pause_music_text"].text == "MUSIC: ON"
+    for tab in MENU_PANELS:
+        assert game.panel_manager[tab]["music_toggle_icon"].state is None
 
 
-def test_the_volumes_are_saved_with_the_settings_on_resume(game, mouse, make_game):
-    start_and_pause(game)
-    slide_to(game, mouse, panel(game)["pause_music_volume_slider"], 0.25)
-    slide_to(game, mouse, panel(game)["pause_sfx_volume_slider"], 0.6)
-    music, sfx = game.audio.music_volume(), game.audio.sfx_volume()
+def test_the_main_menu_toggle_shows_on_the_pause_menu(game, mouse):
+    game.panel_manager.current_panel = "main_menu"
 
-    press_space(game)  # resume
+    click(game, mouse, game.panel_manager["main_menu"]["music_toggle_button"])
 
-    saved = SaveStore("settings", directory=game.settings_store.directory).load()
-    assert saved["music_volume"] == pytest.approx(music)
-    assert saved["sfx_volume"] == pytest.approx(sfx)
+    assert game.audio.is_music_paused
+    assert panel(game)["pause_music_text"].text == "MUSIC: OFF"
+
+
+def test_the_music_setting_is_saved_and_restored(game, mouse, make_game):
+    esc(game)
+    click(game, mouse, panel(game)["pause_music"])
+
+    assert game.settings_store.load()["music_on"] is False
     restarted = make_game()
-    assert restarted.audio.music_volume() == pytest.approx(music)
-    assert restarted.audio.sfx_volume() == pytest.approx(sfx)
-    assert restarted.panel_manager["game"]["pause_music_volume_slider"].value == (
-        pytest.approx(music)
-    )
+    assert restarted.audio.is_music_paused
+    assert restarted.panel_manager["game"]["pause_music_text"].text == "MUSIC: OFF"
+    assert restarted.panel_manager["main_menu"]["music_toggle_icon"].state == "paused"
 
 
-def test_the_volumes_are_saved_when_leaving_for_the_menu(game, mouse):
-    start_and_pause(game)
-    slide_to(game, mouse, panel(game)["pause_music_volume_slider"], 0.5)
+def test_a_muted_game_stays_muted_through_the_splash_music(game, mouse, make_game):
+    esc(game)
+    click(game, mouse, panel(game)["pause_music"])
+    restarted = make_game()
+    restarted.splash = type("NoSplash", (), {"run": lambda self, *args: None})()
 
-    game.on_exit_request()
+    restarted.show_splash()
 
-    saved = game.settings_store.load()
-    assert saved["music_volume"] == pytest.approx(game.audio.music_volume())
+    assert restarted.audio.is_music_paused
+
+
+def test_music_on_is_the_default(game):
+    assert not game.audio.is_music_paused
+    assert panel(game)["pause_music_text"].text == "MUSIC: ON"
 
 
 def test_the_settings_store_is_in_the_temporary_folder(game, saves):
     assert game.settings_store.path.parent == saves
 
 
-# ── music toggle ─────────────────────────────────────────────────────────────
-
-
-def test_the_game_has_no_music_toggle(game):
+def test_the_game_has_no_music_button_of_its_own(game):
     assert "music_toggle_button" not in panel(game)
     assert "music_toggle_icon" not in panel(game)
     controls = GROUPS["controls"][0]
@@ -316,42 +380,68 @@ def test_the_menus_keep_their_music_toggle(game, tab):
     assert "music_toggle_icon" in game.panel_manager[tab]
 
 
-def test_the_main_menu_toggle_still_works(game, mouse):
-    game.panel_manager.current_panel = "main_menu"
-
-    click(
-        game, mouse, game.panel_manager["main_menu"]["music_toggle_button"].rect.center
-    )
-
-    assert game.audio.is_music_paused
-    assert game.panel_manager["main_menu"]["music_toggle_icon"].state == "paused"
+# ── popups ───────────────────────────────────────────────────────────────────
 
 
-# ── fitting on screen ────────────────────────────────────────────────────────
+def test_esc_with_the_game_over_popup_leaves_as_before(game):
+    game._trigger_game_over()
+
+    esc(game)
+
+    assert game.panel_manager.current_panel == "main_menu"
+    assert not is_shown(game)
+
+
+def test_esc_with_the_victory_popup_saves_and_leaves_as_before(game):
+    game._trigger_victory()
+
+    esc(game)
+
+    assert game.panel_manager.current_panel == "main_menu"
+    assert not is_shown(game)
+    assert game._has_saved_game()
+
+
+# ── drawing and fitting ──────────────────────────────────────────────────────
+
+
+def test_drawing_the_open_menu_does_not_raise(game):
+    esc(game)
+    game.draw()
 
 
 @pytest.mark.parametrize("size", [*COMMON_RESOLUTIONS, (800, 600), (1024, 768)])
-def test_the_panel_fits_at_every_window_size(game, size):
+def test_the_menu_fits_at_every_window_size(game, size):
     resize(game, size)
-    start_and_pause(game)
+    esc(game)
 
     p = panel(game)
     screen = pygame.Rect(0, 0, *size)
+    assert p["pause_overlay"].rect == screen
     bg = p["pause_panel_bg"].rect
     assert screen.contains(bg)
-    for name in PAUSE_PANEL_OBJECTS[1:]:
+    for name in PAUSE_PANEL_OBJECTS[2:]:
         assert bg.contains(p[name].rect), name
-    # Clear of the HUD: the counters, the control buttons and the tower bar.
-    hud = (
-        "level_text",
-        "live_text",
-        "coin_text",
-        "control_panel_bg",
-        "menu_button",
-        "start_pause_button",
-        "speed_toggle_button",
-        "upgrade_plane_button",
-        "tower_panel_bg",
+    texts = [n for n in PAUSE_PANEL_OBJECTS if n.endswith("_text")]
+    for name in texts[1:]:  # button labels inside their buttons
+        button = p[name.removesuffix("_text")]
+        assert button.rect.contains(p[name].rect), name
+    buttons = [p[n] for n in ("pause_back", "pause_settings", "pause_music")]
+    for upper, lower in zip(buttons, [*buttons[1:], p["pause_main_menu"]]):
+        assert upper.rect.bottom <= lower.rect.top
+
+
+def test_hud_extras_are_not_drawn_over_the_open_menu(game, monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        game.tower_controller, "draw_shortcuts", lambda s: calls.append("badges")
     )
-    for name in hud:
-        assert not bg.colliderect(p[name].rect), name
+    monkeypatch.setattr(game.tower_info, "draw_hp_fill", lambda s: calls.append("hp"))
+
+    game.draw()
+    assert calls == ["badges", "hp"]
+
+    esc(game)
+    calls.clear()
+    game.draw()
+    assert calls == []

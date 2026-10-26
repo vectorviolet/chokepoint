@@ -10,6 +10,7 @@ cycle_resolution, on_exit_request, ...) are stubbed here and log to
 Game() (which would load the actual map/panels/assets for no benefit)."""
 
 import pygame
+import pytest
 
 from app.game_events import GameEventsMixin
 from domain.game_state import GameState
@@ -28,6 +29,14 @@ class FakeButton:
 
     def set_state(self, state) -> None:
         self.state = state
+
+
+class FakeText:
+    def __init__(self):
+        self.text = ""
+
+    def set_text(self, text) -> None:
+        self.text = text
 
 
 class FakeScroller:
@@ -111,7 +120,11 @@ def make_game_panel():
         "victory_main_menu": FakeButton(),
         "gameover_play_again": FakeButton(),
         "gameover_main_menu": FakeButton(),
-        "pause_resume": FakeButton(),
+        "pause_back": FakeButton(),
+        "pause_settings": FakeButton(),
+        "pause_music": FakeButton(),
+        "pause_main_menu": FakeButton(),
+        "pause_music_text": FakeText(),
     }
 
 
@@ -160,6 +173,8 @@ class FakeGame(GameEventsMixin):
         self.camera = FakeCamera()
         self.tower_controller = FakeTowerController()
         self.pause_panel = FakePausePanel()
+        self._resume_on_unpause = False
+        self._settings_return_panel = "main_menu"
         self._victory_popup_open = False
         self._gameover_popup_open = False
         self._has_saved_game_value = has_saved_game
@@ -412,17 +427,90 @@ def test_on_sfx_and_music_volume_changed():
 # ── game panel ───────────────────────────────────────────────────────────────
 
 
-def test_game_event_menu_button_pauses_saves_and_returns_to_menu():
+def test_game_event_menu_button_opens_the_pause_menu():
     game = FakeGame()
+    game.panel_manager.current_panel = "game"
     game.game_state.is_started = True
     game.panel_manager["game"]["menu_button"].clicked = True
 
     game._handle_game_event(click_up())
 
+    assert game.pause_panel.is_open
+    assert game.game_state.is_started is False
+    assert "_save_game" not in game.calls
+    assert game.panel_manager.current_panel == "game"
+    assert game.camera.events == []  # returned early -- rest of the panel never runs
+
+
+def test_game_event_with_the_pause_menu_open_goes_only_to_the_menu():
+    game = FakeGame()
+    game._open_pause_menu()
+    event = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_SPACE)
+
+    game._handle_game_event(event)
+
+    assert game.pause_panel.is_open
+    assert game.game_state.is_started is False  # Space didn't start the run
+    assert game.camera.events == []
+    assert game.tower_controller.events == []
+
+
+def test_pause_menu_main_menu_saves_and_leaves():
+    game = FakeGame()
+    game.panel_manager.current_panel = "game"
+    game.game_state.is_started = True
+    game._open_pause_menu()
+    game.panel_manager["game"]["pause_main_menu"].clicked = True
+
+    game._handle_game_event(click_up())
+
+    assert not game.pause_panel.is_open
     assert game.game_state.is_started is False
     assert "_save_game" in game.calls
     assert game.panel_manager.current_panel == "main_menu"
-    assert game.camera.events == []  # returned early -- rest of the panel never runs
+
+
+def test_pause_menu_settings_back_returns_to_the_pause_menu():
+    game = FakeGame()
+    game.panel_manager.current_panel = "game"
+    game._open_pause_menu()
+    game.panel_manager["game"]["pause_settings"].clicked = True
+    game._handle_game_event(click_up())
+    assert game.panel_manager.current_panel == "settings"
+
+    game.panel_manager["settings"]["back"].clicked = True
+    game._handle_settings_event(click_up())
+
+    assert "_save_settings" in game.calls
+    assert game.panel_manager.current_panel == "game"
+    assert game.pause_panel.is_open
+
+
+def test_pause_menu_music_toggles_saves_and_syncs_every_toggle():
+    game = FakeGame()
+    game._open_pause_menu()
+    game.panel_manager["game"]["pause_music"].clicked = True
+
+    game._handle_game_event(click_up())
+
+    assert game.audio.is_music_paused is True
+    assert "_save_settings" in game.calls
+    assert game.panel_manager["game"]["pause_music_text"].text == "MUSIC: OFF"
+    assert game.panel_manager["main_menu"]["music_toggle_icon"].state == "paused"
+
+
+@pytest.mark.parametrize("was_running", [True, False])
+def test_pause_menu_back_restores_the_run_as_it_was(was_running):
+    game = FakeGame()
+    game.game_state.is_started = was_running
+    game._open_pause_menu()
+    assert game.game_state.is_started is False
+    game.panel_manager["game"]["pause_back"].clicked = True
+
+    game._handle_game_event(click_up())
+
+    assert not game.pause_panel.is_open
+    assert game.game_state.is_started is was_running
 
 
 def test_game_event_normal_flow_forwards_to_camera_and_tower_controller():
