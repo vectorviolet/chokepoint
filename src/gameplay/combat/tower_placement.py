@@ -105,6 +105,8 @@ class TowerPlacementController:
         for obj in self._panel_manager["game"].values():
             if hasattr(obj, "active") and not obj.active:
                 continue
+            if not getattr(obj, "visible", True):
+                continue  # slid out of view with the rest of the HUD
             rect = getattr(obj, "rect", None)
             if rect is not None and rect.collidepoint(mouse_pos):
                 return True

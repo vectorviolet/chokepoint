@@ -47,7 +47,7 @@ All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves
 | Action | Input |
 |---|---|
 | Pick a tower to buy | Click it in the bottom bar, or press 1–4 |
-| Hide / show the tower bar | Tab (1–4 still work while it's hidden) |
+| Hide / show the HUD | Tab (hotkeys still work; money and lives pop back briefly when they change) |
 | Place it | Left click a green tile |
 | Cancel placement / deselect | Right click |
 | Upgrade or sell a tower | Click the tower, then the arrow (upgrade) or money bag (sell) |

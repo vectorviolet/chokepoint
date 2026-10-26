@@ -9,6 +9,7 @@ _sync_game_ui, Game's own _close_victory_popup, etc. -- resolves normally
 through the real MRO with no manual rebinding needed.
 """
 
+import contextlib
 from types import SimpleNamespace
 
 import pygame
@@ -275,7 +276,7 @@ def make_updating_game():
     game.camera = SimpleNamespace(update_with_mouse=Spy())
     game.mouse = SimpleNamespace(position=(1, 2), update=Spy())
     game.tower_controller = SimpleNamespace(update_cursor=Spy())
-    game.tower_bar = SimpleNamespace(update=Spy())
+    game.hud_slide = SimpleNamespace(update=Spy())
     game._tick = Spy()
     return game
 
@@ -288,7 +289,7 @@ def test_update_game_forwards_input_motion_scaled_to_the_frame_time():
     assert game.camera.update_with_mouse.calls == [((1, 2), pytest.approx(2.0))]
     assert len(game.mouse.update.calls) == 1
     assert game.tower_controller.update_cursor.calls == [((1, 2),)]
-    assert game.tower_bar.update.calls == [(pytest.approx(2 * TICK_MS),)]
+    assert game.hud_slide.update.calls == [(pytest.approx(2 * TICK_MS),)]
 
 
 def test_update_game_runs_one_tick_per_tick_ms_of_frame_time():
@@ -512,6 +513,7 @@ def test_draw_on_the_game_panel_calls_draw_game_and_shortcuts():
     game.window = pygame.Surface((100, 100))
     game._draw_game = Spy()
     game.tower_controller = SimpleNamespace(draw_shortcuts=Spy())
+    game.hud_slide = SimpleNamespace(shifted=contextlib.nullcontext)
 
     game.draw()
 

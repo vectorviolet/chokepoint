@@ -30,7 +30,7 @@ from pygamine import SaveStore
 from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
-from ui.tower_bar import TowerBar
+from ui.hud_slide import HudSlide
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -178,7 +178,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.tilemap.map_width,
             self.game_area,
         )
-        self.tower_bar = TowerBar(self.panel_manager, self.size[1])
+        self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
 
         # Behind the menus: a battle playing itself, in a world of its own.
         self.menu_demo = MenuDemo(
@@ -418,7 +418,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         has no listener-removal mechanism)."""
         self._load_panel_layout(Transform((0, 0), new_size))
         self.hud.rebind_panel(self.panel_manager)
-        self.tower_bar.rebind(self.panel_manager, new_size[1])
+        self.hud_slide.rebind(self.panel_manager, new_size)
         self._bind_settings_ui()
         self._build_menu_controllers()
         self._sync_game_ui()
@@ -451,7 +451,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         # Input-driven motion follows real time; the simulation runs in fixed
         # ticks so the same game plays out at any frame rate.
         self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
-        self.tower_bar.update(frame_ms)
+        self.hud_slide.update(frame_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)
         self._tick_backlog_ms += frame_ms
@@ -482,9 +482,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         else:
             self.menu_demo.draw(self.window)
             self.window.blit(self.menu_overlay, (0, 0))
-        self.panel_manager.draw(self.window)
         if self.panel_manager.current_panel == "game":
-            self.tower_controller.draw_shortcuts(self.window)
+            with self.hud_slide.shifted():
+                self.panel_manager.draw(self.window)
+                self.tower_controller.draw_shortcuts(self.window)
+        else:
+            self.panel_manager.draw(self.window)
 
     def _draw_game(self) -> None:
         old_clip = self.window.get_clip()
