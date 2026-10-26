@@ -86,7 +86,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `tower_info` | `TowerInfoPanel` | The selected tower's info panel (`tower_info_*` objects in `config/panels.yaml`): kills, money earned, range, damage, fire rate, HP bar, and "current → next" upgrade previews below max level. Refreshed every frame from `_selected_tower()`; slides away with the HUD on Tab. Kills/money are credited to the tower whose shot or bomb landed the killing blow (`Enemy.decrease_hp(..., source=tower)`) and saved with it |
 | `buy_tooltip` | `BuyTooltip` | Hovering a buy button shows the tower's name and one-line strength/weakness (`name` + `tooltip` per tower in `config/towers.yaml`, loaded by `config_loader.load_tower_tooltips()`) on the `buy_tooltip_*` objects in `config/panels.yaml`, sized to the text and placed above the button, clamped to the screen. Hidden while the HUD is hidden or sliding; takes no clicks |
 | `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none |
-| `life_lost_feedback` | `LifeLostFeedback` | A bell (own mixer channel, at the SFX volume) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
+| `life_lost_feedback` | `LifeLostFeedback` | A bell (its own reserved mixer channel 2, outside pygamine's SFX pool, at the SFX volume) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
 
 ### Panel / UI system
 

@@ -5,8 +5,8 @@ still plays out if the game is paused straight after. Losing several lives
 at once (one big enemy, or a few in the same moment) makes the pulse
 stronger, up to MAX_STRENGTH.
 
-The bell has a mixer channel of its own, at the SFX volume. On the shared
-SFX channel the next tower shot would cut it off.
+The bell has a mixer channel of its own (2, reserved by pygamine and kept
+out of its SFX pool), at the SFX volume, so a full pool never drops it.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ ALPHA_PER_LIFE = 125  # vignette opacity at its edges, per life lost
 MAX_STRENGTH = 2.0  # lives' worth: at most ~250 alpha at the edges
 EDGE = 0.22  # the vignette's depth, as a share of the shorter canvas side
 COLOR = (200, 0, 0)
-ALERT_CHANNEL = 2  # pygamine uses 0 (music) and 1 (SFX)
+ALERT_CHANNEL = 2  # pygamine reserves 0-2: 0 is the music, 3+ the SFX pool
 _MASK_SIZE = (96, 54)  # built small, then smoothly scaled to the canvas
 
 
