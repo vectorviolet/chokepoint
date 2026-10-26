@@ -50,6 +50,17 @@ class FakePanel(dict):
     pass
 
 
+class FakePausePanel:
+    def __init__(self):
+        self.is_open = False
+
+    def open(self) -> None:
+        self.is_open = True
+
+    def close(self) -> None:
+        self.is_open = False
+
+
 class FakePanelManager(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -71,7 +82,6 @@ class FakePanelManager(dict):
 def make_game_panel():
     panel = FakePanel()
     panel["start_pause_button_icon"] = FakeGuiObject()
-    panel["music_toggle_button"] = FakeGuiObject()
     for name in _VICTORY_POPUP_OBJECTS:
         panel[name] = FakeGuiObject()
     for name in _GAMEOVER_POPUP_OBJECTS:
@@ -85,6 +95,9 @@ def make_game(**overrides):
     game.panel_manager = FakePanelManager({"game": make_game_panel()})
     game._victory_popup_open = False
     game._gameover_popup_open = False
+    game.pause_panel = FakePausePanel()
+    game._resume_on_unpause = False
+    game._settings_return_panel = "main_menu"
     game.towers = []
     game.enemies = []
     game.wave_manager = None
@@ -491,23 +504,34 @@ def test_handle_event_dispatches_to_the_current_panels_handler():
 
 def test_handle_event_music_toggle_button_click_toggles_music():
     game = make_game()
-    game.panel_manager.current_panel = "game"
+    game.panel_manager["main_menu"] = FakePanel(music_toggle_button=FakeGuiObject())
+    game.panel_manager.current_panel = "main_menu"
     game.mouse = SimpleNamespace(position=(5, 5))
     game.menu_controllers = {}
     game.handlers = {}
     game.click_sound_path = "assets/sfx/click.ogg"
     game.audio = SimpleNamespace(play_sfx=Spy())
     game._toggle_music = Spy()
-    game.panel_manager["game"][
-        "music_toggle_button"
-    ].rect = None  # is_clicked stubbed below
-    game.panel_manager["game"]["music_toggle_button"].is_clicked = lambda event, pos: (
-        True
-    )
+    toggle = game.panel_manager["main_menu"]["music_toggle_button"]
+    toggle.is_clicked = lambda event, pos: True
 
     game.handle_event(pygame.event.Event(pygame.MOUSEBUTTONUP, button=1))
 
     assert len(game._toggle_music.calls) == 1
+
+
+def test_handle_event_on_the_game_panel_has_no_music_toggle_to_check():
+    game = make_game()
+    game.panel_manager.current_panel = "game"
+    game.mouse = SimpleNamespace(position=(5, 5))
+    game.menu_controllers = {}
+    game.handlers = {}
+    game._toggle_music = Spy()
+
+    game.handle_event(pygame.event.Event(pygame.MOUSEBUTTONUP, button=1))
+
+    assert "music_toggle_button" not in game.panel_manager["game"]
+    assert game._toggle_music.calls == []
 
 
 # ── draw dispatch ────────────────────────────────────────────────────────────
@@ -580,7 +604,7 @@ def test_on_exit_request_from_settings_saves_and_returns_to_menu():
     assert game.panel_manager.current_panel == "main_menu"
 
 
-def test_on_exit_request_from_game_pauses_and_saves():
+def test_on_exit_request_from_game_opens_the_pause_menu():
     game = make_game()
     game.panel_manager.current_panel = "game"
     game.game_state.is_started = True
@@ -588,7 +612,46 @@ def test_on_exit_request_from_game_pauses_and_saves():
 
     game.on_exit_request()
 
+    assert game.pause_panel.is_open
     assert game.game_state.is_started is False
+    assert game._save_game.calls == []
+    assert game.panel_manager.current_panel == "game"
+
+
+def test_on_exit_request_with_the_pause_menu_open_closes_it_and_resumes():
+    game = make_game()
+    game.panel_manager.current_panel = "game"
+    game.game_state.is_started = True
+    game.on_exit_request()
+
+    game.on_exit_request()
+
+    assert not game.pause_panel.is_open
+    assert game.game_state.is_started is True
+
+
+def test_on_exit_request_from_settings_opened_in_a_run_returns_to_it():
+    game = make_game()
+    game.panel_manager.current_panel = "settings"
+    game._settings_return_panel = "game"
+    game._save_settings = Spy()
+
+    game.on_exit_request()
+
+    assert len(game._save_settings.calls) == 1
+    assert game.panel_manager.current_panel == "game"
+    assert game._settings_return_panel == "main_menu"
+
+
+def test_on_exit_request_with_the_victory_popup_open_saves_and_leaves():
+    game = make_game()
+    game.panel_manager.current_panel = "game"
+    game._victory_popup_open = True
+    game._save_game = Spy()
+
+    game.on_exit_request()
+
+    assert not game.pause_panel.is_open
     assert len(game._save_game.calls) == 1
     assert game.panel_manager.current_panel == "main_menu"
 

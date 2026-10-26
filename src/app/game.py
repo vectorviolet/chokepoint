@@ -35,6 +35,7 @@ from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
 from ui.buy_tooltip import BuyTooltip
 from ui.tower_info import TowerInfoPanel
+from ui.pause_panel import PausePanel
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -168,6 +169,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.audio = GameAudio(str(self.assets.sound_path("bg_music")), autoplay=False)
         self.audio.set_music_volume(audio["music_volume"])
         self.audio.set_sfx_volume(audio["sfx_volume"])
+        if not saved_settings.get("music_on", True):
+            self.audio.pause_music()  # muted last session; kept by show_splash()
 
         self.hud = GameHUD(self.game_state, self.tower_config, self.panel_manager)
         self.tower_controller = TowerPlacementController(
@@ -184,6 +187,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         )
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
         self.tower_info = TowerInfoPanel(self.panel_manager)
+        self.pause_panel = PausePanel(self.panel_manager)
+        self._resume_on_unpause = False  # was the run going when the menu opened?
+        self._settings_return_panel = "main_menu"  # where Settings' Back leads
         self.buy_tooltip = BuyTooltip(
             self.panel_manager, self.size, load_tower_tooltips()
         )
@@ -222,7 +228,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     @override
     def show_splash(self) -> None:
         super().show_splash()
+        muted = self.audio.is_music_paused
         self.audio.play_music(str(self.assets.sound_path("bg_music")))
+        if muted:  # the music toggle was off when the settings were saved
+            self.audio.pause_music()
 
     def _bind_settings_ui(self) -> None:
         """(Re-)applies live audio/window state to the settings panel's
@@ -237,6 +246,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         settings_panel["music_volume_slider"].on_change = self._on_music_volume_changed
         self._refresh_sfx_volume_label()
         self._refresh_music_volume_label()
+        self._refresh_music_toggles()
 
     def _build_menu_controllers(self) -> None:
         """(Re-)builds the keyboard-nav controllers from the current panel
@@ -322,6 +332,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 **self.window_settings(),
                 "sfx_volume": self.audio.sfx_volume(),
                 "music_volume": self.audio.music_volume(),
+                "music_on": not self.audio.is_music_paused,
             }
         )
 
@@ -448,6 +459,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._load_panel_layout(Transform((0, 0), new_size))
         self.hud.rebind_panel(self.panel_manager)
         self.tower_info.rebind(self.panel_manager)
+        self.pause_panel.rebind(self.panel_manager)
         self.buy_tooltip.rebind(self.panel_manager, new_size)
         self.hud_slide.rebind(self.panel_manager, new_size)
         self._bind_settings_ui()
@@ -481,7 +493,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def _update_game(self, frame_ms: float) -> None:
         # Input-driven motion follows real time; the simulation runs in fixed
         # ticks so the same game plays out at any frame rate.
-        self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
+        if not self.pause_panel.is_open:  # no scrolling behind the menu
+            self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.hud_slide.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
         self.life_lost_feedback.update(frame_ms)
@@ -493,7 +506,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self._tick()
         self.tower_info.show(self._selected_tower())
         self.buy_tooltip.update(
-            self.mouse.position, self.hud_slide.shown and not self.hud_slide.is_sliding
+            self.mouse.position,
+            self.hud_slide.shown
+            and not self.hud_slide.is_sliding
+            and not self.pause_panel.is_open,
         )
 
     # ── event handling ────────────────────────────────────────────────────────
@@ -505,8 +521,11 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             controller.handle_event(event, self.mouse.position)
         if handler := self.handlers.get(self.panel_manager.current_panel):
             handler(event)
+        # The menus' music toggle (the game's is on the pause menu instead).
         panel = self.panel_manager[self.panel_manager.current_panel]
-        if self._activate(panel["music_toggle_button"], event):
+        if "music_toggle_button" in panel and self._activate(
+            panel["music_toggle_button"], event
+        ):
             self._toggle_music()
 
     # ── render pipeline ───────────────────────────────────────────────────────
@@ -522,8 +541,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if self.panel_manager.current_panel == "game":
             with self.hud_slide.shifted():
                 self.panel_manager.draw(self.window)
-                self.tower_controller.draw_shortcuts(self.window)
-                self.tower_info.draw_hp_fill(self.window)
+                if not self.pause_panel.is_open:  # not over the menu's overlay
+                    self.tower_controller.draw_shortcuts(self.window)
+                    self.tower_info.draw_hp_fill(self.window)
             self._draw_kill_coins()
         else:
             self.panel_manager.draw(self.window)
@@ -578,16 +598,26 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     @override
     def on_exit_request(self):
+        """Esc (and the window's close button -- pygamine routes both here).
+        In a run it opens or closes the pause menu; on Settings it acts as
+        Back; elsewhere it goes back to the main menu, or quits from it."""
         panel = self.panel_manager.current_panel
         if panel == "main_menu":
             self.exit()
-        elif panel in ("play_menu", "credits", "settings", "game"):
-            if panel == "settings":
-                self._save_settings()
-            elif panel == "game":
+        elif panel == "settings":
+            self._leave_settings()
+        elif panel == "game":
+            if self._victory_popup_open or self._gameover_popup_open:
+                # As before the pause menu: the popup's run ends here.
                 self.game_state.is_started = False
                 if not self._gameover_popup_open:
                     self._save_game()  # a lost run isn't continuable -- nothing to save
+                self.panel_manager.current_panel = "main_menu"
+            elif self.pause_panel.is_open:
+                self._close_pause_menu()
+            else:
+                self._open_pause_menu()
+        elif panel in ("play_menu", "credits"):
             self.panel_manager.current_panel = "main_menu"
 
     @override
