@@ -1,0 +1,1 @@
+Screenshots referenced from GitHub issues. Not part of the game; never merged into main.
