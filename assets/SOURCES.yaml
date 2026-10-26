@@ -25,7 +25,7 @@ packs:
     author: "Kenney"
     url: https://kenney.nl/assets/impact-sounds
     license: CC0-1.0
-    used_for: "shot, hit and life-lost sounds"
+    used_for: "shot, hit, life-lost, tower placed and sold sounds"
   kenney-mobile-controls:
     name: "Mobile Controls"
     author: "Kenney"
@@ -349,6 +349,12 @@ files:
   "sounds/sfx/impactBell_heavy_003.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactBell_heavy_003.ogg"
+  "sounds/sfx/impactMetal_light_000.ogg":
+    source: kenney-impact-sounds
+    original: "Audio/impactMetal_light_000.ogg"
+  "sounds/sfx/impactWood_heavy_000.ogg":
+    source: kenney-impact-sounds
+    original: "Audio/impactWood_heavy_000.ogg"
   "sounds/sfx/impactMining_000.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactMining_000.ogg"

@@ -16,8 +16,8 @@ freely available.
 | [Tower Defense (Top-Down)](https://kenney.nl/assets/tower-defense-top-down) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | towers, enemies, projectiles, map tiles | 36 |
 | [Smoke Particles](https://kenney.nl/assets/smoke-particles) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | explosions, smoke | 22 |
 | [UI Pack](https://kenney.nl/assets/ui-pack) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | buttons, menu sounds | 7 |
+| [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | shot, hit, life-lost, tower placed and sold sounds | 6 |
 | [Mobile Controls](https://kenney.nl/assets/mobile-controls) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | HUD icons (play, pause, music, menu) | 6 |
-| [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | shot, hit and life-lost sounds | 4 |
 | [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) | Craig Rozynski | [SIL Open Font License 1.1](https://openfontlicense.org) | text font | 3 |
 | [Anton](https://fonts.google.com/specimen/Anton) | Vernon Adams | [SIL Open Font License 1.1](https://openfontlicense.org) | display font | 2 |
 | [Board Game Icons](https://kenney.nl/assets/board-game-icons) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | sell button icon | 1 |

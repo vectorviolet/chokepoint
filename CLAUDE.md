@@ -87,6 +87,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `buy_tooltip` | `BuyTooltip` | Hovering a buy button shows the tower's name and one-line strength/weakness (`name` + `tooltip` per tower in `config/towers.yaml`, loaded by `config_loader.load_tower_tooltips()`) on the `buy_tooltip_*` objects in `config/panels.yaml`, sized to the text and placed above the button, clamped to the screen. Hidden while the HUD is hidden or sliding; takes no clicks |
 | `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none |
 | `life_lost_feedback` | `LifeLostFeedback` | A bell (its own reserved mixer channel 2, outside pygamine's SFX pool, at the SFX volume) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
+| `place_sell_feedback` | `PlaceSellFeedback` | Placing a tower: a thud and a dust puff on its tile; selling: a coin clink and coins bursting from the tile. Sounds via `audio.play_sfx` (the SFX pool); effects in world space through the camera, on game time (pause freezes them), capped at `MAX_EFFECTS`. Told by the placement controller (`feedback=`); the menu demo has none |
 
 ### Panel / UI system
 

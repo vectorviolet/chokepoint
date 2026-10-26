@@ -129,3 +129,5 @@ sounds:
 
   # ── Feedback SFX ──────────────────────────────────────────────────────
   life_lost:         {folder: sfx, name: impactBell_heavy_003}
+  tower_placed:      {folder: sfx, name: impactWood_heavy_000}
+  tower_sold:        {folder: sfx, name: impactMetal_light_000}
