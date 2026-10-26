@@ -33,6 +33,7 @@ from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
 from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
+from ui.place_sell_feedback import PlaceSellFeedback
 from ui.buy_tooltip import BuyTooltip
 from ui.tower_info import TowerInfoPanel
 from ui.pause_panel import PausePanel
@@ -173,6 +174,13 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.audio.pause_music()  # muted last session; kept by show_splash()
 
         self.hud = GameHUD(self.game_state, self.tower_config, self.panel_manager)
+        self.place_sell_feedback = PlaceSellFeedback(
+            [self.assets.get_image(f"black_smoke_{i}") for i in range(13)],
+            self.assets.get_image("coin_sheet"),
+            self.audio.play_sfx,
+            self.assets.sound_path("tower_placed"),
+            self.assets.sound_path("tower_sold"),
+        )
         self.tower_controller = TowerPlacementController(
             self.towers,
             self.tower_config,
@@ -184,6 +192,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.tilemap.buildable_grid,
             self.tilemap.map_width,
             self.game_area,
+            feedback=self.place_sell_feedback,
         )
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
         self.tower_info = TowerInfoPanel(self.panel_manager)
@@ -497,6 +506,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.hud_slide.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
+        self.place_sell_feedback.update(frame_ms)
         self.life_lost_feedback.update(frame_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)
@@ -552,6 +562,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         old_clip = self.window.get_clip()
         self.window.set_clip(self.game_area)
         self._draw_battle(self.window, self.camera)
+        self.place_sell_feedback.draw(self.window, self.camera)
         self.kill_feedback.draw_texts(self.window, self.camera, self.game_state.time_ms)
         self.tower_controller.draw(self.window, self.mouse.position)
         self._draw_selected_tower_ui()
