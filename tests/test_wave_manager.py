@@ -120,6 +120,22 @@ def test_advances_level_after_queue_drains_and_delay_passes_with_no_enemies(asse
     assert gs.level == 2
 
 
+def test_a_wave_end_pending_at_game_time_0_still_advances(assets):
+    """A run continued in a fresh process restores its pending wave end at
+    game time 0 (#25); 0 is a time, not "nothing pending"."""
+    wm = WaveManager(WAYPOINTS, assets)
+    gs = make_started_state(level=2)
+    wm._current_level = 2
+    wm._spawn_queue = [1, 1]
+    wm._queue_index = 2  # fully spawned
+    wm._level_finish_time = 0.0
+
+    gs.time_ms = WaveManager.LEVEL_END_DELAY_MS
+    wm.update([], gs)
+
+    assert gs.level == 3
+
+
 def test_does_not_advance_level_while_enemies_are_still_alive(assets):
     wm = WaveManager(WAYPOINTS, assets)
     gs = make_started_state(level=1)
