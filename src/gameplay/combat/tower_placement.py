@@ -139,7 +139,7 @@ class TowerPlacementController:
         if tower not in self._towers:  # sold
             self._game_state.selected_tower = None
             if self._feedback is not None:
-                self._feedback.tower_sold(tower.position, self._game_state.time_ms)
+                self._feedback.tower_sold(tower.position)
         return hit
 
     def _handle_tower_selection(self) -> None:
@@ -178,7 +178,7 @@ class TowerPlacementController:
         self._game_state.decrease_money(tower.buy_price)
         self.buying_tower_type = 0
         if self._feedback is not None:
-            self._feedback.tower_placed(tower.position, self._game_state.time_ms)
+            self._feedback.tower_placed(tower.position)
 
     def _handle_buy_tower_buttons(self, event, mouse_pos: tuple) -> None:
         for i in range(4):

@@ -1,5 +1,5 @@
 """Tower placed / sold: a sound and a short effect on the tile (dust when
-placing, coins when selling), on game time and through the camera. Unit
+placing, coins when selling), on real time and through the camera. Unit
 tests drive PlaceSellFeedback directly; the rest go through the placement
 controller or a real Game(), with saves in a temporary directory."""
 
@@ -74,64 +74,49 @@ class OffsetCamera:
 
 
 def test_placing_plays_the_place_sound_and_puffs_dust_on_the_tile(feedback, sfx):
-    feedback.tower_placed((160, 224), now_ms=0)
+    feedback.tower_placed((160, 224))
 
     assert sfx.played == [PLACE_SOUND]
     assert len(feedback.dust) == DUST_PUFFS
     assert not feedback.coins
     assert all(d.origin == Vector2(160, 224) for d in feedback.dust)
-    for dust in feedback.dust:  # starts on the tile centre, drifts out a little
-        assert feedback.dust_position(dust, 0) == Vector2(160, 224)
-        assert feedback.dust_position(dust, DUST_LIFE_MS).distance_to(
-            Vector2(160, 224)
-        ) < (HALF_TILE)
+    for dust in feedback.dust:  # starts on the tile centre
+        assert feedback.dust_position(dust) == Vector2(160, 224)
+    feedback.update(DUST_LIFE_MS - 1)
+    for dust in feedback.dust:  # and drifts out a little
+        assert 0 < feedback.dust_position(dust).distance_to((160, 224)) < HALF_TILE
 
 
 def test_selling_plays_the_sell_sound_and_bursts_coins_from_the_tile(feedback, sfx):
-    feedback.tower_sold((160, 224), now_ms=0)
+    feedback.tower_sold((160, 224))
 
     assert sfx.played == [SELL_SOUND]
     assert len(feedback.coins) == COINS_PER_SALE
     assert not feedback.dust
     for coin in feedback.coins:
-        assert feedback.coin_position(coin, 0) == Vector2(160, 224)
-        assert feedback.coin_position(coin, 150).y < 224  # flung upwards
+        assert feedback.coin_position(coin) == Vector2(160, 224)
+    feedback.update(150)
+    for coin in feedback.coins:
+        assert feedback.coin_position(coin).y < 224  # flung upwards
 
 
-def test_effects_expire_after_their_life_in_game_time(feedback):
-    feedback.tower_placed((0, 0), now_ms=1000)
-    feedback.tower_sold((0, 0), now_ms=1000)
+def test_effects_expire_after_their_life_in_real_time(feedback):
+    feedback.update(1000)
+    feedback.tower_placed((0, 0))
+    feedback.tower_sold((0, 0))
 
-    feedback.update(now_ms=1000 + DUST_LIFE_MS - 1)
+    feedback.update(DUST_LIFE_MS - 1)
     assert feedback.dust and feedback.coins
-    feedback.update(now_ms=1000 + DUST_LIFE_MS)
+    feedback.update(1)
     assert not feedback.dust and feedback.coins
-    feedback.update(now_ms=1000 + COIN_LIFE_MS)
+    feedback.update(COIN_LIFE_MS - DUST_LIFE_MS)
     assert feedback.live_effects == 0
-
-
-def test_pausing_freezes_the_effects_in_place(feedback):
-    feedback.tower_placed((0, 0), now_ms=500)
-    feedback.tower_sold((0, 0), now_ms=500)
-    feedback.update(now_ms=600)
-    before = [feedback.dust_position(d, 600) for d in feedback.dust] + [
-        feedback.coin_position(c, 600) for c in feedback.coins
-    ]
-
-    for _ in range(600):  # game time stands still however long the pause
-        feedback.update(now_ms=600)
-
-    after = [feedback.dust_position(d, 600) for d in feedback.dust] + [
-        feedback.coin_position(c, 600) for c in feedback.coins
-    ]
-    assert after == before
-    assert feedback.live_effects == DUST_PUFFS + COINS_PER_SALE
 
 
 def test_the_cap_holds_but_the_sound_still_plays(feedback, sfx):
     for i in range(100):
-        feedback.tower_placed((i, i), now_ms=0)
-        feedback.tower_sold((i, i), now_ms=0)
+        feedback.tower_placed((i, i))
+        feedback.tower_sold((i, i))
 
     assert feedback.live_effects == MAX_EFFECTS
     assert len(sfx.played) == 200
@@ -139,21 +124,21 @@ def test_the_cap_holds_but_the_sound_still_plays(feedback, sfx):
 
 def test_effects_free_up_room_as_they_end(feedback):
     for i in range(100):
-        feedback.tower_sold((i, i), now_ms=0)
-    feedback.update(now_ms=COIN_LIFE_MS)
+        feedback.tower_sold((i, i))
+    feedback.update(COIN_LIFE_MS)
     assert feedback.live_effects == 0
 
-    feedback.tower_placed((0, 0), now_ms=COIN_LIFE_MS)
+    feedback.tower_placed((0, 0))
     assert len(feedback.dust) == DUST_PUFFS
 
 
 def test_drawing_runs_through_the_camera(feedback):
     camera = OffsetCamera()
     surface = pygame.Surface((200, 200))
-    feedback.tower_placed((1100, 1100), now_ms=0)
-    feedback.tower_sold((1100, 1100), now_ms=0)
+    feedback.tower_placed((1100, 1100))
+    feedback.tower_sold((1100, 1100))
 
-    feedback.draw(surface, camera, now_ms=0)
+    feedback.draw(surface, camera)
 
     assert len(camera.seen) == DUST_PUFFS + COINS_PER_SALE
     assert all(p == Vector2(1100, 1100) for p in camera.seen)
@@ -161,8 +146,8 @@ def test_drawing_runs_through_the_camera(feedback):
 
 
 def test_clear_drops_every_effect(feedback):
-    feedback.tower_placed((0, 0), now_ms=0)
-    feedback.tower_sold((0, 0), now_ms=0)
+    feedback.tower_placed((0, 0))
+    feedback.tower_sold((0, 0))
 
     feedback.clear()
 
@@ -188,18 +173,17 @@ class FeedbackSpy:
         self.placed = []
         self.sold = []
 
-    def tower_placed(self, world_pos, now_ms):
-        self.placed.append((Vector2(world_pos), now_ms))
+    def tower_placed(self, world_pos):
+        self.placed.append(Vector2(world_pos))
 
-    def tower_sold(self, world_pos, now_ms):
-        self.sold.append((Vector2(world_pos), now_ms))
+    def tower_sold(self, world_pos):
+        self.sold.append(Vector2(world_pos))
 
 
 @pytest.fixture
 def controller(tower_config, assets):
     camera = Camera(Rect(GAME_AREA), 3008, 2176, scroll_rect=Rect(GAME_AREA))
     gs = GameState(start_money=1_000_000, start_lives=10)
-    gs.time_ms = 4321
     panel = {
         f"buy_tower_{i + 1}": FakeButton(Rect(1600 + i * 80, 20, 40, 40))
         for i in range(4)
@@ -226,7 +210,7 @@ def click(controller, pos):
     controller.handle_event(pygame.event.Event(pygame.MOUSEBUTTONUP, button=1), pos)
 
 
-def test_buying_a_tower_tells_the_feedback_its_tile_and_game_time(controller):
+def test_buying_a_tower_tells_the_feedback_its_tile(controller):
     c, spy, gs, camera = controller
     c.buying_tower_type = 1
     screen = camera.world_to_screen((5 * TILE_SIZE + 5, 5 * TILE_SIZE + 5))
@@ -234,10 +218,8 @@ def test_buying_a_tower_tells_the_feedback_its_tile_and_game_time(controller):
     click(c, (screen.x, screen.y))
 
     tower = c._towers[0]
-    assert spy.placed == [
-        (Vector2(5 * TILE_SIZE + HALF_TILE, 5 * TILE_SIZE + HALF_TILE), 4321)
-    ]
-    assert tower.position == spy.placed[0][0]
+    assert spy.placed == [Vector2(5 * TILE_SIZE + HALF_TILE, 5 * TILE_SIZE + HALF_TILE)]
+    assert tower.position == spy.placed[0]
     assert not spy.sold
 
 
@@ -259,7 +241,6 @@ def test_selling_a_tower_tells_the_feedback_its_tile(controller):
     click(c, (screen.x, screen.y))
     tower = c._towers[0]
     gs.selected_tower = tower
-    gs.time_ms = 9000
 
     sell = (
         camera.world_to_screen(tower.position)
@@ -269,7 +250,7 @@ def test_selling_a_tower_tells_the_feedback_its_tile(controller):
     click(c, (sell.x, sell.y))
 
     assert tower not in c._towers
-    assert spy.sold == [(Vector2(tower.position), 9000)]
+    assert spy.sold == [Vector2(tower.position)]
 
 
 # ── in the game ───────────────────────────────────────────────────────────────
@@ -294,8 +275,8 @@ def test_the_game_plays_its_sounds_through_play_sfx(game, monkeypatch):
     played = []
     monkeypatch.setattr(game.place_sell_feedback, "_play_sfx", played.append)
 
-    game.place_sell_feedback.tower_placed((100, 100), game.game_state.time_ms)
-    game.place_sell_feedback.tower_sold((100, 100), game.game_state.time_ms)
+    game.place_sell_feedback.tower_placed((100, 100))
+    game.place_sell_feedback.tower_sold((100, 100))
 
     assert played == [
         str(game.assets.sound_path("tower_placed")),
@@ -304,28 +285,47 @@ def test_the_game_plays_its_sounds_through_play_sfx(game, monkeypatch):
     assert game.tower_controller._feedback is game.place_sell_feedback
 
 
-def test_the_effects_run_on_game_time_in_the_game(game, fake_ticks, monkeypatch):
+@pytest.fixture
+def quiet(game, monkeypatch):
     monkeypatch.setattr(game.place_sell_feedback, "_play_sfx", lambda path: None)
-    game.game_state.is_started = False
-    game.place_sell_feedback.tower_placed((100, 100), game.game_state.time_ms)
+    return game.place_sell_feedback
 
-    play(game, fake_ticks, DUST_LIFE_MS * 2)
-    assert game.place_sell_feedback.dust  # paused: still there
+
+def test_the_effects_play_out_while_the_game_is_paused(game, quiet, fake_ticks):
+    game.game_state.is_started = False
+    play(game, fake_ticks, 100)
+    quiet.tower_placed((100, 100))
+    quiet.tower_sold((100, 100))
+
+    play(game, fake_ticks, DUST_LIFE_MS / 2)
+    assert quiet.dust and quiet.coins  # moving, not frozen
+    assert all(quiet.dust_position(d) != Vector2(100, 100) for d in quiet.dust)
     game.draw()  # drawn through the game's camera without trouble
 
+    play(game, fake_ticks, COIN_LIFE_MS + 50)
+    assert quiet.live_effects == 0
+    assert game.game_state.time_ms == 0  # game time never moved
+
+
+def test_game_speed_does_not_hurry_the_effects(game, quiet, fake_ticks):
     game.game_state.is_started = True
     game.game_state.speed = 4
-    play(game, fake_ticks, DUST_LIFE_MS / 4 + 50)
-    assert not game.place_sell_feedback.dust  # x4: gone in a quarter of the time
+    play(game, fake_ticks, 100)
+    quiet.tower_placed((100, 100))
+
+    play(game, fake_ticks, DUST_LIFE_MS / 2)
+    assert quiet.dust  # x4 would have ended them long ago
+
+    play(game, fake_ticks, DUST_LIFE_MS / 2 + 50)
+    assert not quiet.dust
 
 
-def test_a_new_game_clears_the_effects(game, monkeypatch):
-    monkeypatch.setattr(game.place_sell_feedback, "_play_sfx", lambda path: None)
-    game.place_sell_feedback.tower_sold((100, 100), game.game_state.time_ms)
+def test_a_new_game_clears_the_effects(game, quiet):
+    quiet.tower_sold((100, 100))
 
     game._start_new_game()
 
-    assert game.place_sell_feedback.live_effects == 0
+    assert quiet.live_effects == 0
 
 
 def test_the_menu_demo_has_no_place_or_sell_feedback(assets, tower_config):
