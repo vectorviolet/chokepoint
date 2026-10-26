@@ -87,7 +87,9 @@ class WaveManager:
                     self._level_finish_time = now
 
         elif (
-            self._level_finish_time
+            # `is not None`: 0 is a real time -- a run continued in a fresh
+            # process restores its pending wave end at game time 0.
+            self._level_finish_time is not None
             and now - self._level_finish_time >= self.LEVEL_END_DELAY_MS
             and not enemies
         ):
