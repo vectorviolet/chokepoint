@@ -74,6 +74,17 @@ class FakeTowerController:
         self.events.append(event)
 
 
+class FakePausePanel:
+    def __init__(self):
+        self.is_open = False
+
+    def open(self) -> None:
+        self.is_open = True
+
+    def close(self) -> None:
+        self.is_open = False
+
+
 class FakePanelManager(dict):
     """dict for `panel_manager["name"]` subscript access, plus a plain
     settable `.current_panel` attribute -- matches pygamine's real
@@ -100,8 +111,7 @@ def make_game_panel():
         "victory_main_menu": FakeButton(),
         "gameover_play_again": FakeButton(),
         "gameover_main_menu": FakeButton(),
-        "music_toggle_button": FakeButton(),
-        "music_toggle_icon": FakeButton(),
+        "pause_resume": FakeButton(),
     }
 
 
@@ -149,6 +159,7 @@ class FakeGame(GameEventsMixin):
         self.tower_config = load_tower_config()
         self.camera = FakeCamera()
         self.tower_controller = FakeTowerController()
+        self.pause_panel = FakePausePanel()
         self._victory_popup_open = False
         self._gameover_popup_open = False
         self._has_saved_game_value = has_saved_game
@@ -579,11 +590,19 @@ def test_toggle_music_updates_every_panels_icon():
     game._toggle_music()
 
     assert game.audio.is_music_paused is True
-    for tab in ("main_menu", "play_menu", "credits", "settings", "game"):
+    for tab in ("main_menu", "play_menu", "credits", "settings"):
         assert game.panel_manager[tab]["music_toggle_icon"].state == "paused"
 
     game._toggle_music()
 
     assert game.audio.is_music_paused is False
-    for tab in ("main_menu", "play_menu", "credits", "settings", "game"):
+    for tab in ("main_menu", "play_menu", "credits", "settings"):
         assert game.panel_manager[tab]["music_toggle_icon"].state is None
+
+
+def test_the_game_panel_has_no_music_toggle():
+    game = FakeGame()
+
+    game._toggle_music()  # skips the game panel rather than failing on it
+
+    assert "music_toggle_icon" not in game.panel_manager["game"]

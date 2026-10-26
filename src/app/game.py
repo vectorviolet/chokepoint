@@ -35,6 +35,7 @@ from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
 from ui.buy_tooltip import BuyTooltip
 from ui.tower_info import TowerInfoPanel
+from ui.pause_panel import PausePanel
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -80,6 +81,11 @@ _GAMEOVER_POPUP_OBJECTS = (
     "gameover_main_menu",
     "gameover_main_menu_text",
 )
+
+# The volume controls: the settings screen's and the pause panel's, as
+# (panel, object name prefix). Both drive the same GameAudio volumes and are
+# kept in step, so a change in one shows in the other.
+_VOLUME_CONTROLS = (("settings", ""), ("game", "pause_"))
 
 
 class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
@@ -184,6 +190,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         )
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
         self.tower_info = TowerInfoPanel(self.panel_manager)
+        self.pause_panel = PausePanel(self.panel_manager)
         self.buy_tooltip = BuyTooltip(
             self.panel_manager, self.size, load_tower_tooltips()
         )
@@ -230,11 +237,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         resize rebuilds those objects from scratch."""
         self._refresh_window_size_label()
         self._refresh_window_mode_label()
-        settings_panel = self.panel_manager["settings"]
-        settings_panel["sfx_volume_slider"].set_value(self.audio.sfx_volume())
-        settings_panel["sfx_volume_slider"].on_change = self._on_sfx_volume_changed
-        settings_panel["music_volume_slider"].set_value(self.audio.music_volume())
-        settings_panel["music_volume_slider"].on_change = self._on_music_volume_changed
+        for panel, prefix in _VOLUME_CONTROLS:
+            objects = self.panel_manager[panel]
+            objects[
+                f"{prefix}sfx_volume_slider"
+            ].on_change = self._on_sfx_volume_changed
+            objects[
+                f"{prefix}music_volume_slider"
+            ].on_change = self._on_music_volume_changed
         self._refresh_sfx_volume_label()
         self._refresh_music_volume_label()
 
@@ -301,14 +311,21 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         )
 
     def _refresh_sfx_volume_label(self) -> None:
-        self.panel_manager["settings"]["sfx_volume_value_text"].set_text(
-            f"{round(self.audio.sfx_volume() * 100)}%"
-        )
+        self._refresh_volume_controls("sfx", self.audio.sfx_volume())
 
     def _refresh_music_volume_label(self) -> None:
-        self.panel_manager["settings"]["music_volume_value_text"].set_text(
-            f"{round(self.audio.music_volume() * 100)}%"
-        )
+        self._refresh_volume_controls("music", self.audio.music_volume())
+
+    def _refresh_volume_controls(self, kind: str, volume: float) -> None:
+        """Every `kind` ("sfx"/"music") volume slider and its percentage label
+        -- the settings screen's and the pause panel's -- to `volume`.
+        set_value() doesn't fire on_change, so this can't loop back."""
+        for panel, prefix in _VOLUME_CONTROLS:
+            objects = self.panel_manager[panel]
+            objects[f"{prefix}{kind}_volume_slider"].set_value(volume)
+            objects[f"{prefix}{kind}_volume_value_text"].set_text(
+                f"{round(volume * 100)}%"
+            )
 
     # ── settings persistence ─────────────────────────────────────────────────
     #
@@ -334,9 +351,6 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.audio.set_sfx_volume(self._default_audio_settings["sfx_volume"])
         self.audio.set_music_volume(self._default_audio_settings["music_volume"])
 
-        settings_panel = self.panel_manager["settings"]
-        settings_panel["sfx_volume_slider"].set_value(self.audio.sfx_volume())
-        settings_panel["music_volume_slider"].set_value(self.audio.music_volume())
         self._refresh_window_size_label()
         self._refresh_window_mode_label()
         self._refresh_sfx_volume_label()
@@ -390,6 +404,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.game_state.has_won = True
         self.game_state.is_started = False
         self.panel_manager["game"]["start_pause_button_icon"].set_state(None)
+        self._close_pause_panel()
         self._victory_popup_open = True
         self._set_victory_popup_active(True)
 
@@ -407,6 +422,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def _trigger_game_over(self) -> None:
         self.game_state.is_started = False
         self.panel_manager["game"]["start_pause_button_icon"].set_state(None)
+        self._close_pause_panel()
         self._gameover_popup_open = True
         self._set_gameover_popup_active(True)
 
@@ -448,6 +464,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._load_panel_layout(Transform((0, 0), new_size))
         self.hud.rebind_panel(self.panel_manager)
         self.tower_info.rebind(self.panel_manager)
+        self.pause_panel.rebind(self.panel_manager)
         self.buy_tooltip.rebind(self.panel_manager, new_size)
         self.hud_slide.rebind(self.panel_manager, new_size)
         self._bind_settings_ui()
@@ -505,8 +522,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             controller.handle_event(event, self.mouse.position)
         if handler := self.handlers.get(self.panel_manager.current_panel):
             handler(event)
+        # The menus' music toggle; the game panel has none (its volumes are
+        # on the pause panel).
         panel = self.panel_manager[self.panel_manager.current_panel]
-        if self._activate(panel["music_toggle_button"], event):
+        if "music_toggle_button" in panel and self._activate(
+            panel["music_toggle_button"], event
+        ):
             self._toggle_music()
 
     # ── render pipeline ───────────────────────────────────────────────────────
@@ -586,6 +607,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 self._save_settings()
             elif panel == "game":
                 self.game_state.is_started = False
+                self._close_pause_panel()
                 if not self._gameover_popup_open:
                     self._save_game()  # a lost run isn't continuable -- nothing to save
             self.panel_manager.current_panel = "main_menu"

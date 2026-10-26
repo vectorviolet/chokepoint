@@ -98,6 +98,7 @@ class GameEventsMixin:
         panel = self.panel_manager["game"]
         if self._activate(panel["menu_button"], event):
             self.game_state.is_started = False
+            self._close_pause_panel()
             self._save_game()
             self.panel_manager.current_panel = "main_menu"
             return
@@ -107,6 +108,7 @@ class GameEventsMixin:
         self.tower_controller.handle_event(event, self.mouse.position)
         self._handle_upgrade_plane_button(event)
         self._handle_start_pause(event)
+        self._handle_pause_resume_button(event)
         self._handle_speed_toggle(event)
 
     def _handle_victory_popup_event(self, event) -> None:
@@ -159,10 +161,34 @@ class GameEventsMixin:
             sound = getattr(button, "on_click_sound", None) or self.click_sound_path
             if sound is not None:
                 self.audio.play_sfx(str(sound))
-        self.game_state.is_started = not self.game_state.is_started
-        panel["start_pause_button_icon"].set_state(
-            "pause" if self.game_state.is_started else None
+        self._set_running(not self.game_state.is_started)
+
+    def _handle_pause_resume_button(self, event) -> None:
+        if self.pause_panel.is_open and self._activate(
+            self.panel_manager["game"]["pause_resume"], event
+        ):
+            self._set_running(True)
+
+    def _set_running(self, running: bool) -> None:
+        """Start/resume or pause the game. Pausing a running game opens the
+        pause panel and resuming closes it; the first start of a run (from
+        "not started yet") has no panel to close."""
+        self.game_state.is_started = running
+        self.panel_manager["game"]["start_pause_button_icon"].set_state(
+            "pause" if running else None
         )
+        if running:
+            self._close_pause_panel()
+        else:
+            self.pause_panel.open()
+
+    def _close_pause_panel(self) -> None:
+        """Close the pause panel, saving the settings if it was open -- its
+        volume sliders change them live, like the settings screen's, and
+        are saved when it closes, like that screen's are on Back."""
+        if self.pause_panel.is_open:
+            self.pause_panel.close()
+            self._save_settings()
 
     def _handle_speed_toggle(self, event) -> None:
         panel = self.panel_manager["game"]
@@ -179,4 +205,6 @@ class GameEventsMixin:
         self.audio.toggle_music()
         state = "paused" if self.audio.is_music_paused else None
         for tab in self.panel_manager.keys():
-            self.panel_manager[tab]["music_toggle_icon"].set_state(state)
+            panel = self.panel_manager[tab]
+            if "music_toggle_icon" in panel:  # the game panel has none
+                panel["music_toggle_icon"].set_state(state)

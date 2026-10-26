@@ -520,7 +520,6 @@ panels:
         objects:
           menu_button:          { extends: btn-sm, size: [60, 60] }
           start_pause_button:   { extends: btn-sm, size: [60, 60] }
-          music_toggle_button:  { extends: btn-sm, size: [60, 60] }
           speed_toggle_button:
             extends: btn-sm
             size: [60, 60]
@@ -549,8 +548,6 @@ panels:
         states:
           pause:
             asset: icon_pause
-      music_toggle_icon:
-        extends: music_toggle_icon
       speed_toggle_button_text:
         extends: button_text
         parent: speed_toggle_button
@@ -641,6 +638,64 @@ panels:
       buy_tooltip_weakness_label: { extends: tower_info_label, parent: buy_tooltip_bg, position: [16, 84], text: "Weak" }
       buy_tooltip_strength_text:  { extends: buy_tooltip_line, position: [96, 51] }
       buy_tooltip_weakness_text:  { extends: buy_tooltip_line, position: [96, 85] }
+
+      # Pause panel -- shown while the player has paused a running game
+      # (ui/pause_panel.py toggles .active; Game keeps the sliders and their
+      # values in step with the settings screen's). Centred, clear of the
+      # HUD's corners and tower bar, and not part of the Tab slide. Styled
+      # like the tower info panel.
+      pause_panel_bg:
+        position: [CENTER, CENTER]
+        size: [520, 380]
+        color: [50, 50, 50, 200]
+      pause_title_text:
+        extends: tower_info_title
+        parent: pause_panel_bg
+        position: [CENTER, 16]
+        font_size: 40
+        text: "PAUSED"
+      pause_music_label:
+        extends: tower_info_label
+        parent: pause_panel_bg
+        position: [40, 88]
+        text: "Music"
+      pause_music_volume_value_text:
+        extends: tower_info_value
+        parent: pause_panel_bg
+        position: [400, 86]
+        text: "100%"
+      pause_music_volume_slider:
+        type: slider
+        parent: pause_panel_bg
+        position: [CENTER, 132]
+        size: [440, 28]
+        value: 1.0
+      pause_sfx_label:
+        extends: tower_info_label
+        parent: pause_panel_bg
+        position: [40, 184]
+        text: "SFX"
+      pause_sfx_volume_value_text:
+        extends: tower_info_value
+        parent: pause_panel_bg
+        position: [400, 182]
+        text: "100%"
+      pause_sfx_volume_slider:
+        type: slider
+        parent: pause_panel_bg
+        position: [CENTER, 228]
+        size: [440, 28]
+        value: 1.0
+      pause_resume:
+        extends: btn-lg
+        parent: pause_panel_bg
+        position: [CENTER, 280]
+        size: [300, 72]
+      pause_resume_text:
+        extends: button_text
+        parent: pause_resume
+        font_size: 36
+        text: "RESUME"
 
       # Victory popup -- hidden by default (Game toggles .active on each of
       # these when wave 25 clears); declared last so it draws on top.
