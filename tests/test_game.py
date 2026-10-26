@@ -93,6 +93,7 @@ def make_game(**overrides):
     game._tick_backlog_ms = 0.0
     game.life_lost_feedback = SimpleNamespace(lives_lost=Spy(), update=Spy())
     game.tower_info = SimpleNamespace(show=Spy(), draw_hp_fill=Spy())
+    game.buy_tooltip = SimpleNamespace(update=Spy())
     for key, value in overrides.items():
         setattr(game, key, value)
     return game
@@ -278,7 +279,7 @@ def make_updating_game():
     game.camera = SimpleNamespace(update_with_mouse=Spy())
     game.mouse = SimpleNamespace(position=(1, 2), update=Spy())
     game.tower_controller = SimpleNamespace(update_cursor=Spy())
-    game.hud_slide = SimpleNamespace(update=Spy())
+    game.hud_slide = SimpleNamespace(update=Spy(), shown=True, is_sliding=False)
     game.kill_feedback = SimpleNamespace(update=Spy())
     game._tick = Spy()
     return game

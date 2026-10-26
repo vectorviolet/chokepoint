@@ -21,7 +21,7 @@ from pygamine import (
     make_slider_factory,
     make_scrolling_panel_factory,
 )
-from util.config_loader import load_tower_config
+from util.config_loader import load_tower_config, load_tower_tooltips
 from pygamine import Camera
 from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS
 from pygamine import Debug
@@ -33,6 +33,7 @@ from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
 from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
+from ui.buy_tooltip import BuyTooltip
 from ui.tower_info import TowerInfoPanel
 from domain.game_state import GameState
 from pygamine import Transform
@@ -183,6 +184,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         )
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
         self.tower_info = TowerInfoPanel(self.panel_manager)
+        self.buy_tooltip = BuyTooltip(
+            self.panel_manager, self.size, load_tower_tooltips()
+        )
         self.kill_feedback = KillFeedback(
             self.assets.get_image("coin_sheet"),
             self.assets.font_path("comic_neue_bold"),
@@ -444,6 +448,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._load_panel_layout(Transform((0, 0), new_size))
         self.hud.rebind_panel(self.panel_manager)
         self.tower_info.rebind(self.panel_manager)
+        self.buy_tooltip.rebind(self.panel_manager, new_size)
         self.hud_slide.rebind(self.panel_manager, new_size)
         self._bind_settings_ui()
         self._build_menu_controllers()
@@ -487,6 +492,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self._tick_backlog_ms -= TICK_MS
             self._tick()
         self.tower_info.show(self._selected_tower())
+        self.buy_tooltip.update(
+            self.mouse.position, self.hud_slide.shown and not self.hud_slide.is_sliding
+        )
 
     # ── event handling ────────────────────────────────────────────────────────
 
