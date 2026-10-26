@@ -48,13 +48,17 @@ class Enemy(RotatableObject):
         if self in ctx.enemies:
             ctx.enemies.remove(self)
 
-    def decrease_hp(self, damage: int, ctx: "IGameContext") -> None:
+    def decrease_hp(self, damage: int, ctx: "IGameContext", source=None) -> None:
+        """`source` is the tower whose shot/bomb dealt the damage; if this
+        hit kills, that tower is credited with the kill and its money."""
         if self not in ctx.enemies:
             return
         self.hp -= damage
         if self.hp <= 0:
             self.destroy(ctx)
             ctx.enemy_killed(self)
+            if source is not None:
+                source.record_kill(self.killMoney)
 
     def reached_end(self) -> bool:
         return self.waypoint_index >= len(self.waypoints)

@@ -43,6 +43,8 @@ class GameSaveMixin:
                         "col": t.col,
                         "level": t.level,
                         "hp": t.hp,
+                        "kills": t.kills,
+                        "money_earned": t.money_earned,
                         "position": [
                             t.position.x,
                             t.position.y,
@@ -123,6 +125,9 @@ class GameSaveMixin:
                     self.assets.image_path(f"tower_{tower.tower_type}_lvl{tower.level}")
                 )
             tower.hp = t["hp"]
+            # Saves from before the tower info panel have no record: start at 0.
+            tower.kills = t.get("kills", 0)
+            tower.money_earned = t.get("money_earned", 0)
             tower.position = Vector2(t["position"])
             tower.rect.center = tower.position
             self.towers.append(tower)

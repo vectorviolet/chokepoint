@@ -34,6 +34,10 @@ class BaseTower(RotatableObject):
         self.bullets: list = []
         self.now: int = 0
         self.hp: int | None = self.maxHP
+        # Lifetime record shown in the tower info panel (and saved): enemies
+        # this tower dealt the killing blow to, and the kill money they paid.
+        self.kills: int = 0
+        self.money_earned: int = 0
 
     # ── config-derived stats ──────────────────────────────────────────────────
 
@@ -80,6 +84,24 @@ class BaseTower(RotatableObject):
     def is_max_level(self) -> bool:
         return self.level >= self.max_level
 
+    def stats_at(self, level: int) -> dict[str, int | None]:
+        """Config stats at any level of this tower's type -- the info panel
+        previews the next level with it. reload_ms is the `speeds` entry
+        (ms between shots for ground towers, movement for planes)."""
+        i, j = self.tower_type - 1, level - 1
+        hps = self._config.hps[i]
+        return {
+            "range": self._config.ranges[i][j],
+            "damage": self._config.damages[i][j],
+            "reload_ms": self._config.speeds[i][j],
+            "max_hp": None if hps is None else hps[j],
+        }
+
+    def record_kill(self, money: int) -> None:
+        """This tower's shot/bomb killed an enemy that paid `money`."""
+        self.kills += 1
+        self.money_earned += money
+
     def decrease_hp(self, damage: int) -> None:
         if self.hp is None:
             return
@@ -104,6 +126,15 @@ class BaseTower(RotatableObject):
         )
 
     # ── shared actions ────────────────────────────────────────────────────────
+
+    def hits_action_button(self, mouse_pos: tuple, camera) -> bool:
+        """Whether mouse_pos is on this tower's upgrade (below max level) or
+        sell button -- the buttons shown while it's selected."""
+        if self._sell_hit_rect(camera).collidepoint(mouse_pos):
+            return True
+        return not self.is_max_level() and self._upgrade_hit_rect(camera).collidepoint(
+            mouse_pos
+        )
 
     def upgrade(self, mouse_pos: tuple, game_state: GameState, camera) -> None:
         if self.is_max_level() or game_state.money < self.upgrade_price:

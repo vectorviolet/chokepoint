@@ -100,7 +100,7 @@ class Projectile(RotatableObject):
 
     def _explode(self, ctx: "IGameContext") -> None:
         self._remove()
-        self.target.decrease_hp(self.damage, ctx)
+        self.target.decrease_hp(self.damage, ctx, self.tower)
 
     def _move(self, distance: Vector2, speed: int) -> None:
         self._velocity = distance.normalize() * self.BULLET_SPEED * speed
@@ -139,7 +139,7 @@ class MuzzleFlash(RotatableObject):
                     self.target = enemy
                     break
             if self.target in ctx.enemies:
-                self.target.decrease_hp(self.damage, ctx)
+                self.target.decrease_hp(self.damage, ctx, self.tower)
             self._damage_dealt = True
 
         if ctx.time_ms - self._created_at > self.FLASH_DURATION_MS:
@@ -265,7 +265,7 @@ class Explosion(GameObject):
         if not self._damage_dealt:
             for enemy in list(ctx.enemies):
                 if (enemy.position - self.position).length() <= self.radius:
-                    enemy.decrease_hp(self.damage, ctx)
+                    enemy.decrease_hp(self.damage, ctx, self.tower)
             self._damage_dealt = True
 
         elapsed = ctx.time_ms - self._created_at

@@ -14,7 +14,7 @@ BG_COLOR = (40, 40, 40)
 BORDER_COLOR = (0, 0, 0)
 
 
-def _color(ratio: float) -> tuple[int, int, int]:
+def health_color(ratio: float) -> tuple[int, int, int]:
     if ratio > 0.6:
         return (80, 220, 80)
     if ratio > 0.3:
@@ -45,5 +45,5 @@ def draw(
     y = int(center.y - off - h)
 
     pygame.draw.rect(surface, BG_COLOR, (x, y, w, h))
-    pygame.draw.rect(surface, _color(ratio), (x, y, max(0, int(w * ratio)), h))
+    pygame.draw.rect(surface, health_color(ratio), (x, y, max(0, int(w * ratio)), h))
     pygame.draw.rect(surface, BORDER_COLOR, (x, y, w, h), 1)

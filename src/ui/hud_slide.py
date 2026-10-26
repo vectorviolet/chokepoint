@@ -4,6 +4,7 @@ from pygamine import PanelManager
 
 from domain.game_state import GameState
 from gameplay.combat.tower_placement import SHORTCUT_OFFSET
+from ui.tower_info import TOWER_INFO_OBJECTS
 
 SLIDE_MS = 200
 PEEK_MS = 1500
@@ -14,6 +15,7 @@ GROUPS = {
     "level": (("level_text",), (-1, 0), 0),
     "lives": (("live_text", "live_image"), (-1, 0), 0),
     "money": (("coin_text", "coin_image"), (-1, 0), 0),
+    "tower_info": (TOWER_INFO_OBJECTS, (-1, 0), 0),
     "controls": (
         (
             "control_panel_bg",
@@ -101,9 +103,9 @@ class _Group:
 
 
 class HudSlide:
-    """Slides the in-game HUD (counters, control buttons, tower bar) off the
-    screen edges and back. toggle() is the one entry point, for the Tab key
-    now and for an on-screen button later.
+    """Slides the in-game HUD (counters, control buttons, tower bar, tower
+    info panel) off the screen edges and back. toggle() is the one entry
+    point, for the Tab key now and for an on-screen button later.
 
     The slide is drawn only: the panel objects keep their resting rects, and
     shifted() offsets them for the duration of a draw. (Text objects re-lay
