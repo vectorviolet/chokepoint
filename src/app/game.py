@@ -33,6 +33,7 @@ from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
 from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
+from ui.tower_info import TowerInfoPanel
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -181,6 +182,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.game_area,
         )
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
+        self.tower_info = TowerInfoPanel(self.panel_manager)
         self.kill_feedback = KillFeedback(
             self.assets.get_image("coin_sheet"),
             self.assets.font_path("comic_neue_bold"),
@@ -441,6 +443,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         has no listener-removal mechanism)."""
         self._load_panel_layout(Transform((0, 0), new_size))
         self.hud.rebind_panel(self.panel_manager)
+        self.tower_info.rebind(self.panel_manager)
         self.hud_slide.rebind(self.panel_manager, new_size)
         self._bind_settings_ui()
         self._build_menu_controllers()
@@ -483,6 +486,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         while self._tick_backlog_ms >= TICK_MS:
             self._tick_backlog_ms -= TICK_MS
             self._tick()
+        self.tower_info.show(self._selected_tower())
 
     # ── event handling ────────────────────────────────────────────────────────
 
@@ -511,6 +515,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             with self.hud_slide.shifted():
                 self.panel_manager.draw(self.window)
                 self.tower_controller.draw_shortcuts(self.window)
+                self.tower_info.draw_hp_fill(self.window)
             self._draw_kill_coins()
         else:
             self.panel_manager.draw(self.window)
@@ -534,11 +539,17 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         counter = panel["coin_text"].rect.move(self.hud_slide.offset("money"))
         self.kill_feedback.draw_pop(self.window, counter)
 
-    def _draw_selected_tower_ui(self) -> None:
+    def _selected_tower(self) -> GroundTower | None:
+        """The selected tower, if it's still standing (it may have been sold
+        or destroyed since). Only ground towers can be selected: a plane
+        leaves its tile at once."""
         selected = self.game_state.selected_tower
         if selected is None or selected not in self.towers:
-            return
-        if isinstance(selected, GroundTower):
+            return None
+        return selected if isinstance(selected, GroundTower) else None
+
+    def _draw_selected_tower_ui(self) -> None:
+        if selected := self._selected_tower():
             selected.draw_selected_ui(self.window, self.game_state, self.camera)
 
     # ── debug ─────────────────────────────────────────────────────────────────

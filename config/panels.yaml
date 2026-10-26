@@ -43,6 +43,24 @@ object_templates:
     font: comic_neue_bold
     font_size: 31
     color: white
+  # Tower info panel (game panel): title, a label column and a value column.
+  tower_info_title:
+    type: text
+    font: comic_neue_bold
+    font_size: 30
+    color: white
+  tower_info_label:
+    type: text
+    parent: tower_info_bg
+    font: comic_neue
+    font_size: 25
+    color: [200, 200, 200]
+  tower_info_value:
+    type: text
+    parent: tower_info_bg
+    font: anton
+    font_size: 24
+    color: white
   # Credits screen: a small accent-colored heading per section, entries below.
   credits_heading:
     type: text
@@ -568,6 +586,36 @@ panels:
           fee_text_2: { extends: fee_text }
           fee_text_3: { extends: fee_text }
           fee_text_4: { extends: fee_text }
+
+      # Tower info panel -- shown while a tower is selected (ui/tower_info.py
+      # toggles .active and fills in the values), under the counters on the
+      # left, sliding off with them on Tab. Values use Anton: it has the
+      # arrow glyph, Comic Neue doesn't.
+      tower_info_bg:
+        position: [15, 205]
+        size: [340, 316]
+        color: [50, 50, 50, 200]
+      tower_info_title_text:
+        extends: tower_info_title
+        parent: tower_info_bg
+        position: [16, 10]
+      tower_info_kills_label:     { extends: tower_info_label, position: [16, 58], text: "Kills" }
+      tower_info_earned_label:    { extends: tower_info_label, position: [16, 94], text: "Earned" }
+      tower_info_range_label:     { extends: tower_info_label, position: [16, 130], text: "Range" }
+      tower_info_damage_label:    { extends: tower_info_label, position: [16, 166], text: "Damage" }
+      tower_info_fire_rate_label: { extends: tower_info_label, position: [16, 202], text: "Fire rate" }
+      tower_info_hp_label:        { extends: tower_info_label, position: [16, 238], text: "HP" }
+      tower_info_kills_value:     { extends: tower_info_value, position: [126, 56] }
+      tower_info_earned_value:    { extends: tower_info_value, position: [126, 92] }
+      tower_info_range_value:     { extends: tower_info_value, position: [126, 128] }
+      tower_info_damage_value:    { extends: tower_info_value, position: [126, 164] }
+      tower_info_fire_rate_value: { extends: tower_info_value, position: [126, 200] }
+      tower_info_hp_value:        { extends: tower_info_value, position: [126, 236] }
+      tower_info_hp_bar:
+        parent: tower_info_bg
+        position: [16, 282]
+        size: [308, 16]
+        color: [40, 40, 40]
 
       # Victory popup -- hidden by default (Game toggles .active on each of
       # these when wave 25 clears); declared last so it draws on top.

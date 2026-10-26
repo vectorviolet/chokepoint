@@ -88,8 +88,11 @@ class TowerPlacementController:
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             if self._is_over_ui(mouse_pos):
                 return
-            self._handle_tower_actions(event, mouse_pos)
-            self._handle_tower_selection()
+            # A click on the selected tower's own upgrade/sell button keeps
+            # it selected (and its info panel open) rather than counting as
+            # a click elsewhere.
+            if not self._handle_tower_actions(mouse_pos):
+                self._handle_tower_selection()
             self._handle_tower_purchase(mouse_pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
             self.cancel()
@@ -120,12 +123,18 @@ class TowerPlacementController:
             0 if self.buying_tower_type == tower_type else tower_type
         )
 
-    def _handle_tower_actions(self, event, mouse_pos: tuple) -> None:
-        for tower in self._towers:
-            if self._game_state.selected_tower is not tower:
-                continue
-            tower.sell(mouse_pos, self._game_state, self._towers, self._camera)
-            tower.upgrade(mouse_pos, self._game_state, self._camera)
+    def _handle_tower_actions(self, mouse_pos: tuple) -> bool:
+        """Upgrade/sell the selected tower if its button was clicked. True
+        when the click landed on one of those buttons."""
+        tower = self._game_state.selected_tower
+        if tower is None or tower not in self._towers:
+            return False
+        hit = tower.hits_action_button(mouse_pos, self._camera)
+        tower.sell(mouse_pos, self._game_state, self._towers, self._camera)
+        tower.upgrade(mouse_pos, self._game_state, self._camera)
+        if tower not in self._towers:  # sold
+            self._game_state.selected_tower = None
+        return hit
 
     def _handle_tower_selection(self) -> None:
         if self.is_construct_mode():

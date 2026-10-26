@@ -41,12 +41,12 @@ def test_draw_renders_at_full_health_when_forced():
 
 
 def test_color_thresholds():
-    assert hp_bar._color(1.0) == (80, 220, 80)
-    assert hp_bar._color(0.61) == (80, 220, 80)
-    assert hp_bar._color(0.6) == (220, 200, 60)
-    assert hp_bar._color(0.31) == (220, 200, 60)
-    assert hp_bar._color(0.3) == (220, 60, 60)
-    assert hp_bar._color(0.0) == (220, 60, 60)
+    assert hp_bar.health_color(1.0) == (80, 220, 80)
+    assert hp_bar.health_color(0.61) == (80, 220, 80)
+    assert hp_bar.health_color(0.6) == (220, 200, 60)
+    assert hp_bar.health_color(0.31) == (220, 200, 60)
+    assert hp_bar.health_color(0.3) == (220, 60, 60)
+    assert hp_bar.health_color(0.0) == (220, 60, 60)
 
 
 def test_draw_low_health_uses_the_red_tier():

@@ -166,6 +166,8 @@ def test_save_game_captures_state_towers_and_enemies(tower_config, assets):
             "col": 3,
             "level": 1,
             "hp": 40,
+            "kills": 0,
+            "money_earned": 0,
             "position": [tower.position.x, tower.position.y],
         }
     ]
@@ -433,3 +435,41 @@ def test_tests_never_save_into_the_real_saves_folder(tmp_path):
 
     assert store.path.parent == tmp_path / "saves"
     assert store.path.is_file()
+
+
+# ── tower kill/money record (tower info panel) ─────────────────────────────
+
+
+def test_tower_kills_and_money_earned_survive_a_save_load_round_trip(
+    tower_config, assets
+):
+    game = FakeGame(tower_config, assets)
+    tower = make_tower(tower_config, assets, tower_type=2, row=2, col=3)
+    tower.kills = 12
+    tower.money_earned = 345
+    game.towers.append(tower)
+    game._save_game()
+
+    loaded = FakeGame(tower_config, assets, saved_data=game.save_store.saved)
+    loaded._load_game()
+
+    restored = loaded.towers[0]
+    assert (restored.kills, restored.money_earned) == (12, 345)
+
+
+def test_an_old_save_without_a_tower_record_loads_with_zeros(tower_config, assets):
+    old_tower = {
+        "tower_type": 2,
+        "row": 2,
+        "col": 3,
+        "level": 1,
+        "hp": 80,
+        "position": [224.0, 160.0],
+    }
+    game = FakeGame(
+        tower_config, assets, saved_data={"game_state": {}, "towers": [old_tower]}
+    )
+
+    game._load_game()
+
+    assert (game.towers[0].kills, game.towers[0].money_earned) == (0, 0)
