@@ -54,20 +54,28 @@ class _Group:
         self._from = self._to = 0.0
         self._elapsed_ms = float(SLIDE_MS)
         self.objects: list = []
-        self.distance = 0
+        self.canvas = (0, 0)
 
     def bind(self, objects: list, canvas: tuple[int, int]) -> None:
-        """Measure the slide from the objects' resting (scaled) layout."""
         self.objects = objects
+        self.canvas = canvas
+        self._apply_visible()
+
+    @property
+    def distance(self) -> int:
+        """How far the group moves when fully hidden, measured from the
+        objects' resting rects as they are now: text objects re-lay
+        themselves out (wider or narrower) whenever their text changes,
+        e.g. "Level 9" -> "Level 10", so a distance measured once would
+        leave a sliver on screen."""
         dx, dy = self.direction
         if dy > 0:
-            edge = canvas[1] - min(obj.rect.top for obj in objects)
+            edge = self.canvas[1] - min(obj.rect.top for obj in self.objects)
         elif dx > 0:
-            edge = canvas[0] - min(obj.rect.left for obj in objects)
+            edge = self.canvas[0] - min(obj.rect.left for obj in self.objects)
         else:
-            edge = max(obj.rect.right for obj in objects)
-        self.distance = edge + self.margin
-        self._apply_visible()
+            edge = max(obj.rect.right for obj in self.objects)
+        return edge + self.margin
 
     @property
     def is_sliding(self) -> bool:
