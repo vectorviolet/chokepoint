@@ -112,6 +112,8 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 - Type 2: homing `Projectile`
 - Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path
 
+Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py`): `BattleSimulation` builds an `EnemyGrid` for ground towers in `_update_towers` and a `TowerGrid` (as `tower_grid`) for tanks in `_update_enemies`. They must pick exactly what a full scan would (nearest, first in list on a tie, inclusive range); `tests/test_targeting.py` checks that against the old algorithms.
+
 ### Projectiles / IGameContext
 
 `Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.towers`, `.speed`, `.time_ms`, `.map_width`, `.map_height`, `.increase_money()` and `.bomb_landed()`. This avoids circular imports — projectiles never import `Game`.

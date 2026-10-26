@@ -388,7 +388,7 @@ class FakeTower:
     def should_remove(self):
         return self._removed
 
-    def update(self, game_state, enemies):
+    def update(self, game_state, enemies, enemy_grid=None):
         self.update_calls.append((game_state, enemies))
 
     def get_blocking_position(self):

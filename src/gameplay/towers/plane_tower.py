@@ -25,7 +25,7 @@ class PlaneTower(BaseTower):
             None  # set on the first update, in game time
         )
 
-    def update(self, game_state: GameState, enemies: list) -> None:
+    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:
         self.now = game_state.time_ms
         if self._last_bomb_drop_at is None:
             self._last_bomb_drop_at = self.now
@@ -64,7 +64,7 @@ class PlaneTower(BaseTower):
 
         camera.draw(surface, self)
 
-    def work(self, enemies: list, is_started: bool) -> None:
+    def work(self, enemies: list, is_started: bool, enemy_grid=None) -> None:
         pass  # Planes are purely cosmetic; they do not attack
 
     def should_remove(self) -> bool:

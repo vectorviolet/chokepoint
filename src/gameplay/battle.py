@@ -21,11 +21,15 @@ from __future__ import annotations
 
 import pygame
 
+from gameplay.combat.targeting import EnemyGrid, TowerGrid
 from ui import hp_bar
 
 
 class BattleSimulation:
     bomb_impacts = None
+    # This tick's grid of the towers while enemies update, for tanks
+    # (IGameContext is free to lack it); None the rest of the time.
+    tower_grid: TowerGrid | None = None
 
     # ── IGameContext interface ────────────────────────────────────────────────
 
@@ -81,8 +85,11 @@ class BattleSimulation:
     def _update_towers(self) -> None:
         self.towers[:] = [t for t in self.towers if not t.should_remove()]
         positions: set[tuple] = set()
+        # Enemies don't move while towers update, and kills only remove
+        # them, which the grid notices: one grid serves the whole loop.
+        enemy_grid = EnemyGrid(self.enemies)
         for tower in self.towers:
-            tower.update(self.game_state, self.enemies)
+            tower.update(self.game_state, self.enemies, enemy_grid)
             pos = tower.get_blocking_position()
             if pos:
                 positions.add(pos)
@@ -94,18 +101,23 @@ class BattleSimulation:
     def _update_enemies(self) -> None:
         if self.wave_manager:
             self.wave_manager.update(self.enemies, self.game_state)
-        for enemy in list(self.enemies):  # copy: reaching the end removes from the list
-            if enemy.reached_end():
-                self.enemies.remove(enemy)
-                self._on_enemy_escaped(enemy)
-                continue
-            if not self.game_state.is_started:
-                continue
-            enemy.move(self.game_state.speed)
-            if hasattr(enemy, "update_combat"):
-                enemy.update_combat(self)
-                for bullet in list(enemy.bullets):
-                    bullet.update(self)
+        # Towers don't move or get removed while enemies update.
+        self.tower_grid = TowerGrid(self.towers)
+        try:
+            for enemy in list(self.enemies):  # copy: reaching the end removes it
+                if enemy.reached_end():
+                    self.enemies.remove(enemy)
+                    self._on_enemy_escaped(enemy)
+                    continue
+                if not self.game_state.is_started:
+                    continue
+                enemy.move(self.game_state.speed)
+                if hasattr(enemy, "update_combat"):
+                    enemy.update_combat(self)
+                    for bullet in list(enemy.bullets):
+                        bullet.update(self)
+        finally:
+            self.tower_grid = None
 
     # ── rendering ─────────────────────────────────────────────────────────────
 

@@ -211,11 +211,13 @@ class BaseTower(RotatableObject):
     def get_blocking_position(self) -> tuple | None:
         return self.row, self.col
 
-    def update(self, game_state: GameState, enemies: list) -> None:
+    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:
+        """One tick. `enemy_grid` is the tick's gameplay.combat.targeting
+        .EnemyGrid of `enemies` (or None), for towers that look for targets."""
         raise NotImplementedError
 
     def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
         raise NotImplementedError
 
-    def work(self, enemies: list, is_started: bool) -> None:
+    def work(self, enemies: list, is_started: bool, enemy_grid=None) -> None:
         raise NotImplementedError
