@@ -15,4 +15,6 @@ class IGameContext(Protocol):
     map_width: int
     map_height: int
 
-    def increase_money(self, amount: int) -> None: ...
+    def enemy_killed(self, enemy) -> None:
+        """Pays out a kill (the enemy is already removed)."""
+        ...

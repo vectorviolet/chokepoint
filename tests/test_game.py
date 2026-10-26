@@ -277,6 +277,7 @@ def make_updating_game():
     game.mouse = SimpleNamespace(position=(1, 2), update=Spy())
     game.tower_controller = SimpleNamespace(update_cursor=Spy())
     game.hud_slide = SimpleNamespace(update=Spy())
+    game.kill_feedback = SimpleNamespace(update=Spy())
     game._tick = Spy()
     return game
 
@@ -514,11 +515,13 @@ def test_draw_on_the_game_panel_calls_draw_game_and_shortcuts():
     game._draw_game = Spy()
     game.tower_controller = SimpleNamespace(draw_shortcuts=Spy())
     game.hud_slide = SimpleNamespace(shifted=contextlib.nullcontext)
+    game._draw_kill_coins = Spy()
 
     game.draw()
 
     assert len(game._draw_game.calls) == 1
     assert len(game.tower_controller.draw_shortcuts.calls) == 1
+    assert len(game._draw_kill_coins.calls) == 1
 
 
 def test_draw_on_a_menu_panel_draws_the_menu_demo_and_overlay():

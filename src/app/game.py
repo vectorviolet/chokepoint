@@ -31,6 +31,7 @@ from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
+from ui.kill_feedback import KillFeedback
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -179,6 +180,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.game_area,
         )
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
+        self.kill_feedback = KillFeedback(
+            self.assets.get_image("coin_sheet"),
+            self.assets.font_path("comic_neue_bold"),
+        )
 
         # Behind the menus: a battle playing itself, in a world of its own.
         self.menu_demo = MenuDemo(
@@ -335,6 +340,15 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.tower_controller.tower_positions = positions
 
     @override
+    def _on_enemy_killed(self, enemy) -> None:
+        self.kill_feedback.add_kill(
+            enemy.position,
+            enemy.killMoney,
+            self.camera.world_to_screen(enemy.position),
+            self.game_state.time_ms,
+        )
+
+    @override
     def _on_enemy_escaped(self, enemy) -> None:
         super()._on_enemy_escaped(enemy)
         if self.game_state.lives == 0 and not self._gameover_popup_open:
@@ -452,6 +466,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         # ticks so the same game plays out at any frame rate.
         self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.hud_slide.update(frame_ms)
+        self.kill_feedback.update(frame_ms, self.game_state.time_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)
         self._tick_backlog_ms += frame_ms
@@ -486,6 +501,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             with self.hud_slide.shifted():
                 self.panel_manager.draw(self.window)
                 self.tower_controller.draw_shortcuts(self.window)
+            self._draw_kill_coins()
         else:
             self.panel_manager.draw(self.window)
 
@@ -493,9 +509,19 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         old_clip = self.window.get_clip()
         self.window.set_clip(self.game_area)
         self._draw_battle(self.window, self.camera)
+        self.kill_feedback.draw_texts(self.window, self.camera, self.game_state.time_ms)
         self.tower_controller.draw(self.window, self.mouse.position)
         self._draw_selected_tower_ui()
         self.window.set_clip(old_clip)
+
+    def _draw_kill_coins(self) -> None:
+        """Coins fly to the money counter's resting place -- where it shows
+        even while the HUD is hidden, since a kill brings it back -- and the
+        counter, wherever it's drawn now, pops as they land."""
+        panel = self.panel_manager["game"]
+        self.kill_feedback.draw_coins(self.window, panel["coin_image"].rect.center)
+        counter = panel["coin_text"].rect.move(self.hud_slide.offset("money"))
+        self.kill_feedback.draw_pop(self.window, counter)
 
     def _draw_selected_tower_ui(self) -> None:
         selected = self.game_state.selected_tower

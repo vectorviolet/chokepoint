@@ -54,7 +54,7 @@ class Enemy(RotatableObject):
         self.hp -= damage
         if self.hp <= 0:
             self.destroy(ctx)
-            ctx.increase_money(self.killMoney)
+            ctx.enemy_killed(self)
 
     def reached_end(self) -> bool:
         return self.waypoint_index >= len(self.waypoints)

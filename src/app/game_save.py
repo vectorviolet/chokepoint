@@ -88,6 +88,7 @@ class GameSaveMixin:
         self._victory_popup_open = False
         self._gameover_popup_open = False
         self.tower_controller.buying_tower_type = 0
+        self.kill_feedback.clear()
         self._sync_game_ui()
         self._show_path_entrance()
         self.panel_manager.current_panel = "game"
@@ -176,6 +177,7 @@ class GameSaveMixin:
         self._victory_popup_open = False
         self._gameover_popup_open = False
         self.tower_controller.buying_tower_type = 0
+        self.kill_feedback.clear()
 
         self._sync_game_ui()
         self._show_path_entrance()

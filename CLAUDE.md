@@ -74,6 +74,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference |
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
 | `hud_slide` | `HudSlide` | Tab slides the in-game HUD (counters, control buttons, tower bar) off the screen edges and back, drawn-only and on real time; money/lives counters peek back for 1.5 s when they change. `toggle()` is the entry point for a future on-screen button |
+| `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none |
 
 ### Panel / UI system
 
@@ -135,7 +136,8 @@ inherits it too, as a separate world shown behind the menus:
   between groups of enemies.
 - After a few waves, or when the defence is worn down, it fades out and a new run starts.
 
-Hooks: `_on_enemy_escaped()` handles lives (`Game` adds game over and deletes the
+Hooks: `_on_enemy_killed()` runs after a kill is paid (`Game` adds the reward
+feedback). `_on_enemy_escaped()` handles lives (`Game` adds game over and deletes the
 save). `_on_tower_positions()` passes the occupied build tiles on (`Game` gives
 them to the placement controller).
 

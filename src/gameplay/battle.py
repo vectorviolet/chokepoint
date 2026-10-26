@@ -43,10 +43,17 @@ class BattleSimulation:
     def increase_money(self, amount: int) -> None:
         self.game_state.increase_money(amount)
 
+    def enemy_killed(self, enemy) -> None:
+        self.increase_money(enemy.killMoney)
+        self._on_enemy_killed(enemy)
+
     # ── hooks ─────────────────────────────────────────────────────────────────
 
     def _on_tower_positions(self, positions: set[tuple]) -> None:
         """The build tiles towers occupy, refreshed every tick."""
+
+    def _on_enemy_killed(self, enemy) -> None:
+        """An enemy was killed and its reward paid (it's already removed)."""
 
     def _on_enemy_escaped(self, enemy) -> None:
         """An enemy reached the end of the path (it's already removed)."""

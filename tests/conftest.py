@@ -52,9 +52,14 @@ class FakeContext:
         self.map_width = map_width
         self.map_height = map_height
         self.money_earned = 0
+        self.killed = []
 
     def increase_money(self, amount: int) -> None:
         self.money_earned += amount
+
+    def enemy_killed(self, enemy) -> None:
+        self.killed.append(enemy)
+        self.increase_money(enemy.killMoney)
 
 
 @pytest.fixture(autouse=True)
