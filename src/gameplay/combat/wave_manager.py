@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from pygame.math import Vector2
 
 from util.config_loader import load_wave_compositions
@@ -29,6 +31,11 @@ class WaveManager:
         self._spawn_queue: list[int] = []  # flattened list of enemy types
         self._queue_index: int = 0
         self._spawn_interval_ms: int = self.SPAWN_INTERVAL_MS
+        # Called once per wave, the moment it is cleared: its spawn queue
+        # has run out and no enemy is left. The game's auto-pause hangs off
+        # it; the menu demo leaves it unset.
+        self.on_wave_cleared: Callable[[], None] | None = None
+        self._clear_announced: bool = False
 
     def _build_queue(self, level: int) -> None:
         wave = WAVE_COMPOSITIONS.get(level) or self._wave_for(level)
@@ -38,6 +45,7 @@ class WaveManager:
         self._spawn_interval_ms = self._interval_of(wave)
         self._queue_index = 0
         self._level_finish_time = None
+        self._clear_announced = False
 
     def _interval_of(self, wave: WaveDef) -> int:
         """A wave's own spawn interval, which may be 0 (all at once), or the
@@ -93,11 +101,14 @@ class WaveManager:
                 if self._queue_index == len(self._spawn_queue):
                     self._level_finish_time = now
 
-        elif (
-            # `is not None`: 0 is a real time -- a run continued in a fresh
-            # process restores its pending wave end at game time 0.
-            self._level_finish_time is not None
-            and now - self._level_finish_time >= self.LEVEL_END_DELAY_MS
-            and not enemies
-        ):
-            game_state.advance_level()
+        # `is not None`: 0 is a real time -- a run continued in a fresh
+        # process restores its pending wave end at game time 0.
+        elif self._level_finish_time is not None and not enemies:
+            if not self._clear_announced:
+                self._clear_announced = True
+                if self.on_wave_cleared is not None:
+                    self.on_wave_cleared()
+                if not game_state.is_started:
+                    return  # paused by the hook: the next wave waits for start
+            if now - self._level_finish_time >= self.LEVEL_END_DELAY_MS:
+                game_state.advance_level()

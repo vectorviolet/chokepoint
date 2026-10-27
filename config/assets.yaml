@@ -18,6 +18,7 @@ images:
   # ── In-game control buttons ───────────────────────────────────────────
   icon_play:         {folder: hud/icons, name: icon_play}
   icon_pause:         {folder: hud/icons, name: icon_pause}
+  icon_hourglass:    {folder: hud/icons, name: icon_hourglass}
 
   # ── Tower buy panel icons ─────────────────────────────────────────────
   buy_tower_1:       {folder: hud/tower_bar, name: buy_tower1}
