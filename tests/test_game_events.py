@@ -112,6 +112,7 @@ def make_game_panel():
         "menu_button": FakeButton(),
         "start_pause_button": FakeButton(),
         "start_pause_button_icon": FakeButton(),
+        "auto_pause_button": FakeButton(),
         "speed_toggle_button": FakeButton(),
         "upgrade_plane_button": FakeButton(),
         "buy_tower_4": FakeButton(),

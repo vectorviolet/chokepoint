@@ -261,3 +261,94 @@ def test_endless_waves_after_a_zero_interval_wave_use_the_floor(assets, monkeypa
     assert (
         wm._wave_for(last + 1).spawn_interval_ms == WaveManager.MIN_ENDLESS_INTERVAL_MS
     )
+
+
+# ── the wave-cleared hook (auto-pause between waves, #34) ────────────────────
+
+
+def spawn_whole_wave(wm, enemies, gs) -> float:
+    gs.time_ms = 0
+    wm.update(enemies, gs)
+    return drain_queue(wm, enemies, gs)
+
+
+def test_the_cleared_hook_fires_once_when_the_last_enemy_is_gone(assets):
+    wm = WaveManager(WAYPOINTS, assets)
+    cleared = []
+    wm.on_wave_cleared = lambda: cleared.append(1)
+    gs = make_started_state(level=1)
+    enemies = []
+    last_spawn_t = spawn_whole_wave(wm, enemies, gs)
+    wm.update(enemies, gs)
+    assert cleared == []  # spawned out, but enemies are still alive
+
+    enemies.clear()
+    gs.time_ms = last_spawn_t + 1
+    wm.update(enemies, gs)
+    gs.time_ms = last_spawn_t + 2
+    wm.update(enemies, gs)
+
+    assert cleared == [1]
+    assert gs.level == 1  # the usual delay still runs
+
+
+def test_the_cleared_hook_does_not_fire_between_spawns(assets):
+    wm = WaveManager(WAYPOINTS, assets)
+    cleared = []
+    wm.on_wave_cleared = lambda: cleared.append(1)
+    gs = make_started_state(level=1)
+    enemies = []
+    gs.time_ms = 0
+    wm.update(enemies, gs)
+
+    for _ in range(len(wm._spawn_queue) - 1):  # all but the last spawn
+        gs.time_ms += wm._spawn_interval_ms
+        wm.update(enemies, gs)
+        enemies.clear()  # killed the moment it spawns
+        wm.update(enemies, gs)
+
+    assert cleared == []
+
+
+def test_a_hook_that_pauses_holds_the_next_wave_until_started(assets):
+    wm = WaveManager(WAYPOINTS, assets)
+    gs = make_started_state(level=1)
+
+    def pause():
+        gs.is_started = False
+
+    wm.on_wave_cleared = pause
+    enemies = []
+    last_spawn_t = spawn_whole_wave(wm, enemies, gs)
+    enemies.clear()
+    gs.time_ms = last_spawn_t + WaveManager.LEVEL_END_DELAY_MS  # delay already over
+
+    wm.update(enemies, gs)
+    assert not gs.is_started
+    assert gs.level == 1
+
+    gs.is_started = True  # the player presses start
+    wm.update(enemies, gs)
+    assert gs.level == 2
+    assert gs.is_started
+
+
+def test_the_hook_fires_again_for_the_next_wave(assets):
+    wm = WaveManager(WAYPOINTS, assets)
+    cleared = []
+    wm.on_wave_cleared = lambda: cleared.append(1)
+    gs = make_started_state(level=1)
+    enemies = []
+    last_spawn_t = spawn_whole_wave(wm, enemies, gs)
+    enemies.clear()
+    gs.time_ms = last_spawn_t + WaveManager.LEVEL_END_DELAY_MS
+    wm.update(enemies, gs)
+    assert gs.level == 2
+
+    wm.update(enemies, gs)  # builds wave 2's queue
+    last_spawn_t = drain_queue(wm, enemies, gs, gs.time_ms)
+    enemies.clear()
+    gs.time_ms = last_spawn_t + 1
+    wm.update(enemies, gs)
+
+    assert cleared == [1, 1]

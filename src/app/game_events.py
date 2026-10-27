@@ -115,6 +115,7 @@ class GameEventsMixin:
         self.tower_controller.handle_event(event, self.mouse.position)
         self._handle_upgrade_plane_button(event)
         self._handle_start_pause(event)
+        self._handle_auto_pause_toggle(event)
         self._handle_speed_toggle(event)
 
     # ── pause menu ───────────────────────────────────────────────────────────
@@ -218,6 +219,20 @@ class GameEventsMixin:
         self.game_state.is_started = not self.game_state.is_started
         panel["start_pause_button_icon"].set_state(
             "pause" if self.game_state.is_started else None
+        )
+
+    def _handle_auto_pause_toggle(self, event) -> None:
+        """The HUD's hourglass: auto-pause between waves on/off, a global
+        setting saved at once (like the music toggle)."""
+        if not self._activate(self.panel_manager["game"]["auto_pause_button"], event):
+            return
+        self.auto_pause = not self.auto_pause
+        self._refresh_auto_pause_button()
+        self._save_settings()
+
+    def _refresh_auto_pause_button(self) -> None:
+        self.panel_manager["game"]["auto_pause_button"].set_state(
+            "enabled" if self.auto_pause else None
         )
 
     def _handle_speed_toggle(self, event) -> None:
