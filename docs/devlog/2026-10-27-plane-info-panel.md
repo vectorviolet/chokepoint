@@ -25,8 +25,8 @@ else), and one panel per plane or one for all planes.
 ## Decision
 
 PR #58 implemented clicking a flying plane, with one panel per plane in the existing tower info
-panel, and the owner approved it at merge. (The issue asked the owner to decide before work started;
-that answer isn't recorded on GitHub.) Other choices from the PR:
+panel, and the owner approved it in chat on 2026-10-27 and merged it. (The issue asked the owner to
+decide first; the owner was away and had asked for sensible defaults, so the PR chose them.) Other choices from the PR:
 
 - **Rows relabelled** instead of new rows: Range → **Splash** (blast radius), Blind spot → **Speed**
   (flight speed in tiles/s), Fire rate → **Bombs** (per second). "Bomb rate" ran into its value at

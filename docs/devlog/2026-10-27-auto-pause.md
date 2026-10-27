@@ -24,8 +24,8 @@ The control column: menu, start/pause, **auto-pause**, speed, UPG PLANES.
 
 ## Decision
 
-PR #53 proposed answers to the open questions and the owner approved them at merge (no separate
-owner comment is recorded on the issue):
+PR #53 proposed answers to the open questions (the owner was away and had asked for sensible
+defaults); the owner approved them afterwards in chat on 2026-10-27 and merged the PR:
 
 - **Default off**, so nothing changes for players who don't use it.
 - **Global setting** (`auto_pause_between_waves` in the settings file, next to music and volumes),
