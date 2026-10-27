@@ -433,3 +433,132 @@ def test_grid_overlay_only_draws_the_tiles_inside_the_viewport(tower_config, ass
     visible_rows = -(-GAME_AREA.height // TILE_SIZE)  # 16.9 -> 17
     assert surface.blitted == visible_cols * visible_rows
     assert surface.blitted < 47 * 34
+
+
+# ── Shift: continuous placement (#9) ────────────────────────────────────────
+
+
+def _hold_shift(monkeypatch, held: bool) -> None:
+    """Mouse events carry no `mod`, so the controller reads the keyboard
+    state at placement time; fake it."""
+    mods = pygame.KMOD_LSHIFT if held else pygame.KMOD_NONE
+    monkeypatch.setattr(pygame.key, "get_mods", lambda: mods)
+
+
+def _tile_pos(col, row):
+    return (col * TILE_SIZE + 5, row * TILE_SIZE + 5)
+
+
+def _place_at(controller, col, row):
+    pos = _tile_pos(col, row)
+    controller.update_cursor(pos)
+    controller.handle_event(buy_button_event(), mouse_pos=pos)
+
+
+def test_shift_held_keeps_the_type_selected_and_a_second_placement_works(
+    tower_config, assets, monkeypatch
+):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    _hold_shift(monkeypatch, True)
+
+    _place_at(controller, 5, 5)
+    assert controller.buying_tower_type == GROUND_TYPE
+
+    _place_at(controller, 6, 5)
+    assert [(t.row, t.col) for t in controller._towers] == [(5, 6), (5, 5)]
+    assert controller.buying_tower_type == GROUND_TYPE
+
+
+def test_right_shift_also_keeps_the_type_selected(tower_config, assets, monkeypatch):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    monkeypatch.setattr(pygame.key, "get_mods", lambda: pygame.KMOD_RSHIFT)
+
+    _place_at(controller, 5, 5)
+
+    assert controller.buying_tower_type == GROUND_TYPE
+
+
+def test_shift_held_but_unaffordable_ends_placement_mode(
+    tower_config, assets, monkeypatch
+):
+    price = tower_config.prices[GROUND_TYPE - 1][0]
+    gs = GameState(start_money=price + price // 2, start_lives=10)  # one, not two
+    controller, panel, gs = make_controller(tower_config, assets, game_state=gs)
+    controller.buying_tower_type = GROUND_TYPE
+    _hold_shift(monkeypatch, True)
+
+    _place_at(controller, 5, 5)
+
+    assert len(controller._towers) == 1
+    assert controller.buying_tower_type == 0
+
+
+def test_without_shift_placement_mode_ends_as_before(tower_config, assets, monkeypatch):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    _hold_shift(monkeypatch, False)
+
+    _place_at(controller, 5, 5)
+
+    assert len(controller._towers) == 1
+    assert controller.buying_tower_type == 0
+
+
+def test_right_click_cancels_while_shift_is_held(tower_config, assets, monkeypatch):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    _hold_shift(monkeypatch, True)
+    _place_at(controller, 5, 5)
+
+    controller.handle_event(
+        pygame.event.Event(pygame.MOUSEBUTTONUP, button=3), _tile_pos(6, 5)
+    )
+
+    assert controller.buying_tower_type == 0
+
+
+def test_releasing_shift_alone_does_not_end_placement_mode(
+    tower_config, assets, monkeypatch
+):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    _hold_shift(monkeypatch, True)
+    _place_at(controller, 5, 5)
+
+    _hold_shift(monkeypatch, False)
+    controller.handle_event(
+        pygame.event.Event(pygame.KEYUP, key=pygame.K_LSHIFT, mod=pygame.KMOD_NONE),
+        _tile_pos(6, 5),
+    )
+    assert controller.buying_tower_type == GROUND_TYPE
+
+    _place_at(controller, 6, 5)  # the next placement without Shift ends it
+    assert len(controller._towers) == 2
+    assert controller.buying_tower_type == 0
+
+
+def test_shift_placement_cannot_stack_two_towers_on_one_tile(
+    tower_config, assets, monkeypatch
+):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    _hold_shift(monkeypatch, True)
+
+    _place_at(controller, 5, 5)
+    _place_at(controller, 5, 5)  # before any tick refreshes tower_positions
+
+    assert len(controller._towers) == 1
+
+
+def test_shift_held_keeps_planes_selected_too(tower_config, assets, monkeypatch):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = PLANE_TYPE
+    _hold_shift(monkeypatch, True)
+
+    _place_at(controller, 5, 5)
+    _place_at(controller, 5, 5)  # planes block no tile
+
+    assert len(controller._towers) == 2
+    assert controller.buying_tower_type == PLANE_TYPE
