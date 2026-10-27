@@ -212,17 +212,21 @@ class BattleSimulation:
 
     # ── rendering ─────────────────────────────────────────────────────────────
 
+    def _draw_tower(self, tower, surface: pygame.Surface, camera) -> None:
+        tower.draw(self.game_state, camera, surface)
+        if not tower.draws_own_bullets:
+            for bullet in tower.bullets:
+                camera.draw(surface, bullet)
+
     def _draw_battle(self, surface: pygame.Surface, camera) -> None:
-        """Terrain, then towers and their bullets, then enemies and theirs,
-        then bomb explosions over all of them, then every HP bar on top so
-        fire never hides one."""
+        """Terrain, then ground towers and their bullets, then enemies and
+        theirs, then bomb explosions, then planes over all of them (they
+        fly), then every HP bar on top so neither fire nor a plane hides one."""
         self.tilemap.draw(surface, camera)
 
         for tower in self.towers:
-            tower.draw(self.game_state, camera, surface)
-            if not tower.draws_own_bullets:
-                for bullet in tower.bullets:
-                    camera.draw(surface, bullet)
+            if not tower.is_flying:  # planes come after the explosions
+                self._draw_tower(tower, surface, camera)
 
         # Shots whose tower is gone: drawn where its shots would be.
         self._draw_orphan_shots(surface, camera, from_tower=True)
@@ -237,6 +241,12 @@ class BattleSimulation:
 
         if self.bomb_impacts is not None:
             self.bomb_impacts.draw(surface, camera)
+
+        # Planes fly: each with its shadow, its falling bombs under it and,
+        # if selected, its splash ring.
+        for tower in self.towers:
+            if tower.is_flying:
+                self._draw_tower(tower, surface, camera)
 
         for tower in self.towers:
             hp_bar.draw(
