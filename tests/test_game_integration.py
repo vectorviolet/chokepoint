@@ -260,3 +260,35 @@ def test_leaving_a_game_saves_it_and_continue_restores_it(make_game, fake_ticks)
 
     assert (len(game.towers), game.game_state.money) == (towers, money)
     assert game.panel_manager.current_panel == "game"
+
+
+# ── enemy HP on click ───────────────────────────────────────────────────────
+
+
+def test_clicking_an_enemy_shows_its_hp_until_it_is_gone(make_game, fake_ticks):
+    game = make_game()
+    game._start_new_game()
+    game.game_state.is_started = True
+    play(game, fake_ticks, seconds=3)
+    assert game.enemies
+    enemy = game.enemies[0]
+    pos = game.camera.world_to_screen(enemy.position)
+    pos = (int(pos.x), int(pos.y))
+    game.mouse.position = pos  # the click lands where the enemy is
+    game.tower_controller.update_cursor(pos)
+
+    game.handle_event(pygame.event.Event(pygame.MOUSEBUTTONUP, button=1, pos=pos))
+
+    assert game.game_state.selected_enemy is enemy
+    assert game._selected_enemy() is enemy
+    game.draw()  # the numbers draw without error
+
+    game._leave_game_for_main_menu()
+    game._load_game()  # the selection isn't saved
+    assert game.game_state.selected_enemy is None
+
+    game.game_state.selected_enemy = game.enemies[0]
+    game.enemies.clear()  # gone (killed or escaped)
+    assert game._selected_enemy() is None
+    game._tick()
+    assert game.game_state.selected_enemy is None

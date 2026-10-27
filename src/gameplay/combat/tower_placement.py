@@ -24,6 +24,19 @@ SHORTCUT_BG_COLOR = (30, 30, 30)
 SHORTCUT_BORDER_COLOR = (255, 255, 255)
 SHORTCUT_TEXT_COLOR = (255, 255, 255)
 
+# World px added around an enemy's sprite rect when testing a click on it,
+# so a moving enemy is easy to hit.
+ENEMY_CLICK_PADDING = 8
+
+
+def _shift_held(event) -> bool:
+    """True when either Shift key is held for this event. Mouse events
+    carry no `mod`, so this falls back to the keyboard state."""
+    mods = getattr(event, "mod", None)
+    if mods is None:
+        mods = pygame.key.get_mods()
+    return bool(mods & pygame.KMOD_SHIFT)
+
 
 class TowerPlacementController:
     def __init__(
@@ -39,9 +52,12 @@ class TowerPlacementController:
         map_width: int,
         game_area: pygame.Rect,
         feedback=None,
+        enemies: list | None = None,
     ) -> None:
         """feedback: told when a tower is placed or sold (a sound and an
-        effect on its tile; see ui.place_sell_feedback), or None."""
+        effect on its tile; see ui.place_sell_feedback), or None.
+        enemies: the battle's enemy list (shared by reference), whose
+        enemies a click can select to show their HP numbers."""
         self._towers = towers
         self._tower_config = tower_config
         self._assets = assets
@@ -53,6 +69,7 @@ class TowerPlacementController:
         self._map_width = map_width
         self._game_area = game_area
         self._feedback = feedback
+        self._enemies = enemies if enemies is not None else []
 
         self.buying_tower_type: int = 0
         self.cursor_col: int | None = None
@@ -87,6 +104,21 @@ class TowerPlacementController:
                 return tower
         return None
 
+    def get_clicked_enemy(self, mouse_pos: tuple):
+        """The enemy under `mouse_pos` (screen), or None. An enemy is hit
+        when the click is inside its sprite rect grown by
+        ENEMY_CLICK_PADDING on every side; of several hit, the one drawn on
+        top (the latest in the enemy list) wins."""
+        if not self._game_area.collidepoint(mouse_pos):
+            return None
+        world = self._camera.screen_to_world(mouse_pos)
+        point = (int(world.x), int(world.y))
+        pad = ENEMY_CLICK_PADDING * 2
+        for enemy in reversed(self._enemies):
+            if enemy.rect.inflate(pad, pad).collidepoint(point):
+                return enemy
+        return None
+
     def handle_event(self, event, mouse_pos: tuple) -> None:
         self._handle_buy_tower_buttons(event, mouse_pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
@@ -96,8 +128,8 @@ class TowerPlacementController:
             # it selected (and its info panel open) rather than counting as
             # a click elsewhere.
             if not self._handle_tower_actions(mouse_pos):
-                self._handle_tower_selection()
-            self._handle_tower_purchase(mouse_pos)
+                self._handle_selection(mouse_pos)
+            self._handle_tower_purchase(mouse_pos, keep_type=_shift_held(event))
         if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
             self.cancel()
         if event.type == pygame.KEYDOWN:
@@ -107,6 +139,7 @@ class TowerPlacementController:
         """Right click: drop the tower being placed and any selection."""
         self.buying_tower_type = 0
         self._game_state.selected_tower = None
+        self._game_state.selected_enemy = None
 
     def _is_over_ui(self, mouse_pos: tuple) -> bool:
         for obj in self._panel_manager["game"].values():
@@ -142,9 +175,21 @@ class TowerPlacementController:
                 self._feedback.tower_sold(tower.position)
         return hit
 
-    def _handle_tower_selection(self) -> None:
+    def _handle_selection(self, mouse_pos: tuple) -> None:
+        """A click on the map (not in placement mode): an enemy under the
+        cursor is selected first, as enemies are drawn over towers; else a
+        tower; else the click clears both selections."""
         if self.is_construct_mode():
+            return  # the click places a tower instead
+        enemy = self.get_clicked_enemy(mouse_pos)
+        if enemy is not None:
+            self._game_state.selected_enemy = enemy
+            self._game_state.selected_tower = None  # closes the tower info panel
             return
+        self._game_state.selected_enemy = None
+        self._handle_tower_selection()
+
+    def _handle_tower_selection(self) -> None:
         clicked = self.get_clicked_tower()
         if not clicked:
             self._game_state.selected_tower = None
@@ -152,15 +197,15 @@ class TowerPlacementController:
         is_selected = self._game_state.selected_tower is clicked
         self._game_state.selected_tower = None if is_selected else clicked
 
-    def _handle_tower_purchase(self, mouse_pos: tuple) -> None:
+    def _handle_tower_purchase(self, mouse_pos: tuple, keep_type: bool = False) -> None:
+        """Place the tower being bought on the cursor's tile. Placement mode
+        then ends, unless `keep_type` (Shift held) and another tower of the
+        same type is still affordable."""
         if not self._game_area.collidepoint(mouse_pos) or not self.buying_tower_type:
             return
         if not self._is_placeable(self.cursor_row, self.cursor_col):
             return
-        if (
-            self._game_state.money
-            < self._tower_config.prices[self.buying_tower_type - 1][0]
-        ):
+        if not self._can_afford(self.buying_tower_type):
             return
         tower = TowerFactory.create(
             self.buying_tower_type,
@@ -176,9 +221,18 @@ class TowerPlacementController:
         else:
             self._towers.insert(0, tower)
         self._game_state.decrease_money(tower.buy_price)
-        self.buying_tower_type = 0
+        blocking = tower.get_blocking_position()
+        if blocking is not None:
+            # Taken at once, so a quick second click before the next tick
+            # can't build on the same tile.
+            self.tower_positions.add(blocking)
+        if not (keep_type and self._can_afford(self.buying_tower_type)):
+            self.buying_tower_type = 0
         if self._feedback is not None:
             self._feedback.tower_placed(tower.position)
+
+    def _can_afford(self, tower_type: int) -> bool:
+        return self._game_state.money >= self._tower_config.prices[tower_type - 1][0]
 
     def _handle_buy_tower_buttons(self, event, mouse_pos: tuple) -> None:
         for i in range(4):

@@ -4,6 +4,7 @@ from typing import Callable, TYPE_CHECKING
 from util.constants import TICK_MS
 
 if TYPE_CHECKING:
+    from gameplay.combat.enemy import Enemy
     from gameplay.towers.base_tower import BaseTower
 
 
@@ -46,6 +47,9 @@ class GameState:
         self.speed: int = 1
         self.is_started: bool = False
         self.selected_tower: "BaseTower | None" = None
+        # The enemy clicked for its HP numbers; never saved. At most one of
+        # selected_tower / selected_enemy is set at a time.
+        self.selected_enemy: "Enemy | None" = None
         self.plane_level: int = 1
         self.has_won: bool = False
         # Game time in ms: advances one TICK_MS * speed per tick while the

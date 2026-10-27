@@ -36,6 +36,7 @@ from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
 from ui.place_sell_feedback import PlaceSellFeedback
 from ui.buy_tooltip import BuyTooltip
+from ui.enemy_hp_label import EnemyHpLabel
 from ui.tower_info import TowerInfoPanel
 from ui.pause_panel import PausePanel
 from domain.game_state import GameState
@@ -197,7 +198,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.tilemap.map_width,
             self.game_area,
             feedback=self.place_sell_feedback,
+            enemies=self.enemies,
         )
+        self.enemy_hp_label = EnemyHpLabel(self.assets.font_path("anton"))
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
         self.tower_info = TowerInfoPanel(self.panel_manager)
         self.pause_panel = PausePanel(self.panel_manager)
@@ -571,6 +574,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.kill_feedback.draw_texts(self.window, self.camera, self.game_state.time_ms)
         self.tower_controller.draw(self.window, self.mouse.position)
         self._draw_selected_tower_ui()
+        self.enemy_hp_label.draw(self.window, self.camera, self._selected_enemy())
         self.life_lost_feedback.draw(self.window)  # under the HUD
         self.window.set_clip(old_clip)
 
@@ -591,6 +595,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if selected is None or selected not in self.towers:
             return None
         return selected if isinstance(selected, GroundTower) else None
+
+    def _selected_enemy(self) -> Enemy | None:
+        """The enemy clicked for its HP numbers, if it's still on the map
+        (the tick clears it once it dies or escapes)."""
+        selected = self.game_state.selected_enemy
+        return selected if selected in self.enemies else None
 
     def _draw_selected_tower_ui(self) -> None:
         if selected := self._selected_tower():

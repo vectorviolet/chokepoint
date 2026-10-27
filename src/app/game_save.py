@@ -108,6 +108,7 @@ class GameSaveMixin:
         gs.plane_level = saved.get("plane_level", 1)
         gs.has_won = saved.get("has_won", False)
         gs.selected_tower = None
+        gs.selected_enemy = None
 
     def _restore_towers(self, saved: list) -> None:
         self.towers.clear()
@@ -181,6 +182,7 @@ class GameSaveMixin:
         gs.plane_level = 1
         gs.has_won = False
         gs.selected_tower = None
+        gs.selected_enemy = None
         self._init_wave_manager()
         self._victory_popup_open = False
         self._gameover_popup_open = False
