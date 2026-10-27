@@ -1,5 +1,6 @@
-"""The battle's layers (#55): towers, then enemies, then bomb explosions,
-then HP bars on top; a plane's falling bombs under the plane. Checked in
+"""The battle's layers (#55, #60): ground towers, then enemies, then bomb
+explosions, then planes (they fly), then HP bars on top; a plane's falling
+bombs under the plane. Checked in
 the real game (saves in a temporary directory) and in the menu demo, by
 recording what is drawn in which order."""
 
@@ -12,8 +13,10 @@ from pygame.math import Vector2
 
 import app.game
 from app.game import Game
+from gameplay.battle import OrphanShot
 from gameplay.combat.enemy import Enemy
 from gameplay.combat.projectile import Bomb
+from gameplay.combat.tank import Tank, TankBullet
 from gameplay.menu_demo import MenuDemo
 from gameplay.tilemap import Tilemap
 from gameplay.towers import TowerFactory
@@ -22,6 +25,7 @@ from ui import hp_bar
 
 GROUND_TYPE = 1
 PLANE_TYPE = 4
+TANK_TYPE = 5
 
 
 @pytest.fixture
@@ -114,8 +118,46 @@ def test_explosions_go_over_towers_and_enemies(
 
     explosions = index_of(drawn, "explosions")
     assert index_of(drawn, tower) < explosions
-    assert index_of(drawn, plane) < explosions
     assert index_of(drawn, enemy) < explosions
+
+
+def test_planes_fly_over_enemies_and_explosions(
+    battle, tower_config, assets, monkeypatch
+):
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+    tank = Tank(2, TANK_TYPE, 1, [Vector2(700, 700)], assets)
+    shot = TankBullet(tank, tower)
+    tank.bullets.append(shot)
+    battle.enemies.append(tank)
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    plane_at = index_of(drawn, plane)
+    assert index_of(drawn, "explosions") < plane_at
+    assert index_of(drawn, enemy) < plane_at
+    assert index_of(drawn, tower) < plane_at
+    assert index_of(drawn, tank) < plane_at
+    assert index_of(drawn, shot) < plane_at
+
+
+def test_hp_bars_stay_above_planes(battle, tower_config, assets, monkeypatch):
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    plane_at = index_of(drawn, plane)
+    assert index_of(drawn, ("hp", tuple(tower.position))) > plane_at
+    assert index_of(drawn, ("hp", tuple(enemy.position))) > plane_at
+
+
+def test_orphan_shots_stay_under_enemies(battle, tower_config, assets, monkeypatch):
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+    orphan = Bomb(plane, Vector2(0, 0))
+    battle._orphan_tower_shots = [OrphanShot(plane, orphan)]
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    assert index_of(drawn, orphan) < index_of(drawn, enemy)
 
 
 def test_hp_bars_stay_above_explosions(battle, tower_config, assets, monkeypatch):
