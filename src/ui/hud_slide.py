@@ -22,11 +22,13 @@ GROUPS = {
             "menu_button",
             "start_pause_button",
             "auto_pause_button",
+            "keep_placing_button",
             "speed_toggle_button",
             "upgrade_plane_button",
             "menu_button_icon",
             "start_pause_button_icon",
             "auto_pause_button_icon",
+            "keep_placing_button_icon",
             "speed_toggle_button_text",
             "upgrade_plane_button_text",
         ),
@@ -185,6 +187,11 @@ class HudSlide:
             for group, dx, dy in moved:
                 for obj in group.objects:
                     obj.rect.move_ip(-dx, -dy)
+
+    def peek(self, name: str) -> None:
+        """Brings a counter ("money" or "lives") back for PEEK_MS while the
+        HUD is hidden, e.g. to show it flashing; no-op while shown."""
+        self._peek(name)
 
     def _peek(self, name: str) -> None:
         if self.shown:

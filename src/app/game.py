@@ -111,6 +111,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         audio = self.settings["audio"]
         self._default_audio_settings = dict(audio)  # kept for "reset to defaults"
         self._default_auto_pause = bool(gameplay.get("auto_pause_between_waves", False))
+        self._default_keep_placing = bool(gameplay.get("keep_placing", False))
 
         self.settings_store = SaveStore("settings")
         saved_settings = self.settings_store.load()
@@ -207,6 +208,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             feedback=self.place_sell_feedback,
             enemies=self.enemies,
             on_tower_sold=self._tower_sold,
+            on_denied=self._deny_purchase,
+        )
+        # Keep placing after a placement (the HUD toggle / a Shift press). A
+        # global setting: old settings files without it load as off.
+        self.keep_placing = bool(
+            saved_settings.get("keep_placing", self._default_keep_placing)
         )
         self.enemy_hp_label = EnemyHpLabel(self.assets.font_path("anton"))
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
@@ -246,6 +253,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         }
         self._bind_settings_ui()
         self._refresh_auto_pause_button()
+        self._refresh_keep_placing_button()
         self._build_menu_controllers()
         self._show_path_entrance()
         self._construction_complete = True
@@ -354,6 +362,16 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     # (restore_window_settings/window_settings/reset_window_settings) --
     # these just merge that with this project's own audio settings.
 
+    @property
+    def keep_placing(self) -> bool:
+        """The keep-placing toggle, held by the placement controller."""
+        return self.tower_controller.keep_placing
+
+    @keep_placing.setter
+    def keep_placing(self, on: bool) -> None:
+        self.tower_controller.keep_placing = on
+        self._refresh_keep_placing_button()
+
     def _save_settings(self) -> None:
         self.settings_store.save(
             {
@@ -362,6 +380,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 "music_volume": self.audio.music_volume(),
                 "music_on": not self.audio.is_music_paused,
                 "auto_pause_between_waves": self.auto_pause,
+                "keep_placing": self.keep_placing,
             }
         )
 
@@ -375,6 +394,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.audio.set_music_volume(self._default_audio_settings["music_volume"])
         self.auto_pause = self._default_auto_pause
         self._refresh_auto_pause_button()
+        self.keep_placing = self._default_keep_placing
 
         settings_panel = self.panel_manager["settings"]
         settings_panel["sfx_volume_slider"].set_value(self.audio.sfx_volume())
@@ -535,6 +555,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if not self.pause_panel.is_open:  # no scrolling behind the menu
             self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.hud_slide.update(frame_ms)
+        self.hud.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
         self.place_sell_feedback.update(frame_ms)
         self.bomb_impacts.update(frame_ms)

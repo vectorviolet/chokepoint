@@ -116,6 +116,7 @@ class GameEventsMixin:
         self._handle_upgrade_plane_button(event)
         self._handle_start_pause(event)
         self._handle_auto_pause_toggle(event)
+        self._handle_keep_placing_toggle(event)
         self._handle_speed_toggle(event)
 
     # ── pause menu ───────────────────────────────────────────────────────────
@@ -194,12 +195,16 @@ class GameEventsMixin:
         panel = self.panel_manager["game"]
         if not self._activate(panel["upgrade_plane_button"], event):
             return
+        if self.game_state.plane_level != 1:
+            return
         price = self.tower_config.prices[3][1]
-        if self.game_state.money >= price and self.game_state.plane_level == 1:
-            self.game_state.decrease_money(price)
-            panel["buy_tower_4"].set_state("lvl2")
-            panel["upgrade_plane_button"].set_state("purchased")
-            self.game_state.plane_level = 2
+        if self.game_state.money < price:
+            self._deny_purchase()
+            return
+        self.game_state.plane_level = 2
+        self.game_state.decrease_money(price)
+        panel["upgrade_plane_button"].set_state("purchased")
+        self.hud.refresh_buy_buttons()  # the plane's buy button in its lvl2 look
 
     def _handle_start_pause(self, event) -> None:
         panel = self.panel_manager["game"]
@@ -234,6 +239,39 @@ class GameEventsMixin:
         self.panel_manager["game"]["auto_pause_button"].set_state(
             "enabled" if self.auto_pause else None
         )
+
+    def _handle_keep_placing_toggle(self, event) -> None:
+        """The HUD's keep-placing toggle (or a Shift press): while on,
+        placement mode stays on after a placement while another tower of
+        the same type is affordable. A global setting saved at once, like
+        auto-pause. Holding Shift does nothing more than the press."""
+        button = self.panel_manager["game"]["keep_placing_button"]
+        is_hotkey = (
+            event.type == pygame.KEYDOWN
+            and event.key in (pygame.K_LSHIFT, pygame.K_RSHIFT)
+            and not getattr(event, "repeat", False)
+        )
+        if not (self._activate(button, event) or is_hotkey):
+            return
+        if is_hotkey:
+            sound = getattr(button, "on_click_sound", None) or self.click_sound_path
+            if sound is not None:
+                self.audio.play_sfx(str(sound))
+        self.keep_placing = not self.keep_placing
+        self._save_settings()
+
+    def _refresh_keep_placing_button(self) -> None:
+        self.panel_manager["game"]["keep_placing_button"].set_state(
+            "enabled" if self.keep_placing else None
+        )
+
+    def _deny_purchase(self, tower_type: int | None = None) -> None:
+        """A tower (or the plane upgrade) the player can't afford was
+        picked: a short "denied" sound and a red flash of the money counter,
+        which peeks back if the HUD is hidden."""
+        self.audio.play_sfx(str(self.assets.sound_path("denied")))
+        self.hud.flash_money()
+        self.hud_slide.peek("money")
 
     def _handle_speed_toggle(self, event) -> None:
         panel = self.panel_manager["game"]

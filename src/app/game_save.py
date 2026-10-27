@@ -215,10 +215,10 @@ class GameSaveMixin:
         panel["speed_toggle_button"].set_state(
             {1: None, 2: "x2_active", 4: "x4_active"}.get(self.game_state.speed)
         )
-        plane_state = "lvl2" if self.game_state.plane_level == 2 else None
-        panel["buy_tower_4"].set_state(plane_state)
-        panel["upgrade_plane_button"].set_state("purchased" if plane_state else None)
+        plane_upgraded = self.game_state.plane_level == 2
+        panel["upgrade_plane_button"].set_state("purchased" if plane_upgraded else None)
         self._refresh_auto_pause_button()
+        self._refresh_keep_placing_button()
         self._set_victory_popup_active(self._victory_popup_open)
         self._set_gameover_popup_active(self._gameover_popup_open)
         self.hud.refresh()

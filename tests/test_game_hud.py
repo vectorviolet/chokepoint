@@ -1,3 +1,5 @@
+import pygame
+
 from domain.game_state import GameState
 from ui.game_hud import GameHUD
 
@@ -18,6 +20,20 @@ class FakeText:
         self.color = color
 
 
+class FakeBuyButton:
+    """A buy button's looks, like pygamine's StateObject."""
+
+    def __init__(self, states=(None,)):
+        self.images = {state: pygame.Surface((8, 8)) for state in states}
+        self.state = None
+
+    def add_surface(self, state, surface):
+        self.images[state] = surface
+
+    def set_state(self, state):
+        self.state = state
+
+
 def make_panel():
     panel = {
         "live_text": FakeText(),
@@ -27,6 +43,9 @@ def make_panel():
     for i in range(4):
         panel[f"fee_text_{i + 1}"] = FakeText()
     panel["upgrade_plane_button_text"] = FakeText()
+    for i in range(3):
+        panel[f"buy_tower_{i + 1}"] = FakeBuyButton()
+    panel["buy_tower_4"] = FakeBuyButton((None, "lvl2"))
     return panel
 
 

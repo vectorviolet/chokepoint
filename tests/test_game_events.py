@@ -83,6 +83,37 @@ class FakeTowerController:
         self.events.append(event)
 
 
+class FakeHud:
+    """Shows the plane buy button's look like GameHUD.refresh_buy_buttons
+    (without the greyed looks) and counts money flashes."""
+
+    def __init__(self, game):
+        self._game = game
+        self.flashes = 0
+
+    def refresh_buy_buttons(self) -> None:
+        plane_level = self._game.game_state.plane_level
+        self._game.panel_manager["game"]["buy_tower_4"].set_state(
+            "lvl2" if plane_level == 2 else None
+        )
+
+    def flash_money(self) -> None:
+        self.flashes += 1
+
+
+class FakeHudSlide:
+    def __init__(self):
+        self.peeks = []
+
+    def peek(self, name) -> None:
+        self.peeks.append(name)
+
+
+class FakeAssets:
+    def sound_path(self, key):
+        return f"assets/sfx/{key}.ogg"
+
+
 class FakePausePanel:
     def __init__(self):
         self.is_open = False
@@ -113,6 +144,7 @@ def make_game_panel():
         "start_pause_button": FakeButton(),
         "start_pause_button_icon": FakeButton(),
         "auto_pause_button": FakeButton(),
+        "keep_placing_button": FakeButton(),
         "speed_toggle_button": FakeButton(),
         "upgrade_plane_button": FakeButton(),
         "buy_tower_4": FakeButton(),
@@ -173,6 +205,10 @@ class FakeGame(GameEventsMixin):
         self.tower_config = load_tower_config()
         self.camera = FakeCamera()
         self.tower_controller = FakeTowerController()
+        self.hud = FakeHud(self)
+        self.hud_slide = FakeHudSlide()
+        self.assets = FakeAssets()
+        self.keep_placing = False
         self.pause_panel = FakePausePanel()
         self._resume_on_unpause = False
         self._settings_return_panel = "main_menu"
@@ -621,6 +657,10 @@ def test_upgrade_plane_fails_with_insufficient_money():
 
     assert game.game_state.money == PLANE_UPGRADE_PRICE - 1
     assert game.game_state.plane_level == 1
+    # Refused like an unaffordable tower: the denied sound and a money flash.
+    assert game.audio.played[-1] == "assets/sfx/denied.ogg"
+    assert game.hud.flashes == 1
+    assert game.hud_slide.peeks == ["money"]
 
 
 def test_upgrade_plane_is_a_one_time_purchase():
