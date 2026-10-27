@@ -78,7 +78,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `assets` | `AssetManager` | Loads all images/sounds from `config/assets.yaml`; accessed via string keys everywhere |
 | `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "credits", "game"); switching is `panel_manager.current_panel = "name"` |
 | `tilemap` | `Tilemap` | 47×34 tile grid loaded from a Tiled `.tmx`; pre-rendered once after splash |
-| `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears |
+| `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears. `on_wave_cleared` fires once per wave as its last enemy goes; `Game` uses it for auto-pause between waves (the HUD's hourglass toggle, the global `auto_pause_between_waves` setting), which pauses the run there until start is pressed |
 | `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners |
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference |
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |

@@ -36,6 +36,7 @@ from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
 from ui.place_sell_feedback import PlaceSellFeedback
 from ui.buy_tooltip import BuyTooltip
+from ui.enemy_hp_label import EnemyHpLabel
 from ui.tower_info import TowerInfoPanel
 from ui.pause_panel import PausePanel
 from domain.game_state import GameState
@@ -109,6 +110,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         camera = self.settings["camera"]
         audio = self.settings["audio"]
         self._default_audio_settings = dict(audio)  # kept for "reset to defaults"
+        self._default_auto_pause = bool(gameplay.get("auto_pause_between_waves", False))
 
         self.settings_store = SaveStore("settings")
         saved_settings = self.settings_store.load()
@@ -116,6 +118,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             "music_volume", audio["music_volume"]
         )
         audio["sfx_volume"] = saved_settings.get("sfx_volume", audio["sfx_volume"])
+
+        # Pause the run as each wave is cleared (the HUD's hourglass toggle).
+        # A global setting: old settings files without it load as off.
+        self.auto_pause = bool(
+            saved_settings.get("auto_pause_between_waves", self._default_auto_pause)
+        )
 
         self.save_store = SaveStore("save")
         self._starting_money = gameplay["starting_money"]
@@ -197,7 +205,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.tilemap.map_width,
             self.game_area,
             feedback=self.place_sell_feedback,
+            enemies=self.enemies,
         )
+        self.enemy_hp_label = EnemyHpLabel(self.assets.font_path("anton"))
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
         self.tower_info = TowerInfoPanel(self.panel_manager)
         self.pause_panel = PausePanel(self.panel_manager)
@@ -234,6 +244,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             "game": self._handle_game_event,
         }
         self._bind_settings_ui()
+        self._refresh_auto_pause_button()
         self._build_menu_controllers()
         self._show_path_entrance()
         self._construction_complete = True
@@ -346,6 +357,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 "sfx_volume": self.audio.sfx_volume(),
                 "music_volume": self.audio.music_volume(),
                 "music_on": not self.audio.is_music_paused,
+                "auto_pause_between_waves": self.auto_pause,
             }
         )
 
@@ -357,6 +369,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.reset_window_settings()
         self.audio.set_sfx_volume(self._default_audio_settings["sfx_volume"])
         self.audio.set_music_volume(self._default_audio_settings["music_volume"])
+        self.auto_pause = self._default_auto_pause
+        self._refresh_auto_pause_button()
 
         settings_panel = self.panel_manager["settings"]
         settings_panel["sfx_volume_slider"].set_value(self.audio.sfx_volume())
@@ -403,6 +417,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if not self.tilemap.waypoints:
             raise RuntimeError("TMX has no Paths/polyline; enemies have nowhere to go")
         self.wave_manager = WaveManager(self.tilemap.waypoints, self.assets)
+        self.wave_manager.on_wave_cleared = self._on_wave_cleared
+
+    def _on_wave_cleared(self) -> None:
+        """Auto-pause: the run stops as each wave is cleared, as if the
+        start/pause button had been pressed; pressing start again lets the
+        wave manager carry on to the next wave as usual."""
+        if self.auto_pause:
+            self._set_started(False)
 
     # ── victory popup ─────────────────────────────────────────────────────────
 
@@ -571,6 +593,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.kill_feedback.draw_texts(self.window, self.camera, self.game_state.time_ms)
         self.tower_controller.draw(self.window, self.mouse.position)
         self._draw_selected_tower_ui()
+        self.enemy_hp_label.draw(self.window, self.camera, self._selected_enemy())
         self.life_lost_feedback.draw(self.window)  # under the HUD
         self.window.set_clip(old_clip)
 
@@ -591,6 +614,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if selected is None or selected not in self.towers:
             return None
         return selected if isinstance(selected, GroundTower) else None
+
+    def _selected_enemy(self) -> Enemy | None:
+        """The enemy clicked for its HP numbers, if it's still on the map
+        (the tick clears it once it dies or escapes)."""
+        selected = self.game_state.selected_enemy
+        return selected if selected in self.enemies else None
 
     def _draw_selected_tower_ui(self) -> None:
         if selected := self._selected_tower():

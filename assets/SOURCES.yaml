@@ -74,7 +74,7 @@ packs:
     author: "Kenney"
     url: https://kenney.nl/assets/board-game-icons
     license: CC0-1.0
-    used_for: "sell button icon"
+    used_for: "sell button icon, auto-pause hourglass icon"
   kenney-platformer-art-deluxe:
     name: "Platformer Art Deluxe"
     author: "Kenney"
@@ -154,6 +154,9 @@ files:
     original: "Base pack/HUD/hud_heartFull.png"
     modified: "scaled onto the previous heart's 254x254 canvas, in the box its art occupied"
     todo: "to be replaced by my brother's own heart art + animation"
+  "images/hud/icons/icon_hourglass.png":
+    source: kenney-board-game-icons
+    original: "PNG/Double (128px)/hourglass.png"
   "images/hud/icons/icon_jump.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_jump.png"

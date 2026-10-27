@@ -20,7 +20,7 @@ freely available.
 | [Mobile Controls](https://kenney.nl/assets/mobile-controls) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | HUD icons (play, pause, music, menu) | 6 |
 | [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) | Craig Rozynski | [SIL Open Font License 1.1](https://openfontlicense.org) | text font | 3 |
 | [Anton](https://fonts.google.com/specimen/Anton) | Vernon Adams | [SIL Open Font License 1.1](https://openfontlicense.org) | display font | 2 |
-| [Board Game Icons](https://kenney.nl/assets/board-game-icons) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | sell button icon | 1 |
+| [Board Game Icons](https://kenney.nl/assets/board-game-icons) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | sell button icon, auto-pause hourglass icon | 2 |
 | [Platformer Art Deluxe](https://kenney.nl/assets/platformer-art-deluxe) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | lives heart (temporary) | 1 |
 | [Sci-Fi Sounds](https://kenney.nl/assets/sci-fi-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | bomb impact sound | 1 |
 | [Gems / Coins Free](https://laredgames.itch.io/gems-coins-free) | La Red Games | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | coin animation | 1 |

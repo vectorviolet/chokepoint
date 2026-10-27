@@ -108,6 +108,7 @@ class GameSaveMixin:
         gs.plane_level = saved.get("plane_level", 1)
         gs.has_won = saved.get("has_won", False)
         gs.selected_tower = None
+        gs.selected_enemy = None
 
     def _restore_towers(self, saved: list) -> None:
         self.towers.clear()
@@ -166,6 +167,9 @@ class GameSaveMixin:
         now = self.game_state.time_ms
         wm._last_spawn_time = now
         wm._level_finish_time = now if saved.get("level_finish_pending") else None
+        # A run saved after its wave was cleared continues paused at that
+        # point already: auto-pause mustn't stop it again once it's started.
+        wm._clear_announced = wm._level_finish_time is not None and not self.enemies
 
     # ── new game ─────────────────────────────────────────────────────────────
 
@@ -181,6 +185,7 @@ class GameSaveMixin:
         gs.plane_level = 1
         gs.has_won = False
         gs.selected_tower = None
+        gs.selected_enemy = None
         self._init_wave_manager()
         self._victory_popup_open = False
         self._gameover_popup_open = False
@@ -211,6 +216,7 @@ class GameSaveMixin:
         plane_state = "lvl2" if self.game_state.plane_level == 2 else None
         panel["buy_tower_4"].set_state(plane_state)
         panel["upgrade_plane_button"].set_state("purchased" if plane_state else None)
+        self._refresh_auto_pause_button()
         self._set_victory_popup_active(self._victory_popup_open)
         self._set_gameover_popup_active(self._gameover_popup_open)
         self.hud.refresh()

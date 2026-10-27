@@ -22,6 +22,15 @@ def health_color(ratio: float) -> tuple[int, int, int]:
     return (220, 60, 60)
 
 
+def bar_rect(camera, world_pos, offset: int = DEFAULT_OFFSET) -> pygame.Rect:
+    """Where the bar of an entity at `world_pos` sits on screen."""
+    center = camera.world_to_screen(world_pos)
+    w = max(2, int(BAR_WIDTH * camera.scale))
+    h = max(2, int(BAR_HEIGHT * camera.scale))
+    off = int(offset * camera.scale)
+    return pygame.Rect(int(center.x - w / 2), int(center.y - off - h), w, h)
+
+
 def draw(
     surface: pygame.Surface,
     camera,
@@ -36,13 +45,7 @@ def draw(
     if not force and hp >= max_hp:
         return
     ratio = max(0.0, min(1.0, hp / max_hp))
-    center = camera.world_to_screen(world_pos)
-
-    w = max(2, int(BAR_WIDTH * camera.scale))
-    h = max(2, int(BAR_HEIGHT * camera.scale))
-    off = int(offset * camera.scale)
-    x = int(center.x - w / 2)
-    y = int(center.y - off - h)
+    x, y, w, h = bar_rect(camera, world_pos, offset)
 
     pygame.draw.rect(surface, BG_COLOR, (x, y, w, h))
     pygame.draw.rect(surface, health_color(ratio), (x, y, max(0, int(w * ratio)), h))

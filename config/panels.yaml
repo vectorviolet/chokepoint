@@ -513,13 +513,19 @@ panels:
       control_panel_bg:
         anchor: top-right
         position: [-15, 15]
-        size: [120, 200]
+        size: [120, 460]
       button_panel:
         parent: control_panel_bg
         layout: { direction: vertical, start: [CENTER, 0], spacing: 100 }
         objects:
           menu_button:          { extends: btn-sm, size: [60, 60] }
           start_pause_button:   { extends: btn-sm, size: [60, 60] }
+          auto_pause_button:
+            extends: btn-sm
+            size: [60, 60]
+            states:
+                enabled:
+                    asset: btn_active
           speed_toggle_button:
             extends: btn-sm
             size: [60, 60]
@@ -548,6 +554,11 @@ panels:
         states:
           pause:
             asset: icon_pause
+      auto_pause_button_icon:
+        parent: auto_pause_button
+        position: [CENTER, CENTER]
+        size: [32, 32]
+        asset: icon_hourglass
       speed_toggle_button_text:
         extends: button_text
         parent: speed_toggle_button

@@ -115,6 +115,9 @@ class FakeGame(GameSaveMixin):
     def _show_path_entrance(self) -> None:
         self.calls.append("_show_path_entrance")
 
+    def _refresh_auto_pause_button(self) -> None:
+        self.calls.append("_refresh_auto_pause_button")
+
 
 def make_tower(
     tower_config,
