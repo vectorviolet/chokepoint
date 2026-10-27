@@ -58,7 +58,21 @@ The owner chose **options 0 and 1**, plus the blocked-tile part of option 2:
 - **Blocked tiles:** over a tile you can't build on (not buildable, or taken), the tower preview is
   tinted red as well as the range ring.
 
-Choices Claude made where the issue was silent, listed for review in the PR:
+- **The bought plane upgrade shows as maxed** (owner, during review): once UPG PLANES is bought
+  (its only level), the button is greyed with the same greyscale look as an unaffordable buy button,
+  shows "MAX" instead of its price on hover, and a click does nothing (no denied sound: it isn't
+  about money). It stays in place, so the column doesn't move, and a loaded save shows it the same
+  way. Before, it turned yellow and still showed "5K $" on hover.
+
+<table>
+<tr>
+<td><img src="img/69-upgrade-hover-before.png" width="70"><br>Not bought: its price on hover.</td>
+<td><img src="img/69-upgrade-maxed.png" width="70"><br>Bought: greyed.</td>
+<td><img src="img/69-upgrade-maxed-hover.png" width="70"><br>Bought, hovered: "MAX".</td>
+</tr>
+</table>
+
+Choices Claude made where the issue was silent, listed in the PR and approved by the owner in review:
 
 - The icon is Kenney's `arrow_rotate` (Board Game Icons): a "repeat" sign.
 - The denied sound is Kenney's `error_008` (Interface Sounds, a new pack for this repo).
@@ -66,7 +80,8 @@ Choices Claude made where the issue was silent, listed for review in the PR:
   0 gold. If the HUD is hidden (Tab), the counter peeks back so the flash is seen.
 - The plane upgrade button (UPG PLANES) gives the same denied sound and flash when you can't afford
   it. It isn't greyed: its price shows only on hover.
-- A Shift press plays the usual click sound, like Space for start/pause.
+- A Shift press plays the usual click sound, like Space for start/pause. Only a plain Shift press
+  counts: not with Ctrl, Alt or Meta held (Alt+Shift switches the keyboard layout on Windows).
 
 ## Rejected alternatives
 

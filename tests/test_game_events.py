@@ -637,9 +637,10 @@ def test_upgrade_plane_succeeds_with_enough_money():
 
     assert game.game_state.money == 0
     assert game.game_state.plane_level == 2
-    # (The plane's buy button takes its lvl2 look from GameHUD's money
-    # listener; tests/test_keep_placing.py checks that in a real Game.)
-    assert game.panel_manager["game"]["upgrade_plane_button"].state == "purchased"
+    assert game.audio.played == ["assets/sfx/click.ogg"]
+    # (The plane's buy button takes its lvl2 look, and this button its maxed
+    # look, from GameHUD's money listener; tests/test_keep_placing.py checks
+    # that in a real Game.)
 
 
 def test_upgrade_plane_fails_with_insufficient_money():
@@ -664,6 +665,8 @@ def test_upgrade_plane_is_a_one_time_purchase():
     game._handle_upgrade_plane_button(click_up())
 
     assert game.game_state.money == 50_000  # unchanged -- already at level 2
+    assert game.audio.played == []  # maxed: no click, no denied sound
+    assert game.hud.flashes == 0
 
 
 def test_upgrade_plane_button_not_clicked_is_a_no_op():

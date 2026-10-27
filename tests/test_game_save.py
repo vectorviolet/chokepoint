@@ -413,7 +413,6 @@ def test_sync_game_ui_reflects_started_and_speed_and_plane_state(tower_config, a
     panel = game.panel_manager["game"]
     assert panel["start_pause_button_icon"].state == "pause"
     assert panel["speed_toggle_button"].state == "x4_active"
-    assert panel["upgrade_plane_button"].state == "purchased"
     assert "_refresh_keep_placing_button" in game.calls
     assert ("_set_victory_popup_active", True) in game.calls
     assert ("_set_gameover_popup_active", True) in game.calls
@@ -435,7 +434,6 @@ def test_sync_game_ui_reflects_paused_speed_1_and_no_plane_upgrade(
     panel = game.panel_manager["game"]
     assert panel["start_pause_button_icon"].state is None
     assert panel["speed_toggle_button"].state is None
-    assert panel["upgrade_plane_button"].state is None
     assert game.hud.refreshed is True  # the HUD shows the plane buy button's look
     assert ("_set_victory_popup_active", False) in game.calls
     assert ("_set_gameover_popup_active", False) in game.calls

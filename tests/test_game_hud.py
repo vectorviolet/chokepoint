@@ -48,6 +48,7 @@ def make_panel():
     for i in range(3):
         panel[f"buy_tower_{i + 1}"] = FakeBuyButton()
     panel["buy_tower_4"] = FakeBuyButton((None, "lvl2"))
+    panel["upgrade_plane_button"] = FakeBuyButton()
     return panel
 
 

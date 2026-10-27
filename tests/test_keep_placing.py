@@ -404,3 +404,111 @@ def test_an_affordable_pick_plays_no_denied_sound(game):
     assert game.tower_controller.buying_tower_type == 1
     assert denied_sound(game) not in game.played
     assert not game.hud.is_flashing
+
+
+# ── the maxed plane upgrade ──────────────────────────────────────────────────
+
+
+def buy_plane_upgrade(game, mouse):
+    set_money(game, game.tower_config.prices[3][1] + 1000)
+    click(game, mouse, panel(game)["upgrade_plane_button"])
+    assert game.game_state.plane_level == 2
+    game.played.clear()
+
+
+def assert_maxed(game):
+    button = panel(game)["upgrade_plane_button"]
+    assert button.state == "maxed"
+    image = button.images["maxed"]
+    w, h = image.get_size()
+    c = image.get_at((w // 2, h // 2))
+    assert c.r == c.g == c.b  # the greyscale look of an unaffordable buy button
+    assert panel(game)["upgrade_plane_button_text"].states["hover"] == "MAX"
+
+
+def test_before_the_upgrade_it_shows_its_price(game):
+    button = panel(game)["upgrade_plane_button"]
+    assert button.state is None
+    price = game.tower_config.prices[3][1]
+    label = panel(game)["upgrade_plane_button_text"].states["hover"]
+    assert label == (f"{price / 1000:g}K $" if price >= 1000 else f"{price} $")
+
+
+def test_the_bought_upgrade_is_greyed_and_shows_max(game, mouse):
+    rest = panel(game)["upgrade_plane_button"].rect.copy()
+
+    buy_plane_upgrade(game, mouse)
+
+    assert_maxed(game)
+    assert panel(game)["upgrade_plane_button"].rect == rest  # the column stays put
+
+
+def test_the_maxed_look_stays_while_hovered(game, mouse):
+    buy_plane_upgrade(game, mouse)
+    button = panel(game)["upgrade_plane_button"]
+    pos = button.rect.center
+    mouse["pos"] = pos
+    game.mouse.update()
+    game.handle_event(pygame.event.Event(pygame.MOUSEMOTION, pos=pos, rel=(0, 0)))
+    game.update()
+    game.draw()
+
+    assert button._active_surface is button.images["maxed"]
+    assert panel(game)["upgrade_plane_button_text"].text == "MAX"
+
+
+def test_a_click_on_the_maxed_upgrade_does_nothing(game, mouse):
+    buy_plane_upgrade(game, mouse)
+    money = game.game_state.money
+
+    click(game, mouse, panel(game)["upgrade_plane_button"])
+    set_money(game, 0)
+    game.played.clear()
+    click(game, mouse, panel(game)["upgrade_plane_button"])  # broke, still no denial
+
+    assert game.game_state.plane_level == 2
+    assert money > 0
+    assert game.played == []  # no click, no denied sound
+    assert not game.hud.is_flashing
+    assert_maxed(game)
+
+
+def test_the_maxed_upgrade_is_restored_from_a_save(game, mouse, make_game):
+    buy_plane_upgrade(game, mouse)
+    game._leave_game_for_main_menu()
+
+    restarted = make_game()
+    assert panel(restarted)["upgrade_plane_button"].state is None  # a new game
+    restarted._load_game()
+
+    assert restarted.game_state.plane_level == 2
+    assert_maxed(restarted)
+
+
+def test_a_new_game_brings_the_upgrade_back(game, mouse):
+    buy_plane_upgrade(game, mouse)
+
+    game._start_new_game()
+
+    assert panel(game)["upgrade_plane_button"].state is None
+    assert panel(game)["upgrade_plane_button_text"].states["hover"] != "MAX"
+
+
+def test_the_maxed_upgrade_survives_a_window_resize(game, mouse):
+    buy_plane_upgrade(game, mouse)
+    game.window = pygame.Surface((1280, 720))
+    game.set_size((1280, 720))
+    game.on_canvas_resized((1280, 720))
+
+    assert_maxed(game)
+
+
+def test_the_label_goes_back_to_upg_planes_when_not_hovered(game, mouse):
+    buy_plane_upgrade(game, mouse)  # bought while hovered
+    away = (400, 300)
+    mouse["pos"] = away
+    game.mouse.update()
+    game.handle_event(pygame.event.Event(pygame.MOUSEMOTION, pos=away, rel=(0, 0)))
+    game.update()
+
+    assert panel(game)["upgrade_plane_button_text"].text == "UPG PLANES"

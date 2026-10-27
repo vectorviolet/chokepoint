@@ -540,12 +540,9 @@ panels:
                     asset: btn_active
                 x4_active:
                     asset: btn_active_2
-          upgrade_plane_button:
+          upgrade_plane_button:  # greyed "maxed" look once bought (ui/game_hud.py)
             extends: btn-sm
             size: [60, 60]
-            states:
-                purchased:
-                    asset: btn_active
 
       menu_button_icon:
         parent: menu_button
@@ -584,7 +581,8 @@ panels:
         font_size: 21
         text: "UPG PLANES"
         states:
-          hover: "5K $"
+          default: "UPG PLANES"  # back to this when not hovered
+          hover: "5K $"  # the price, or MAX once bought (ui/game_hud.py)
 
       tower_panel_bg:
         anchor: bottom
