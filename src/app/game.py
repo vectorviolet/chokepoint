@@ -206,6 +206,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.game_area,
             feedback=self.place_sell_feedback,
             enemies=self.enemies,
+            on_tower_sold=self._tower_sold,
         )
         self.enemy_hp_label = EnemyHpLabel(self.assets.font_path("anton"))
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)

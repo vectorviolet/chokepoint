@@ -136,7 +136,9 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 - Types 1 & 3: instant-hit `MuzzleFlash` at barrel tips (twin barrels for type 1 and type 3 lvl 2)
 - Type 2: homing `Projectile`
-- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on in `BattleSimulation.orphan_bombs` and land as usual (credited to the departed plane); in-flight bombs aren't saved
+- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on and land as usual (credited to the departed plane)
+
+Shots in flight outlive their shooter: when a plane leaves the map, a tower is sold or destroyed, or a tank dies or escapes, its shots still flying (bullets with `outlives_source = True`: `Projectile`, `Bomb`, `TankBullet`; not the instant-hit muzzle flashes) are adopted where the source is removed (`_tower_removed` for a plane or a destroyed tower, `_tower_sold` from the placement controller, `_tank_removed` on a tank's death or escape) and listed in `BattleSimulation.orphan_shots`. They hit as they would have, credited to the departed source. A tower's orphans update in its old place in the tower order, so the same shot lands first and takes the kill. Tank shells update at the start of the enemy phase, before a cleared wave can auto-pause the run. They are drawn with the towers' or the enemies' bullets. Shots in flight aren't saved; `_clear_orphan_shots()` drops them on new game, load and each new menu demo run
 
 Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py`): `BattleSimulation` builds an `EnemyGrid` for ground towers in `_update_towers` and a `TowerGrid` (as `tower_grid`) for tanks in `_update_enemies`. They must pick exactly what a full scan would (nearest, first in list on a tie, inclusive range; a tower's optional blind spot, `min_ranges` in `config/towers.yaml` -- only the heavy cannon has one -- is exclusive at its edge: targetable when `min_range < distance <= range`); `tests/test_targeting.py` checks that against the old algorithms.
 
@@ -146,7 +148,7 @@ Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py
 
 ### Rendering order (game panel)
 
-Tilemap → ground towers + their bullets → orphan bombs (their plane left the map) → enemies + their bullets → bomb explosions → planes (they fly; each draws its own: shadow → falling bombs → selected plane's splash ring → plane, so bombs are under it) → HP bars (towers', then enemies', so neither fire nor a plane hides one) → border lines → HUD → tower placement overlay (cursor + range ring). The selected enemy's HP numbers are drawn after the battle, so they stay above planes too
+Tilemap → ground towers + their bullets → orphan tower shots and bombs (their tower or plane is gone) → enemies + their bullets → orphan tank shells → bomb explosions → planes (they fly; each draws its own: shadow → falling bombs → selected plane's splash ring → plane, so bombs are under it) → HP bars (towers', then enemies', so neither fire nor a plane hides one) → border lines → HUD → tower placement overlay (cursor + range ring). The selected enemy's HP numbers are drawn after the battle, so they stay above planes too
 
 The battle part (`BattleSimulation._draw_battle`) is shared by the game and the menu demo; `tests/test_draw_order.py` checks it.
 
