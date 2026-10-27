@@ -23,6 +23,9 @@ the battle (new game, load, a new demo run) sets it back to `()`.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+
 import pygame
 
 from gameplay.combat.projectile import Bomb
@@ -39,6 +42,8 @@ class BattleSimulation:
     # (see _update_towers). Always replaced, never mutated in place, so the
     # empty class default is safe to share.
     orphan_bombs: tuple | list = ()
+    # While waves_only() is active: the enemies that reached the end.
+    _escaped_unopposed: list | None = None
 
     # ── IGameContext interface ────────────────────────────────────────────────
 
@@ -84,6 +89,20 @@ class BattleSimulation:
 
     # ── simulation ────────────────────────────────────────────────────────────
 
+    @contextmanager
+    def waves_only(self) -> Iterator[list]:
+        """Ticks inside run the waves alone, for set-up tools that
+        fast-forward one (the play-test save script): towers stand idle and
+        nothing fights, and enemies that reach the end of the path skip
+        _on_enemy_escaped() (no lives lost, no game over). They are
+        collected in the yielded list instead."""
+        escaped: list = []
+        self._escaped_unopposed = escaped
+        try:
+            yield escaped
+        finally:
+            self._escaped_unopposed = None
+
     def _tick(self) -> None:
         """One fixed simulation step: game time first, then everything
         that reads it."""
@@ -92,6 +111,8 @@ class BattleSimulation:
         self._update_enemies()
 
     def _update_towers(self) -> None:
+        if self._escaped_unopposed is not None:
+            return  # waves_only(): the towers stand idle
         kept = []
         for tower in self.towers:
             if tower.should_remove():
@@ -147,11 +168,16 @@ class BattleSimulation:
             for enemy in list(self.enemies):  # copy: reaching the end removes it
                 if enemy.reached_end():
                     self.enemies.remove(enemy)
-                    self._on_enemy_escaped(enemy)
+                    if self._escaped_unopposed is not None:
+                        self._escaped_unopposed.append(enemy)
+                    else:
+                        self._on_enemy_escaped(enemy)
                     continue
                 if not self.game_state.is_started:
                     continue
                 enemy.move(self.game_state.speed)
+                if self._escaped_unopposed is not None:
+                    continue  # waves_only(): no fighting
                 if hasattr(enemy, "update_combat"):
                     enemy.update_combat(self)
                     for bullet in list(enemy.bullets):

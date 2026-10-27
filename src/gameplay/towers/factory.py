@@ -14,8 +14,6 @@ class TowerFactory:
     no changes to callers.
     """
 
-    _PLANE_TYPE = PLANE_TYPE
-
     @staticmethod
     def create(
         tower_type: int,
@@ -28,7 +26,7 @@ class TowerFactory:
         level: int = 1,
     ) -> BaseTower:
         """A new tower at `level`: its sprite for that level and full HP."""
-        if tower_type == TowerFactory._PLANE_TYPE:
+        if tower_type == PLANE_TYPE:
             tower = PlaneTower(tower_type, row, col, config, assets, audio, map_width)
         else:
             tower = GroundTower(tower_type, row, col, config, assets, audio)

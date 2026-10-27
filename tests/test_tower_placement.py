@@ -6,12 +6,12 @@ from gameplay.combat.tower_placement import TowerPlacementController
 from pygamine import Camera
 from gameplay.towers import TowerFactory
 from util.constants import TILE_SIZE
+from gameplay.towers import PLANE_TYPE
 
 GAME_AREA = Rect(0, 0, 1536, 1080)
 MAP_WIDTH = 3008
 MAP_HEIGHT = 2176
 GROUND_TYPE = 1
-PLANE_TYPE = 4
 
 
 class FakeAudio:

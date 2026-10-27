@@ -21,8 +21,8 @@ from gameplay.menu_demo import (
     TOWER_PATH_DISTANCE,
     WAVE_SIZE_FACTOR,
     MenuDemo,
-    _distance_to_path,
 )
+from gameplay.path_geometry import distance_to_path
 from gameplay.tilemap import Tilemap
 from pygamine import GameAudio, SaveStore
 from util.constants import TILE_SIZE, HALF_TILE
@@ -73,7 +73,7 @@ def test_towers_stand_on_free_build_tiles_within_reach_of_the_path(make_demo, ti
     for t in ground:
         assert tilemap.buildable_grid[t.row][t.col]
         centre = Vector2(t.col * TILE_SIZE + HALF_TILE, t.row * TILE_SIZE + HALF_TILE)
-        assert near <= _distance_to_path(centre, tilemap.waypoints) <= far
+        assert near <= distance_to_path(centre, tilemap.waypoints) <= far
 
 
 def test_planes_fly_bombing_runs(make_demo):
@@ -251,6 +251,6 @@ def test_its_towers_make_no_sound(make_demo, monkeypatch):
         ((130, 50), 30),  # beside the second segment
     ],
 )
-def test_distance_to_path(point, expected):
+def testdistance_to_path(point, expected):
     path = [Vector2(0, 0), Vector2(100, 0), Vector2(100, 100)]
-    assert _distance_to_path(Vector2(point), path) == pytest.approx(expected)
+    assert distance_to_path(Vector2(point), path) == pytest.approx(expected)

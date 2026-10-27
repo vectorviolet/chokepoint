@@ -7,9 +7,9 @@ from util.config_loader import (
     load_tower_config,
     load_wave_compositions,
 )
+from gameplay.towers import PLANE_TYPE
 
 TOWER_TYPES = (1, 2, 3, 4)
-PLANE_TYPE = 4
 TANK_ENEMY_TYPES = (5, 6)
 
 

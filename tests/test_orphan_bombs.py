@@ -19,8 +19,8 @@ from gameplay.towers import TowerFactory
 from gameplay.towers.plane_tower import BOMB_DROP_INTERVAL_MS
 from pygamine import SaveStore
 from util.constants import TICK_MS
+from gameplay.towers import PLANE_TYPE
 
-PLANE_TYPE = 4
 TICKS_TO_LAND = int(Bomb.FALL_DURATION_MS / TICK_MS) + 5
 
 

@@ -23,11 +23,12 @@ from pygame.math import Vector2
 
 from domain.game_state import GameState, TowerConfig
 from gameplay.battle import BattleSimulation
+from gameplay.path_geometry import tiles_near_path
 from ui.bomb_impact_feedback import BombImpactFeedback
 from gameplay.combat.wave_manager import WaveManager
 from pygamine import Camera
 from gameplay.towers import GROUND_TOWER_TYPES, PLANE_TYPE, TowerFactory
-from util.constants import TICK_MS, TILE_SIZE, HALF_TILE
+from util.constants import TICK_MS, TILE_SIZE
 
 START_LEVELS = (8, 16)  # a run starts at a random wave in this range
 WAVES_PER_RUN = 3  # ...and is replaced after this many waves
@@ -261,33 +262,3 @@ class MenuDemo(BattleSimulation):
             step.scale_to_length(max_step)
         self._camera_pos += step
         self.camera.center_on(self._camera_pos)
-
-
-def tiles_near_path(tilemap, near: float, far: float) -> list[tuple[int, int]]:
-    """Build tiles (row, col), row by row, whose centre is `near` to `far`
-    world px from the enemy path. The play-test save script uses it too."""
-    path = tilemap.waypoints
-    tiles = []
-    for row, cells in enumerate(tilemap.buildable_grid):
-        for col, buildable in enumerate(cells):
-            if not buildable:
-                continue
-            centre = Vector2(col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
-            if near <= _distance_to_path(centre, path) <= far:
-                tiles.append((row, col))
-    return tiles
-
-
-def _distance_to_path(point: Vector2, path: list[Vector2]) -> float:
-    """Shortest distance from `point` to the polyline `path`."""
-    best = math.inf
-    for a, b in zip(path, path[1:]):
-        ab = b - a
-        length_sq = ab.length_squared()
-        t = (
-            0.0
-            if length_sq == 0
-            else max(0.0, min(1.0, (point - a).dot(ab) / length_sq))
-        )
-        best = min(best, point.distance_to(a + ab * t))
-    return best

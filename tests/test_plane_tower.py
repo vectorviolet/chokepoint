@@ -4,8 +4,8 @@ from domain.game_state import GameState
 from gameplay.combat.projectile import Bomb
 from gameplay.towers import TowerFactory
 from gameplay.towers.plane_tower import BOMB_DROP_INTERVAL_MS
+from gameplay.towers import PLANE_TYPE
 
-PLANE_TYPE = 4
 MAP_WIDTH = 3008
 
 
