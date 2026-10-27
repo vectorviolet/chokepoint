@@ -24,6 +24,10 @@ SHORTCUT_BG_COLOR = (30, 30, 30)
 SHORTCUT_BORDER_COLOR = (255, 255, 255)
 SHORTCUT_TEXT_COLOR = (255, 255, 255)
 
+# World px added around an enemy's sprite rect when testing a click on it,
+# so a moving enemy is easy to hit.
+ENEMY_CLICK_PADDING = 8
+
 
 class TowerPlacementController:
     def __init__(
@@ -39,9 +43,12 @@ class TowerPlacementController:
         map_width: int,
         game_area: pygame.Rect,
         feedback=None,
+        enemies: list | None = None,
     ) -> None:
         """feedback: told when a tower is placed or sold (a sound and an
-        effect on its tile; see ui.place_sell_feedback), or None."""
+        effect on its tile; see ui.place_sell_feedback), or None.
+        enemies: the battle's enemy list (shared by reference), whose
+        enemies a click can select to show their HP numbers."""
         self._towers = towers
         self._tower_config = tower_config
         self._assets = assets
@@ -53,6 +60,7 @@ class TowerPlacementController:
         self._map_width = map_width
         self._game_area = game_area
         self._feedback = feedback
+        self._enemies = enemies if enemies is not None else []
 
         self.buying_tower_type: int = 0
         self.cursor_col: int | None = None
@@ -87,6 +95,21 @@ class TowerPlacementController:
                 return tower
         return None
 
+    def get_clicked_enemy(self, mouse_pos: tuple):
+        """The enemy under `mouse_pos` (screen), or None. An enemy is hit
+        when the click is inside its sprite rect grown by
+        ENEMY_CLICK_PADDING on every side; of several hit, the one drawn on
+        top (the latest in the enemy list) wins."""
+        if not self._game_area.collidepoint(mouse_pos):
+            return None
+        world = self._camera.screen_to_world(mouse_pos)
+        point = (int(world.x), int(world.y))
+        pad = ENEMY_CLICK_PADDING * 2
+        for enemy in reversed(self._enemies):
+            if enemy.rect.inflate(pad, pad).collidepoint(point):
+                return enemy
+        return None
+
     def handle_event(self, event, mouse_pos: tuple) -> None:
         self._handle_buy_tower_buttons(event, mouse_pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
@@ -96,7 +119,7 @@ class TowerPlacementController:
             # it selected (and its info panel open) rather than counting as
             # a click elsewhere.
             if not self._handle_tower_actions(mouse_pos):
-                self._handle_tower_selection()
+                self._handle_selection(mouse_pos)
             self._handle_tower_purchase(mouse_pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
             self.cancel()
@@ -107,6 +130,7 @@ class TowerPlacementController:
         """Right click: drop the tower being placed and any selection."""
         self.buying_tower_type = 0
         self._game_state.selected_tower = None
+        self._game_state.selected_enemy = None
 
     def _is_over_ui(self, mouse_pos: tuple) -> bool:
         for obj in self._panel_manager["game"].values():
@@ -142,9 +166,21 @@ class TowerPlacementController:
                 self._feedback.tower_sold(tower.position)
         return hit
 
-    def _handle_tower_selection(self) -> None:
+    def _handle_selection(self, mouse_pos: tuple) -> None:
+        """A click on the map (not in placement mode): an enemy under the
+        cursor is selected first, as enemies are drawn over towers; else a
+        tower; else the click clears both selections."""
         if self.is_construct_mode():
+            return  # the click places a tower instead
+        enemy = self.get_clicked_enemy(mouse_pos)
+        if enemy is not None:
+            self._game_state.selected_enemy = enemy
+            self._game_state.selected_tower = None  # closes the tower info panel
             return
+        self._game_state.selected_enemy = None
+        self._handle_tower_selection()
+
+    def _handle_tower_selection(self) -> None:
         clicked = self.get_clicked_tower()
         if not clicked:
             self._game_state.selected_tower = None

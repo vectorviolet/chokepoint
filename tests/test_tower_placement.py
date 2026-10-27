@@ -338,7 +338,7 @@ def test_selection_is_skipped_while_in_construct_mode(tower_config, assets):
     controller.handle_event(buy_button_event(), mouse_pos=pos)
 
     # Purchase logic ran instead of selection -- selected_tower was never
-    # touched by _handle_tower_selection (which early-returns in construct mode).
+    # touched by _handle_selection (which early-returns in construct mode).
     assert gs.selected_tower is None
 
 
