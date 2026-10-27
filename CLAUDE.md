@@ -110,7 +110,7 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 - Types 1 & 3: instant-hit `MuzzleFlash` at barrel tips (twin barrels for type 1 and type 3 lvl 2)
 - Type 2: homing `Projectile`
-- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path
+- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on in `BattleSimulation.orphan_bombs` and land as usual (credited to the departed plane); in-flight bombs aren't saved
 
 Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py`): `BattleSimulation` builds an `EnemyGrid` for ground towers in `_update_towers` and a `TowerGrid` (as `tower_grid`) for tanks in `_update_enemies`. They must pick exactly what a full scan would (nearest, first in list on a tie, inclusive range); `tests/test_targeting.py` checks that against the old algorithms.
 

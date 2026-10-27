@@ -165,6 +165,7 @@ class MenuDemo(BattleSimulation):
         self._last_level = self.game_state.level + WAVES_PER_RUN
         self.towers = []
         self.enemies = []
+        self.orphan_bombs = ()
         self.wave_manager = _DemoWaves(self.tilemap.waypoints, self._assets)
         self._place_towers()
         self._next_plane_at = rng.uniform(*PLANE_INTERVAL_MS) / 2

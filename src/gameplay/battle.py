@@ -15,12 +15,17 @@ simulation. A subclass provides the state it operates on:
 
 and may override the two hooks below for its own rules. It also satisfies
 domain.protocols.IGameContext, which projectiles and tanks are updated with.
+
+It keeps one list of its own, `orphan_bombs`: bombs whose plane has left
+the map. They keep falling and land like any other; an owner that resets
+the battle (new game, load, a new demo run) sets it back to `()`.
 """
 
 from __future__ import annotations
 
 import pygame
 
+from gameplay.combat.projectile import Bomb
 from gameplay.combat.targeting import EnemyGrid, TowerGrid
 from ui import hp_bar
 
@@ -30,6 +35,10 @@ class BattleSimulation:
     # This tick's grid of the towers while enemies update, for tanks
     # (IGameContext is free to lack it); None the rest of the time.
     tower_grid: TowerGrid | None = None
+    # Bombs still falling after their plane left the map and was removed
+    # (see _update_towers). Always replaced, never mutated in place, so the
+    # empty class default is safe to share.
+    orphan_bombs: tuple | list = ()
 
     # ── IGameContext interface ────────────────────────────────────────────────
 
@@ -83,7 +92,13 @@ class BattleSimulation:
         self._update_enemies()
 
     def _update_towers(self) -> None:
-        self.towers[:] = [t for t in self.towers if not t.should_remove()]
+        kept = []
+        for tower in self.towers:
+            if tower.should_remove():
+                self._adopt_orphan_bombs(tower)
+            else:
+                kept.append(tower)
+        self.towers[:] = kept
         positions: set[tuple] = set()
         # Enemies don't move while towers update, and kills only remove
         # them, which the grid notices: one grid serves the whole loop.
@@ -96,7 +111,28 @@ class BattleSimulation:
             for bullet in list(tower.bullets):  # copy: a landing bomb removes itself
                 if self.game_state.is_started:
                     bullet.update(self)
+        self._update_orphan_bombs()
         self._on_tower_positions(positions)
+
+    def _adopt_orphan_bombs(self, tower) -> None:
+        """`tower` is being removed (a plane that left the map): its bombs
+        still falling carry on without it. Each bomb stays in its plane's
+        `bullets`, which it leaves when it lands, and keeps the plane as the
+        tower credited with its kills and money."""
+        bombs = [b for b in tower.bullets if isinstance(b, Bomb)]
+        if bombs:
+            self.orphan_bombs = [*self.orphan_bombs, *bombs]
+
+    def _update_orphan_bombs(self) -> None:
+        if not self.orphan_bombs:
+            return
+        if self.game_state.is_started:
+            for bomb in self.orphan_bombs:
+                bomb.update(self)
+        # A bomb that landed has left its plane's bullets: forget it.
+        self.orphan_bombs = [
+            b for b in self.orphan_bombs if any(x is b for x in b.tower.bullets)
+        ]
 
     def _update_enemies(self) -> None:
         if self.wave_manager:
@@ -137,6 +173,9 @@ class BattleSimulation:
                 tower.maxHP,
                 force=tower is self.game_state.selected_tower,
             )
+
+        for bomb in self.orphan_bombs:
+            camera.draw(surface, bomb)
 
         if self.bomb_impacts is not None:
             self.bomb_impacts.draw(surface, camera)
