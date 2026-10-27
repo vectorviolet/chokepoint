@@ -10,6 +10,10 @@ BOMB_DROP_INTERVAL_MS = 500
 
 class PlaneTower(BaseTower):
     draws_own_bullets = True  # bombs fall from under the plane, not over it
+    # Flies over the map: selected by a click on its sprite (not its tile),
+    # with no sell/upgrade buttons -- planes upgrade together (UPG PLANES).
+    is_flying = True
+    bomb_interval_ms = BOMB_DROP_INTERVAL_MS
 
     def __init__(
         self,
@@ -27,7 +31,7 @@ class PlaneTower(BaseTower):
             None  # set on the first update, in game time
         )
 
-    def update(self, game_state: GameState, enemies: list) -> None:
+    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:
         self.now = game_state.time_ms
         if self._last_bomb_drop_at is None:
             self._last_bomb_drop_at = self.now
@@ -70,11 +74,38 @@ class PlaneTower(BaseTower):
 
         camera.draw(surface, self)
 
-    def work(self, enemies: list, is_started: bool) -> None:
+    def work(self, enemies: list, is_started: bool, enemy_grid=None) -> None:
         pass  # Planes are purely cosmetic; they do not attack
 
     def should_remove(self) -> bool:
         return self._is_off_map()
+
+    def sprite_rect(self) -> pygame.Rect:
+        """The plane's sprite in world space, for clicks on it. (Its
+        `rect` keeps a zero size: a plane never rotates, and only rotating
+        sizes a RotatableObject's rect.)"""
+        rect = pygame.Rect((0, 0), self.image.get_size())
+        rect.center = (round(self.position.x), round(self.position.y))
+        return rect
+
+    # No sell or upgrade buttons on a selected plane: it can't be sold, and
+    # every plane upgrades at once through the HUD's UPG PLANES button.
+
+    def hits_action_button(self, mouse_pos: tuple, camera) -> bool:
+        return False
+
+    def upgrade(self, mouse_pos: tuple, game_state: GameState, camera) -> None:
+        pass
+
+    def sell(
+        self, mouse_pos: tuple, game_state: GameState, towers: list, camera
+    ) -> None:
+        pass
+
+    def draw_selected_ui(
+        self, surface: pygame.Surface, game_state: GameState, camera
+    ) -> None:
+        pass
 
     def get_blocking_position(self) -> tuple | None:
         return None  # Planes fly over the map and never block a build tile

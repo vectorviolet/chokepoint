@@ -4,6 +4,7 @@ from pygame.math import Vector2
 from gameplay.rotatable_object import RotatableObject
 from domain.game_state import GameState, TowerConfig
 from gameplay.combat.projectile import MuzzleFlash, Projectile
+from gameplay.combat.targeting import EnemyGrid
 from gameplay.towers.base_tower import BaseTower
 
 BARREL_FORWARD = 26  # px from tower center to barrel tip along aim direction
@@ -27,9 +28,11 @@ class GroundTower(BaseTower):
             self.position,
         )
 
-    def update(self, game_state: GameState, enemies: list) -> None:
+    def update(
+        self, game_state: GameState, enemies: list, enemy_grid: EnemyGrid | None = None
+    ) -> None:
         self.now = game_state.time_ms
-        self.work(enemies, game_state.is_started)
+        self.work(enemies, game_state.is_started, enemy_grid)
 
     def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
         camera.draw(surface, self.platform)
@@ -39,22 +42,31 @@ class GroundTower(BaseTower):
 
         camera.draw(surface, self)
 
-    def work(self, enemies: list, is_started: bool) -> None:
+    def work(
+        self, enemies: list, is_started: bool, enemy_grid: EnemyGrid | None = None
+    ) -> None:
+        """Aim at the nearest enemy within range and outside the blind spot
+        (min_range < distance <= range; the first one in `enemies` on a
+        tie) and fire when reloaded. The choice is made afresh every tick,
+        so an enemy that walks into the blind spot is dropped for the next
+        nearest one outside it. `enemy_grid` is this tick's grid
+        of `enemies`, shared by all towers; without one, a grid is built
+        just for this call."""
         if not is_started or not enemies:
             return
 
-        distances = [enemy.position - self.position for enemy in enemies]
-        lengths = [d.length() for d in distances]
-        nearest_dist = min(lengths)
-        nearest_idx = lengths.index(nearest_dist)
-
-        if nearest_dist > self.range:
+        if enemy_grid is None or enemy_grid.enemies is not enemies:
+            enemy_grid = EnemyGrid(enemies)
+        target, delta = enemy_grid.nearest_in_range(
+            self.position, self.range, self.min_range
+        )
+        if target is None:
             return
 
-        self.rotate_to_delta(distances[nearest_idx])
+        self.rotate_to_delta(delta)
 
         if self._is_attack_ready():
-            self._shoot(enemies[nearest_idx])
+            self._shoot(target)
 
     # ── private ───────────────────────────────────────────────────────────────
 

@@ -608,7 +608,7 @@ panels:
       # arrow glyph, Comic Neue doesn't.
       tower_info_bg:
         position: [15, 205]
-        size: [340, 316]
+        size: [340, 352]
         color: [50, 50, 50, 200]
       tower_info_title_text:
         extends: tower_info_title
@@ -617,18 +617,20 @@ panels:
       tower_info_kills_label:     { extends: tower_info_label, position: [16, 58], text: "Kills" }
       tower_info_earned_label:    { extends: tower_info_label, position: [16, 94], text: "Earned" }
       tower_info_range_label:     { extends: tower_info_label, position: [16, 130], text: "Range" }
-      tower_info_damage_label:    { extends: tower_info_label, position: [16, 166], text: "Damage" }
-      tower_info_fire_rate_label: { extends: tower_info_label, position: [16, 202], text: "Fire rate" }
-      tower_info_hp_label:        { extends: tower_info_label, position: [16, 238], text: "HP" }
+      tower_info_min_range_label: { extends: tower_info_label, position: [16, 166], text: "Blind spot" }
+      tower_info_damage_label:    { extends: tower_info_label, position: [16, 202], text: "Damage" }
+      tower_info_fire_rate_label: { extends: tower_info_label, position: [16, 238], text: "Fire rate" }
+      tower_info_hp_label:        { extends: tower_info_label, position: [16, 274], text: "HP" }
       tower_info_kills_value:     { extends: tower_info_value, position: [126, 56] }
       tower_info_earned_value:    { extends: tower_info_value, position: [126, 92] }
       tower_info_range_value:     { extends: tower_info_value, position: [126, 128] }
-      tower_info_damage_value:    { extends: tower_info_value, position: [126, 164] }
-      tower_info_fire_rate_value: { extends: tower_info_value, position: [126, 200] }
-      tower_info_hp_value:        { extends: tower_info_value, position: [126, 236] }
+      tower_info_min_range_value: { extends: tower_info_value, position: [126, 164] }
+      tower_info_damage_value:    { extends: tower_info_value, position: [126, 200] }
+      tower_info_fire_rate_value: { extends: tower_info_value, position: [126, 236] }
+      tower_info_hp_value:        { extends: tower_info_value, position: [126, 272] }
       tower_info_hp_bar:
         parent: tower_info_bg
-        position: [16, 282]
+        position: [16, 318]
         size: [308, 16]
         color: [40, 40, 40]
 

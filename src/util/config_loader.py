@@ -34,7 +34,28 @@ def load_tower_config() -> TowerConfig:
         speeds=[t["speeds"] for t in towers],
         hps=[t.get("hps") for t in towers],
         shoot_sounds=[t.get("shoot_sound") for t in towers],
+        min_ranges=[parse_min_ranges(t) for t in towers],
     )
+
+
+def parse_min_ranges(tower: dict) -> list[int]:
+    """A tower's per-level `min_ranges` (its blind spot), or 0 at every
+    level when it has none. Raises ValueError naming the tower type unless
+    there's one per level, each at least 0 and below that level's range."""
+    ranges = tower["ranges"]
+    min_ranges = tower.get("min_ranges")
+    if min_ranges is None:
+        return [0] * len(ranges)
+    where = f"config/towers.yaml: tower type {tower['type']}"
+    if not isinstance(min_ranges, list) or len(min_ranges) != len(ranges):
+        raise ValueError(f"{where} needs one min_ranges entry per level")
+    for min_range, max_range in zip(min_ranges, ranges):
+        if type(min_range) is not int or not 0 <= min_range < max_range:
+            raise ValueError(
+                f"{where}: min_ranges must be whole numbers from 0 up to "
+                f"(not including) the range, got {min_range} for {max_range}"
+            )
+    return list(min_ranges)
 
 
 @dataclass(frozen=True)
