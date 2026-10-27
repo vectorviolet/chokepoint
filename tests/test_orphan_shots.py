@@ -179,6 +179,43 @@ def test_an_orphan_shell_waits_while_the_game_is_paused(game, tower_config):
     assert tower.hp == tower.maxHP
 
 
+def test_the_last_tanks_shell_moves_on_the_tick_auto_pause_stops_the_run(
+    game, tower_config
+):
+    """The tank is the wave's last enemy: its death clears the wave, and
+    auto-pause stops the run in that same tick. Its shell still moves on
+    that tick (as it would have with its tank), then waits, frozen with
+    the rest of the battle, and lands once the run goes on."""
+    tower = place_tower(game, MISSILE, tower_config)
+    tank = standing_tank(game, tower)
+    shell = tank_fires(game, tank)
+    game.auto_pause = True
+
+    class ClearsWhenEmpty:
+        def update(self, enemies, game_state):
+            if not enemies:
+                game._on_wave_cleared()
+
+    game.wave_manager = ClearsWhenEmpty()
+    tower.update = lambda *args: tank.decrease_hp(tank.hp, game, tower)
+    position = Vector2(shell.position)
+    game._tick()  # the tower kills the last tank; the wave is cleared
+
+    assert not game.game_state.is_started  # auto-paused
+    assert orphans(game) == [shell]
+    assert shell.position != position  # moved on the tick its tank died
+    position = Vector2(shell.position)
+    for _ in range(50):
+        game._tick()
+    assert shell.position == position  # frozen while paused
+
+    del tower.update
+    game.game_state.is_started = True
+    game.wave_manager = None
+    tick_until_landed(game)
+    assert tower.hp == tower.maxHP - tank.bullet_damage
+
+
 # ── tower missiles ────────────────────────────────────────────────────────────
 
 
@@ -251,6 +288,46 @@ def test_an_orphan_missile_whose_target_died_lands_harmlessly(game, tower_config
     assert tower.bullets == []
 
 
+def twin_missiles(game, tower_config, far_first=False):
+    """Missile towers A and C, at the same distance either side of a 1-HP
+    enemy, both firing on the same tick, so both missiles reach it on the
+    same tick; A is earlier in `towers`, so A's lands first. With
+    `far_first`, a tower P far from the enemy comes before both in
+    `towers`. Returns (P or None, A, C, enemy)."""
+    from gameplay.combat.enemy import Enemy
+
+    p = place_tower(game, MISSILE, tower_config, row=30, col=40) if far_first else None
+    a = place_tower(game, MISSILE, tower_config, row=10, col=18)
+    c = place_tower(game, MISSILE, tower_config, row=10, col=22)
+    enemy = Enemy(1, 1, 1, game.tilemap.waypoints, game.assets)
+    stand(enemy, game, (a.position + c.position) / 2, hp=1)
+    game._tick()
+    assert len(a.bullets) == len(c.bullets) == 1
+    return p, a, c, enemy
+
+
+def test_a_sold_towers_missile_keeps_its_place_for_the_kill(game, tower_config):
+    _, a, c, enemy = twin_missiles(game, tower_config)
+
+    sell(game, a)  # A's missile now an orphan; C's still live
+    tick_until_landed(game)
+
+    assert enemy not in game.enemies
+    assert (a.kills, c.kills) == (1, 0)  # as if A had stayed
+
+
+def test_an_orphan_keeps_its_place_when_the_tower_before_it_goes(game, tower_config):
+    p, a, c, enemy = twin_missiles(game, tower_config, far_first=True)
+
+    sell(game, a)  # A's missile updates right after P ...
+    game._tick()
+    p.hp = 0  # ... and once P is destroyed, still before C
+    tick_until_landed(game)
+
+    assert enemy not in game.enemies
+    assert (a.kills, c.kills) == (1, 0)
+
+
 def test_a_sold_towers_muzzle_flash_goes_with_it(game, tower_config):
     tower = place_tower(game, RAPID, tower_config)
     from gameplay.combat.enemy import Enemy
@@ -294,6 +371,18 @@ def test_starting_a_new_game_or_loading_drops_orphan_shots(game, tower_config):
     game._start_new_game()
     assert not game.orphan_shots
     game.game_state.is_started = True
+    game._tick()
+    assert not game.orphan_shots
+
+
+def test_towers_cleared_without_a_removal_leave_no_orphans(game, tower_config):
+    """Only a real removal (sold, destroyed, killed, escaped) adopts shots:
+    a reset that just empties the lists can't carry the old battle's shots
+    into the new one."""
+    tower = place_tower(game, MISSILE, tower_config)
+    missile_fired(game, tower, tower_config, hp=10**6)
+    game.towers.clear()
+    game.enemies.clear()
     game._tick()
     assert not game.orphan_shots
 

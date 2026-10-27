@@ -54,9 +54,12 @@ class TowerPlacementController:
         game_area: pygame.Rect,
         feedback=None,
         enemies: list | None = None,
+        on_tower_sold=None,
     ) -> None:
         """feedback: told when a tower is placed or sold (a sound and an
         effect on its tile; see ui.place_sell_feedback), or None.
+        on_tower_sold(tower, index): told when a tower is sold, with the
+        index it had in `towers` (the battle keeps its shots flying), or None.
         enemies: the battle's enemy list (shared by reference), whose
         enemies a click can select to show their HP numbers."""
         self._towers = towers
@@ -70,6 +73,7 @@ class TowerPlacementController:
         self._map_width = map_width
         self._game_area = game_area
         self._feedback = feedback
+        self._on_tower_sold = on_tower_sold
         self._enemies = enemies if enemies is not None else []
 
         self.buying_tower_type: int = 0
@@ -185,10 +189,13 @@ class TowerPlacementController:
         if tower is None or tower not in self._towers:
             return False
         hit = tower.hits_action_button(mouse_pos, self._camera)
+        index = self._towers.index(tower)
         tower.sell(mouse_pos, self._game_state, self._towers, self._camera)
         tower.upgrade(mouse_pos, self._game_state, self._camera)
         if tower not in self._towers:  # sold
             self._game_state.selected_tower = None
+            if self._on_tower_sold is not None:
+                self._on_tower_sold(tower, index)
             if self._feedback is not None:
                 self._feedback.tower_sold(tower.position)
         return hit

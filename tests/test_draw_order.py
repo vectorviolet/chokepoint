@@ -153,7 +153,7 @@ def test_hp_bars_stay_above_planes(battle, tower_config, assets, monkeypatch):
 def test_orphan_shots_stay_under_enemies(battle, tower_config, assets, monkeypatch):
     tower, plane, bomb, enemy = stage(battle, tower_config, assets)
     orphan = Bomb(plane, Vector2(0, 0))
-    battle.orphan_shots = [OrphanShot(plane, orphan, True)]
+    battle._orphan_tower_shots = [OrphanShot(plane, orphan)]
 
     drawn = record_layers(battle, battle.camera, monkeypatch)
 
