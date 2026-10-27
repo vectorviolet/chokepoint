@@ -78,6 +78,14 @@ paths resolve in both. `config_loader` anchors to that root too.
 - Only one agent session works in a repo at a time. If HEAD or the working tree changes
   unexpectedly, stop and report.
 
+## Devlog
+
+Every PR that adds a feature or settles a design decision adds or updates an entry in
+`docs/devlog/` (`YYYY-MM-DD-short-title.md`: context, options with screenshots, decision and who
+made it, rejected alternatives, result) and its row in `docs/devlog/README.md`. Architecture and
+system choices get an ADR in `docs/decisions/` (`NNNN-title.md`). Images are PNGs of this game in
+`docs/devlog/img/`, at most 1280 px wide. Templates are in both READMEs. `CHANGELOG.md` stays short.
+
 ## Architecture
 
 ### Entry point → Game class

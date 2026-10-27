@@ -1,0 +1,81 @@
+# Devlog
+
+How Chokepoint is built: one entry per feature or design decision, with the options we looked at,
+what we chose, who chose it and why. [`CHANGELOG.md`](../../CHANGELOG.md) stays the short list of
+what changed; this folder holds the detail. Code and system choices that outlive a single feature
+are recorded as Architecture Decision Records in [`docs/decisions/`](../decisions/README.md).
+
+Dates are the day the PR was merged (UTC), or the day of the decision for entries without a merged
+PR. "Owner" is the project owner; "Claude" is the Claude Code session that implemented the change.
+
+## Entries
+
+| Date | Title | Area | Issues / PRs |
+|---|---|---|---|
+| 2026-10-26 | [Tower info panel](2026-10-26-tower-info-panel.md) | UI | #5, PR #28 |
+| 2026-10-26 | [Buy-button tooltips](2026-10-26-buy-button-tooltips.md) | UI | #6, PR #36 |
+| 2026-10-26 | [Pause menu: from volume sliders to a menu](2026-10-26-pause-menu.md) | UI | #8, PR #42 |
+| 2026-10-26 | [Place and sell effects, and the quiet wood sound](2026-10-26-place-sell-effects.md) | Feedback, audio | #3, PR #41 |
+| 2026-10-26 | [No sliver of the Level counter after Tab](2026-10-26-level-counter-sliver.md) | UI, bug | #43, PR #46 |
+| 2026-10-27 | [Enemy HP on click](2026-10-27-enemy-hp-on-click.md) | UI | #7, PR #47 |
+| 2026-10-27 | [Shift keeps placing](2026-10-27-shift-placement.md) | Controls | #9, PR #48 |
+| 2026-10-27 | [Auto-pause between waves](2026-10-27-auto-pause.md) | Gameplay, UI | #34, PR #53 |
+| 2026-10-27 | [Music button state after a restart](2026-10-27-music-state-bug.md) | Audio, bug | #54, PR #57 |
+| 2026-10-27 | [Heavy cannon blind spot](2026-10-27-cannon-blind-spot.md) | Gameplay | #11, PR #56 |
+| 2026-10-27 | [Plane info panel](2026-10-27-plane-info-panel.md) | UI | #29, PR #58 |
+| 2026-10-27 | [Bomb impacts and draw order](2026-10-27-bomb-impacts-and-draw-order.md) | Feedback, rendering | #4, #55, #60, PRs #49, #61 |
+| 2026-10-27 | [Info panel placement: overlay or sidebar](2026-10-27-info-panel-placement.md) | UI design | #33 |
+| 2026-10-27 | [Pause menu icons (postponed)](2026-10-27-pause-menu-icons.md) | UI design | #44 |
+| 2026-10-27 | [Play-test save](2026-10-27-playtest-save.md) | Tooling | #63, PR #64 |
+
+## Adding an entry
+
+Every PR that adds a feature or settles a design decision adds an entry here, or updates the
+existing one, and a row in the table above. Bug fixes get an entry when there was a real choice to
+make or the cause is worth remembering.
+
+- File name: `YYYY-MM-DD-short-title.md`, dated by the merge (or decision) day.
+- Images: PNG screenshots of this game or mock-ups made from it, in [`img/`](img/), at most 1280 px
+  wide. Name them `<issue>-<what>.png`. Crop to the part that matters. No hot-linked images.
+- Where an option has no screenshot, describe it in words. Don't fake one.
+- Say who decided: "owner", or "default chosen by Claude, approved by the owner" (for example by
+  merging a PR that listed the choice for review). Only write down reasons someone actually gave.
+
+## Template
+
+```markdown
+# Title
+
+**Date:** YYYY-MM-DD · **Area:** UI · **Issue:** [#N](https://github.com/vectorviolet/chokepoint/issues/N) · **PR:** [#M](https://github.com/vectorviolet/chokepoint/pull/M)
+
+## Context
+
+The problem or request, and where it came from.
+
+## Options
+
+<table>
+<tr>
+<td><img src="img/N-option-a.png" width="400"><br>A: one line on this option.</td>
+<td><img src="img/N-option-b.png" width="400"><br>B: one line on this option.</td>
+</tr>
+</table>
+
+## Decision
+
+What we chose, who chose it, and why.
+
+## Rejected alternatives
+
+- The alternative, and why not.
+
+## Result
+
+<img src="img/N-result.png" width="640">
+
+Merged in PR #M.
+
+## Revisit if
+
+- What would make us look at this again.
+```
