@@ -15,6 +15,10 @@ SELL_REFUND = 0.7
 
 
 class BaseTower(RotatableObject):
+    # False: the battle draws this tower's bullets over it. A tower that
+    # layers its own (the plane, with bombs under it) sets True.
+    draws_own_bullets = False
+
     def __init__(
         self, tower_type: int, row: int, col: int, config: TowerConfig, assets, audio
     ) -> None:

@@ -9,6 +9,8 @@ BOMB_DROP_INTERVAL_MS = 500
 
 
 class PlaneTower(BaseTower):
+    draws_own_bullets = True  # bombs fall from under the plane, not over it
+
     def __init__(
         self,
         tower_type: int,
@@ -58,6 +60,10 @@ class PlaneTower(BaseTower):
             (self.position.x - 20, self.position.y + 20)
         )
         surface.blit(scaled_shadow, shadow_screen)
+
+        # Its falling bombs: over the shadow, under the plane.
+        for bomb in self.bullets:
+            camera.draw(surface, bomb)
 
         if game_state.selected_tower is self:
             self.draw_range(surface, camera)
