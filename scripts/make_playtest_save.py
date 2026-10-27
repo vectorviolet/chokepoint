@@ -5,7 +5,7 @@ worktree's own saves/, so a PR can be play-tested at once with Continue:
 
 The run: --money coins (100,000), wave --level (10) about half spawned with
 its enemies on the path, paused; one tower of every type at every level on
-free build tiles along the path, the plane upgrade bought and one plane in
+free build tiles beside the path, the plane upgrade bought and one plane in
 the air. The settings: music and SFX volume 0, music on, windowed.
 
 It builds all of this with the real game: a Game() whose saving is
@@ -23,6 +23,8 @@ import os
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -35,9 +37,10 @@ sys.path.insert(0, str(ROOT / "src" / "pygamine"))
 
 DEFAULT_MONEY = 100_000
 DEFAULT_LEVEL = 10
-# Ground towers stand on build tiles at most this far from the path (in
-# tiles, tile centre to path) and at least this far apart (Chebyshev).
-NEAR_PATH_TILES = 1.6
+# Ground towers stand on build tiles this far from the path (in tiles, tile
+# centre to path: beside it, never on it) and at least this far apart
+# (Chebyshev).
+NEAR_PATH_TILES = (0.9, 1.6)
 TOWER_SPACING_TILES = 2
 # The plane is placed over the path this far along it from the entrance.
 PLANE_PATH_TILES = 4.0
@@ -54,10 +57,36 @@ class RefusedError(Exception):
 # ── where it may write ───────────────────────────────────────────────────────
 
 
-def main_checkout() -> Path:
+def checkout_from_dot_git(root: Path) -> Path | None:
+    """The main checkout, read from `root`'s .git without running git: a
+    .git folder means `root` is it; a worktree's .git file points at
+    <main>/.git/worktrees/<name>; a submodule's at <super>/.git/modules/...,
+    which still makes `root` its own checkout. None if it can't be told."""
+    dot_git = root / ".git"
+    if dot_git.is_dir():
+        return root
+    if not dot_git.is_file():
+        return None
+    text = dot_git.read_text(encoding="utf-8", errors="replace").strip()
+    if not text.startswith("gitdir:"):
+        return None
+    gitdir = Path(text.removeprefix("gitdir:").strip())
+    if not gitdir.is_absolute():
+        gitdir = root / gitdir
+    gitdir = gitdir.resolve()
+    if gitdir.parent.name == "worktrees":
+        return gitdir.parent.parent.parent
+    if "modules" in gitdir.parts:
+        return root
+    return None
+
+
+def main_checkout() -> Path | None:
     """The repository's main checkout -- the folder holding the player's real
-    saves/. From a git worktree that's the parent of the shared .git folder;
-    without git, this checkout itself (the safe assumption)."""
+    saves/. From a git worktree that's the parent of the shared .git folder.
+    Asks git first, then reads .git itself; with no .git at all (an unpacked
+    copy) this folder is the one with the real saves. None if it can't be
+    told."""
     try:
         common = subprocess.run(
             ["git", "-C", str(ROOT), "rev-parse", "--git-common-dir"],
@@ -66,7 +95,9 @@ def main_checkout() -> Path:
             check=True,
         ).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
-        return ROOT
+        if not (ROOT / ".git").exists():
+            return ROOT
+        return checkout_from_dot_git(ROOT)
     common_dir = Path(common)
     if not common_dir.is_absolute():
         common_dir = ROOT / common_dir
@@ -74,14 +105,24 @@ def main_checkout() -> Path:
 
 
 def check_out_dir(out: Path, overwrite: bool, file_names: list[str]) -> Path:
-    """`out` resolved, or RefusedError if writing there isn't safe."""
-    out = out.resolve()
-    real_saves = (main_checkout() / "saves").resolve()
-    if out == real_saves or real_saves in out.parents:
-        raise RefusedError(
-            f"refusing to write into the main checkout's real saves folder "
-            f"({real_saves}); use a worktree's own saves/ or another folder"
-        )
+    """`out` (already resolved), or RefusedError if writing there isn't safe."""
+    main = main_checkout()
+    if main is None:
+        # The real saves/ can't be located: refuse any folder named saves
+        # (or inside one) except within this checkout.
+        inside_root = out == ROOT or ROOT in out.parents
+        if "saves" in out.parts and not inside_root:
+            raise RefusedError(
+                f"can't find the main checkout, so refusing to write into a "
+                f"saves folder outside {ROOT}"
+            )
+    else:
+        real_saves = (main / "saves").resolve()
+        if out == real_saves or real_saves in out.parents:
+            raise RefusedError(
+                f"refusing to write into the main checkout's real saves folder "
+                f"({real_saves}); use a worktree's own saves/ or another folder"
+            )
     if out.exists() and not out.is_dir():
         raise RefusedError(f"{out} exists and is not a folder")
     existing = [name for name in file_names if (out / name).exists()]
@@ -92,78 +133,78 @@ def check_out_dir(out: Path, overwrite: bool, file_names: list[str]) -> Path:
     return out
 
 
+@contextmanager
+def _cwd(path: Path) -> Iterator[None]:
+    """The game loads config/ and assets/ relative to the cwd: run there,
+    then go back."""
+    before = Path.cwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(before)
+
+
 # ── building the run ─────────────────────────────────────────────────────────
 
 
-def _path_points(waypoints) -> list[tuple[float, float, float]]:
-    """The path sampled every few pixels: (x, y, distance from the entrance)."""
-    points = []
-    travelled = 0.0
-    for a, b in zip(waypoints, waypoints[1:]):
-        length = a.distance_to(b)
-        steps = max(1, int(length // 8))
-        for i in range(steps):
-            p = a.lerp(b, i / steps)
-            points.append((p.x, p.y, travelled + length * i / steps))
-        travelled += length
-    last = waypoints[-1]
-    points.append((last.x, last.y, travelled))
-    return points
+def tiles_beside_path(game, count: int) -> list[tuple[int, int]]:
+    """`count` free build tiles beside the path, nearest the entrance (where
+    the camera opens) first, at least TOWER_SPACING_TILES apart."""
+    from gameplay.menu_demo import tiles_near_path
+    from util.constants import HALF_TILE, TILE_SIZE
 
-
-def tiles_along_path(game, count: int) -> list[tuple[int, int]]:
-    """`count` free build tiles beside the path, in order from its entrance,
-    at least TOWER_SPACING_TILES apart."""
-    from util.constants import TILE_SIZE
-
-    points = _path_points(game.tilemap.waypoints)
-    grid = game.tilemap.buildable_grid
+    near, far = (tiles * TILE_SIZE for tiles in NEAR_PATH_TILES)
+    entrance = game.tilemap.waypoints[0]
     taken = {t.get_blocking_position() for t in game.towers} - {None}
-    candidates = []
-    for row, cells in enumerate(grid):
-        for col, buildable in enumerate(cells):
-            if not buildable or (row, col) in taken:
-                continue
-            cx, cy = (col + 0.5) * TILE_SIZE, (row + 0.5) * TILE_SIZE
-            dist, along = min((math.hypot(cx - x, cy - y), s) for x, y, s in points)
-            if dist <= NEAR_PATH_TILES * TILE_SIZE:
-                candidates.append((along, row, col))
+    candidates = [
+        tile for tile in tiles_near_path(game.tilemap, near, far) if tile not in taken
+    ]
+    candidates.sort(
+        key=lambda rc: entrance.distance_to(
+            (rc[1] * TILE_SIZE + HALF_TILE, rc[0] * TILE_SIZE + HALF_TILE)
+        )
+    )
     chosen: list[tuple[int, int]] = []
-    for _, row, col in sorted(candidates):
+    for row, col in candidates:
         if all(
             max(abs(row - r), abs(col - c)) >= TOWER_SPACING_TILES for r, c in chosen
         ):
             chosen.append((row, col))
             if len(chosen) == count:
                 return chosen
-    raise RuntimeError(f"only {len(chosen)} free build tiles along the path")
+    raise RuntimeError(f"only {len(chosen)} free build tiles beside the path")
 
 
 def plane_tile(game) -> tuple[int, int]:
     """The tile over the path PLANE_PATH_TILES along it from the entrance."""
     from util.constants import TILE_SIZE
 
-    target = PLANE_PATH_TILES * TILE_SIZE
-    x, y, _ = min(
-        _path_points(game.tilemap.waypoints), key=lambda p: abs(p[2] - target)
-    )
-    return int(y // TILE_SIZE), int(x // TILE_SIZE)
+    path = game.tilemap.waypoints
+    left = PLANE_PATH_TILES * TILE_SIZE
+    point = path[-1]
+    for a, b in zip(path, path[1:]):
+        length = a.distance_to(b)
+        if left <= length:
+            point = a.lerp(b, left / length) if length else a
+            break
+        left -= length
+    return int(point.y // TILE_SIZE), int(point.x // TILE_SIZE)
 
 
 def tower_specs(tower_config) -> list[tuple[int, int]]:
-    """(type, level) for every level of every ground tower type, from
-    config/towers.yaml. The plane (type 4) upgrades globally instead."""
+    """(type, level) for every level of every ground tower type, levels from
+    config/towers.yaml. The plane upgrades globally instead."""
+    from gameplay.towers import GROUND_TOWER_TYPES
+
     return [
         (tower_type, level)
-        for tower_type, max_level in enumerate(tower_config.max_levels, start=1)
-        if tower_type != 4
-        for level in range(1, max_level + 1)
+        for tower_type in GROUND_TOWER_TYPES
+        for level in range(1, tower_config.max_levels[tower_type - 1] + 1)
     ]
 
 
 def add_tower(game, tower_type: int, level: int, row: int, col: int):
-    """A tower as the game builds it (TowerFactory) at `level`, the way
-    restoring a saved tower sets its level."""
     from gameplay.towers import TowerFactory
 
     tower = TowerFactory.create(
@@ -174,32 +215,40 @@ def add_tower(game, tower_type: int, level: int, row: int, col: int):
         game.assets,
         game.audio,
         game.tilemap.map_width,
+        level=level,
     )
-    tower.level = level
-    if level != 1:
-        tower.load(game.assets.image_path(f"tower_{tower_type}_lvl{level}"))
-    tower.hp = tower.maxHP
     game.towers.append(tower)
     return tower
 
 
-def fill_wave(game, level: int) -> None:
+def fill_wave(game, level: int) -> int:
     """Runs wave `level` from its start until about half its enemies have
-    spawned, then pauses."""
+    spawned, then pauses. Enemies that reach the end of the path meanwhile
+    (only in long waves) cost no lives, so this can't end the run at any
+    level; how many did is returned."""
     gs = game.game_state
     gs.level = level
     gs.has_won = level > _win_wave()
     gs.is_started = True
     gs.speed = FILL_SPEED
     wm = game.wave_manager
-    for _ in range(MAX_FILL_TICKS):
-        game._tick()
-        if wm._spawn_queue and wm._queue_index >= math.ceil(len(wm._spawn_queue) / 2):
-            break
-    else:
-        raise RuntimeError("the wave never got half spawned")
+    escaped = []
+    # An instance attribute shadows Game's hook (lives, game over) while
+    # filling.
+    game._on_enemy_escaped = escaped.append
+    try:
+        for _ in range(MAX_FILL_TICKS):
+            game._tick()
+            half = math.ceil(len(wm._spawn_queue) / 2)
+            if wm._spawn_queue and wm._queue_index >= half:
+                break
+        else:
+            raise RuntimeError("the wave never got half spawned")
+    finally:
+        del game._on_enemy_escaped
     gs.is_started = False
     gs.speed = 1
+    return len(escaped)
 
 
 def _win_wave() -> int:
@@ -208,21 +257,33 @@ def _win_wave() -> int:
     return WIN_WAVE
 
 
-def build_run(game, money: int, level: int) -> None:
+def build_run(game, money: int, level: int) -> int:
+    """The play-test run in `game`; returns fill_wave()'s escape count."""
+    from gameplay.towers import PLANE_TYPE
+
     game._start_new_game()
-    fill_wave(game, level)
     specs = tower_specs(game.tower_config)
     for (tower_type, tower_level), (row, col) in zip(
-        specs, tiles_along_path(game, len(specs))
+        specs, tiles_beside_path(game, len(specs))
     ):
         add_tower(game, tower_type, tower_level, row, col)
+    # The towers hold fire while the wave fills: the save is meant to have
+    # the spawned half of the wave on the path, not already shot down.
+    towers = list(game.towers)
+    game.towers.clear()
+    try:
+        escaped = fill_wave(game, level)
+    finally:
+        game.towers.extend(towers)
+    # The plane last: placed before, it would fly off the map while filling.
     game.game_state.plane_level = 2  # UPG PLANES bought
-    add_tower(game, 4, 2, *plane_tile(game))
+    add_tower(game, PLANE_TYPE, 2, *plane_tile(game))
     gs = game.game_state
     gs.money = money
     gs.lives = game._starting_lives
     gs.selected_tower = None
     gs.selected_enemy = None
+    return escaped
 
 
 def mute(game) -> None:
@@ -248,31 +309,35 @@ def make_playtest_save(
     *,
     money: int = DEFAULT_MONEY,
     level: int = DEFAULT_LEVEL,
-    overwrite=False,
+    overwrite: bool = False,
+    report=print,
 ) -> list[Path]:
-    """Writes save.json and settings.json into `out`; returns their paths."""
-    os.chdir(ROOT)  # the game loads config/ and assets/ relative to the cwd
-    from pygamine import SaveStore
-    from smoke_test import saves_redirected
+    """Writes save.json and settings.json into `out` (relative to the
+    caller's cwd); returns their paths. The cwd is restored afterwards."""
+    out = Path(out).resolve()
+    with _cwd(ROOT):
+        from pygamine import SaveStore
+        from smoke_test import saves_redirected
 
-    names = [SaveStore("save").path.name, SaveStore("settings").path.name]
-    out = check_out_dir(out, overwrite, names)
+        names = [SaveStore("save").path.name, SaveStore("settings").path.name]
+        out = check_out_dir(out, overwrite, names)
 
-    from app.game import Game
+        from app.game import Game
 
-    with saves_redirected():
-        game = Game()
-        build_run(game, money, level)
-        mute(game)
-        game._save_game()
-        game._save_settings()
-        game.settings_store.save(windowed(game.settings_store.load()))
-        sources = [game.save_store.path, game.settings_store.path]
-        out.mkdir(parents=True, exist_ok=True)
-        written = []
-        for src in sources:
-            shutil.copyfile(src, out / src.name)
-            written.append(out / src.name)
+        with saves_redirected():
+            game = Game()
+            escaped = build_run(game, money, level)
+            mute(game)
+            game._save_game()
+            game._save_settings()
+            game.settings_store.save(windowed(game.settings_store.load()))
+            out.mkdir(parents=True, exist_ok=True)
+            written = []
+            for src in (game.save_store.path, game.settings_store.path):
+                shutil.copyfile(src, out / src.name)
+                written.append(out / src.name)
+    note = f"; {escaped} more reached the end while it filled" if escaped else ""
+    report(f"wave {level}: {len(game.enemies)} enemies on the path{note}")
     return written
 
 
@@ -303,7 +368,7 @@ def main(argv=None) -> None:
     args = parse_args(argv)
     try:
         written = make_playtest_save(
-            args.out.resolve(),
+            args.out,
             money=args.money,
             level=args.level,
             overwrite=args.overwrite,
