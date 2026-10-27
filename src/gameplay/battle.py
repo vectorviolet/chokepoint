@@ -160,13 +160,32 @@ class BattleSimulation:
     # ── rendering ─────────────────────────────────────────────────────────────
 
     def _draw_battle(self, surface: pygame.Surface, camera) -> None:
-        """Terrain, then towers and their bullets, then enemies and theirs."""
+        """Terrain, then towers and their bullets, then enemies and theirs,
+        then bomb explosions over all of them, then every HP bar on top so
+        fire never hides one."""
         self.tilemap.draw(surface, camera)
 
         for tower in self.towers:
             tower.draw(self.game_state, camera, surface)
-            for bullet in tower.bullets:
-                camera.draw(surface, bullet)
+            if not tower.draws_own_bullets:
+                for bullet in tower.bullets:
+                    camera.draw(surface, bullet)
+
+        # Bombs whose plane already left the map: drawn where its bombs would be.
+        for bomb in self.orphan_bombs:
+            camera.draw(surface, bomb)
+
+        for enemy in self.enemies:
+            camera.draw(surface, enemy)
+            if hasattr(enemy, "draw_muzzle"):
+                enemy.draw_muzzle(surface, camera)
+                for bullet in enemy.bullets:
+                    camera.draw(surface, bullet)
+
+        if self.bomb_impacts is not None:
+            self.bomb_impacts.draw(surface, camera)
+
+        for tower in self.towers:
             hp_bar.draw(
                 surface,
                 camera,
@@ -175,19 +194,7 @@ class BattleSimulation:
                 tower.maxHP,
                 force=tower is self.game_state.selected_tower,
             )
-
-        for bomb in self.orphan_bombs:
-            camera.draw(surface, bomb)
-
-        if self.bomb_impacts is not None:
-            self.bomb_impacts.draw(surface, camera)
-
         for enemy in self.enemies:
-            camera.draw(surface, enemy)
-            if hasattr(enemy, "draw_muzzle"):
-                enemy.draw_muzzle(surface, camera)
-                for bullet in enemy.bullets:
-                    camera.draw(surface, bullet)
             hp_bar.draw(
                 surface,
                 camera,

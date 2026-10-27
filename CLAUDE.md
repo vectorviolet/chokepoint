@@ -88,7 +88,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none |
 | `life_lost_feedback` | `LifeLostFeedback` | A bell (its own reserved mixer channel 2, outside pygamine's SFX pool, at the SFX volume) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
 | `place_sell_feedback` | `PlaceSellFeedback` | Placing a tower: a thud and a dust puff on its tile; selling: a coin clink and coins bursting from the tile. Sounds via `audio.play_sfx` (the SFX pool); effects in world space through the camera, on real time (cosmetic: they play out while paused and ignore x2/x4), capped at `MAX_EFFECTS`. Told by the placement controller (`feedback=`); the menu demo has none |
-| `bomb_impacts` | `BombImpactFeedback` | Where a plane's bomb lands: an explosion sized to its splash radius (smoke + fireball, drawn over towers and under enemies, through the camera) and an impact sound via `audio.play_sfx`, capped at one per 150 ms and 3 per second. The bomb deals its damage at impact on game time and calls `ctx.bomb_landed()`; the explosion is cosmetic and runs on real time (plays out while paused, ignores x2/x4), at most `MAX_EXPLOSIONS`. The menu demo has its own, silent |
+| `bomb_impacts` | `BombImpactFeedback` | Where a plane's bomb lands: an explosion sized to its splash radius (smoke + fireball, drawn over towers and enemies but under HP bars, through the camera) and an impact sound via `audio.play_sfx`, capped at one per 150 ms and 3 per second. The bomb deals its damage at impact on game time and calls `ctx.bomb_landed()`; the explosion is cosmetic and runs on real time (plays out while paused, ignores x2/x4), at most `MAX_EXPLOSIONS`. The menu demo has its own, silent |
 
 ### Panel / UI system
 
@@ -120,7 +120,9 @@ Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py
 
 ### Rendering order (game panel)
 
-Tilemap → towers + bullets → bomb explosions → enemies → border lines → HUD → tower placement overlay (cursor + range ring)
+Tilemap → towers + their bullets (a plane draws its own: shadow → falling bombs → plane, so bombs are under it) → enemies + their bullets → bomb explosions → HP bars (towers', then enemies', so fire never hides one) → border lines → HUD → tower placement overlay (cursor + range ring)
+
+The battle part (`BattleSimulation._draw_battle`) is shared by the game and the menu demo; `tests/test_draw_order.py` checks it.
 
 ### Config files
 
