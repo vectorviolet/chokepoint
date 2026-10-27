@@ -106,6 +106,8 @@ class Tank(Enemy):
 class TankBullet(RotatableObject):
     """Travels toward a tower and chips at its HP on contact."""
 
+    outlives_source = True  # flies on if its tank dies or escapes
+
     SPEED = 4
     EXPLODE_DISTANCE = 30
 

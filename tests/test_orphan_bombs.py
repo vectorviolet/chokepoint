@@ -91,7 +91,7 @@ def test_a_bomb_dropped_just_before_the_plane_leaves_still_lands(
     target = standing_enemy(game, (game.tilemap.map_width - 20, 700), hp=1000)
 
     bomb = drop_and_leave(game)
-    assert list(game.orphan_bombs) == [bomb]
+    assert [o.shot for o in game.orphan_shots] == [bomb]
     game.draw()  # a falling orphan bomb is drawn
     for _ in range(TICKS_TO_LAND):
         game._tick()
@@ -101,7 +101,7 @@ def test_a_bomb_dropped_just_before_the_plane_leaves_still_lands(
     assert game.bomb_impacts.explosions[0].position == bomb.position
     assert played == [str(game.assets.sound_path("bomb_impact"))]
     assert plane not in game.towers
-    assert not game.orphan_bombs  # forgotten once landed
+    assert not game.orphan_shots  # forgotten once landed
     assert plane.bullets == []
 
 
@@ -125,7 +125,7 @@ def test_an_orphan_bomb_lands_on_the_same_tick_as_with_its_plane(game, tower_con
     bomb = drop_and_leave(game)
     landing_at = bomb._created_at + Bomb.FALL_DURATION_MS
 
-    while game.orphan_bombs:
+    while game.orphan_shots:
         game._tick()
 
     assert landing_at <= game.game_state.time_ms < landing_at + TICK_MS
@@ -140,28 +140,28 @@ def test_an_orphan_bomb_waits_while_the_game_is_paused(game, tower_config):
     for _ in range(TICKS_TO_LAND):
         game._tick()
 
-    assert list(game.orphan_bombs) == [bomb]
+    assert [o.shot for o in game.orphan_shots] == [bomb]
     assert bomb.position == position
     assert not game.bomb_impacts.explosions
 
 
-def test_starting_a_new_game_or_loading_drops_orphan_bombs(game, tower_config):
+def test_starting_a_new_game_or_loading_drops_orphan_shots(game, tower_config):
     plane_at_the_edge(game, tower_config, game.assets)
     drop_and_leave(game)
     game._init_wave_manager()  # the save needs one
     game._save_game()  # in-flight bombs aren't saved
 
     game._load_game()
-    assert not game.orphan_bombs
+    assert not game.orphan_shots
 
     plane_at_the_edge(game, tower_config, game.assets)
     game.game_state.is_started = True
     drop_and_leave(game)
     game._start_new_game()
-    assert not game.orphan_bombs
+    assert not game.orphan_shots
 
 
-def test_the_menu_demos_orphan_bombs_land_too(assets, tower_config):
+def test_the_menu_demos_orphan_shots_land_too(assets, tower_config):
     from gameplay.tilemap import Tilemap
 
     tilemap = Tilemap("assets/maps/tiled_tilemap.tmx")
@@ -178,4 +178,4 @@ def test_the_menu_demos_orphan_bombs_land_too(assets, tower_config):
         demo._tick()
 
     assert any(e.position == bomb.position for e in demo.bomb_impacts.explosions)
-    assert not demo.orphan_bombs
+    assert not demo.orphan_shots

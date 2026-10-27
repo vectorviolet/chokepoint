@@ -110,7 +110,9 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 - Types 1 & 3: instant-hit `MuzzleFlash` at barrel tips (twin barrels for type 1 and type 3 lvl 2)
 - Type 2: homing `Projectile`
-- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on in `BattleSimulation.orphan_bombs` and land as usual (credited to the departed plane); in-flight bombs aren't saved
+- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on and land as usual (credited to the departed plane)
+
+Shots in flight outlive their shooter: when a plane leaves the map, a tower is sold or destroyed, or a tank dies or escapes, its shots still flying (bullets with `outlives_source = True`: `Projectile`, `Bomb`, `TankBullet`; not the instant-hit muzzle flashes) move to `BattleSimulation.orphan_shots` and hit as they would have, credited to the departed source, updated and drawn with the towers' or the enemies' bullets. Shots in flight aren't saved; `_clear_orphan_shots()` drops them on new game, load and each new menu demo run
 
 Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py`): `BattleSimulation` builds an `EnemyGrid` for ground towers in `_update_towers` and a `TowerGrid` (as `tower_grid`) for tanks in `_update_enemies`. They must pick exactly what a full scan would (nearest, first in list on a tie, inclusive range; a tower's optional blind spot, `min_ranges` in `config/towers.yaml` -- only the heavy cannon has one -- is exclusive at its edge: targetable when `min_range < distance <= range`); `tests/test_targeting.py` checks that against the old algorithms.
 
