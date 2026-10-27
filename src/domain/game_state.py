@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, TYPE_CHECKING
 
 from util.constants import TICK_MS
@@ -34,6 +34,9 @@ class TowerConfig:
     speeds: list[list[int]]
     hps: list[list[int] | None]  # None = invulnerable (e.g. planes)
     shoot_sounds: list[str | None]  # asset key per tower type; None = silent
+    # Blind spot radius per level: enemies at this distance or closer can't
+    # be targeted. 0 = none (every tower but the heavy cannon).
+    min_ranges: list[list[int]] = field(default_factory=list)
 
 
 class GameState:

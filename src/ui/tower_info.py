@@ -1,5 +1,5 @@
 """The tower info panel: a selected tower's record (kills, money earned) and
-stats (range, damage, fire rate, HP), each stat that an upgrade changes
+stats (range, minimum range, damage, fire rate, HP), each stat that an upgrade changes
 shown as "current → next" until the tower is at its max level.
 
 The panel's objects are declared in config/panels.yaml (`tower_info_*` on
@@ -18,7 +18,7 @@ from util.constants import TILE_SIZE
 ARROW = "→"  # Anton has this glyph (Comic Neue doesn't): values use Anton
 
 # Stat rows in display order: (key, label object, value object).
-ROWS = ("kills", "earned", "range", "damage", "fire_rate", "hp")
+ROWS = ("kills", "earned", "range", "min_range", "damage", "fire_rate", "hp")
 
 TOWER_INFO_OBJECTS = (
     "tower_info_bg",
@@ -69,12 +69,17 @@ def stat_texts(tower) -> dict[str, str]:
             f"{max(0, tower.hp)} / {now['max_hp']}",
             str(nxt["max_hp"]) if nxt else None,
         )
+    if now["min_range"] or (nxt and nxt["min_range"]):
+        min_range = preview("min_range", _tiles, " tiles")
+    else:
+        min_range = "-"  # no blind spot (every tower but the heavy cannon)
     level = f"Level {tower.level} / {tower.max_level}"
     return {
         "title": level + ("  (max)" if tower.is_max_level() else ""),
         "kills": str(tower.kills),
         "earned": f"{tower.money_earned} $",
         "range": preview("range", _tiles, " tiles"),
+        "min_range": min_range,
         "damage": preview("damage", str),
         "fire_rate": preview("reload_ms", _rate, "/s"),
         "hp": hp,

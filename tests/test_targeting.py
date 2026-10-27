@@ -23,9 +23,19 @@ RANGES = (160, 192, 224, 256, 288)  # every ground tower range in towers.yaml
 # ── reference implementations (the pre-grid code) ─────────────────────────────
 
 
-def reference_enemy(enemies, position, radius):
+def reference_enemy(enemies, position, radius, min_radius=0):
     """GroundTower.work's old choice: the index of the enemy it aimed at,
-    or None."""
+    or None. With a `min_radius` (the heavy cannon's blind spot, #11),
+    enemies at that distance or closer are left out of the same scan first;
+    with the default 0 this is the old code unchanged."""
+    if min_radius > 0:
+        visible = [
+            i
+            for i, enemy in enumerate(enemies)
+            if (enemy.position - position).length() > min_radius
+        ]
+        index = reference_enemy([enemies[i] for i in visible], position, radius)
+        return None if index is None else visible[index]
     if not enemies:
         return None
     distances = [enemy.position - position for enemy in enemies]
@@ -179,6 +189,88 @@ def test_the_nearest_enemy_out_of_range_means_no_target():
     assert EnemyGrid(enemies).nearest_in_range(centre, 160) == (None, None)
 
 
+# ── the heavy cannon's blind spot (issue #11) ────────────────────────────────
+
+MIN_RANGE = 96  # the heavy cannon's, in towers.yaml
+
+
+@pytest.mark.parametrize("seed", range(40))
+def test_enemy_choice_with_a_blind_spot_matches_the_full_scan(seed):
+    rng = random.Random(5000 + seed)
+    for _ in range(60):
+        centre = random_centre(rng)
+        radius = rng.choice((256, 288))
+        min_radius = rng.choice((MIN_RANGE, rng.uniform(1, radius - 1)))
+        points = random_layout(rng, centre, radius, rng.randint(0, 400))
+        for _ in range(rng.randint(0, 3)):  # ties on the blind spot's edge
+            points += mirrored(rng, centre, min_radius)
+        rng.shuffle(points)
+        enemies = [Thing(p) for p in points]
+
+        expected = reference_enemy(enemies, centre, radius, min_radius)
+        enemy, delta = EnemyGrid(enemies).nearest_in_range(centre, radius, min_radius)
+
+        if expected is None:
+            assert enemy is None and delta is None
+        else:
+            assert enemy is enemies[expected]
+            assert delta == enemies[expected].position - centre
+
+
+@pytest.mark.parametrize(
+    ("distance", "targetable"),
+    [
+        (MIN_RANGE - 1, False),  # just inside the blind spot
+        (MIN_RANGE - 1e-9, False),
+        (MIN_RANGE, False),  # on its edge: still blind (exclusive)
+        (MIN_RANGE + 1e-9, True),
+        (MIN_RANGE + 1, True),  # just outside it
+        (256, True),  # the outer edge stays inclusive
+        (256 + 1e-9, False),
+    ],
+)
+def test_the_blind_spot_edges(distance, targetable):
+    centre = Vector2(640, 640)
+    enemies = [Thing(centre + Vector2(distance, 0))]
+
+    enemy, _ = EnemyGrid(enemies).nearest_in_range(centre, 256, MIN_RANGE)
+
+    assert (enemy is enemies[0]) is targetable
+
+
+def test_the_nearest_enemy_outside_the_blind_spot_is_picked():
+    centre = Vector2(640, 640)
+    enemies = [
+        Thing(centre + Vector2(0, 50)),  # nearest, but in the blind spot
+        Thing(centre + Vector2(200, 0)),
+        Thing(centre + Vector2(0, -120)),
+    ]
+
+    enemy, delta = EnemyGrid(enemies).nearest_in_range(centre, 256, MIN_RANGE)
+
+    assert enemy is enemies[2]
+    assert delta == Vector2(0, -120)
+
+
+def test_only_enemies_in_the_blind_spot_means_no_target():
+    centre = Vector2(640, 640)
+    enemies = [Thing(centre), Thing(centre + Vector2(MIN_RANGE, 0))]
+
+    assert EnemyGrid(enemies).nearest_in_range(centre, 256, MIN_RANGE) == (
+        None,
+        None,
+    )
+
+
+def test_no_blind_spot_still_targets_an_enemy_on_the_tower():
+    centre = Vector2(640, 640)
+    enemies = [Thing(centre)]
+
+    enemy, _ = EnemyGrid(enemies).nearest_in_range(centre, 160)
+
+    assert enemy is enemies[0]
+
+
 # ── towers, for tanks ─────────────────────────────────────────────────────────
 
 
@@ -226,7 +318,7 @@ def test_planes_alone_are_no_target():
 def _reference_work(self, enemies, is_started, enemy_grid=None):
     if not is_started or not enemies:
         return
-    index = reference_enemy(enemies, self.position, self.range)
+    index = reference_enemy(enemies, self.position, self.range, self.min_range)
     if index is None:
         return
     self.rotate_to_delta(enemies[index].position - self.position)

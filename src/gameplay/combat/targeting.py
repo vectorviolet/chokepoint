@@ -11,6 +11,10 @@ The answers are exactly the ones the old full scans gave, ties included:
 - ``EnemyGrid.nearest_in_range`` returns the enemy with the smallest
   ``(enemy.position - position).length()``, the first one in list order on
   a tie, or None if that smallest length is greater than the range.
+  With a minimum range (the heavy cannon's blind spot, issue #11), enemies
+  at that length or closer are left out first: the answer is the nearest
+  enemy with ``min_radius < length <= radius``. A minimum range of 0 leaves
+  nothing out, so the answer is exactly the one above.
 - ``TowerGrid.nearest`` returns the targetable tower (``maxHP`` not None)
   with the smallest ``(tower.position - position).length_squared()``, the
   first one in list order on a tie, at any distance.
@@ -61,15 +65,20 @@ class EnemyGrid:
         self._cells = cells
         self._count = len(self.enemies)
 
-    def nearest_in_range(self, position: Vector2, radius: float):
-        """(enemy, enemy.position - position) for the nearest enemy, if it
-        is within `radius` (inclusive); (None, None) otherwise."""
+    def nearest_in_range(self, position: Vector2, radius: float, min_radius: float = 0):
+        """(enemy, enemy.position - position) for the nearest enemy that is
+        within `radius` (inclusive) and outside `min_radius` (exclusive: an
+        enemy exactly at `min_radius` is in the blind spot); (None, None)
+        if there is none. `min_radius` 0 means no blind spot."""
         self._sync()
         px, py = position
         reach = radius + 1  # +1 px: covers rounding at the cell borders
         cx0, cy0 = _cell(px - reach, py - reach)
         cx1, cy1 = _cell(px + reach, py + reach)
         limit_sq = radius * radius * (1 + _SLACK)
+        # Squared distances below this are surely inside the blind spot.
+        # -1 when there is none, so nothing is skipped (not even distance 0).
+        inner_sq = min_radius * min_radius * (1 - _SLACK) if min_radius > 0 else -1
 
         cells = self._cells
         best = best_delta = None
@@ -82,11 +91,12 @@ class EnemyGrid:
                 for i, enemy, x, y in bucket:
                     dx = x - px
                     dy = y - py
-                    if dx * dx + dy * dy > limit_sq:
+                    dist_sq = dx * dx + dy * dy
+                    if dist_sq > limit_sq or dist_sq < inner_sq:
                         continue
                     delta = enemy.position - position
                     length = delta.length()
-                    if length > radius:
+                    if length > radius or (min_radius > 0 and length <= min_radius):
                         continue
                     if (
                         best is None

@@ -6,6 +6,7 @@ from pygamine import Camera
 from util.constants import TILE_SIZE, HALF_TILE
 from domain.game_state import GameState, TowerConfig
 from gameplay.towers import BaseTower, TowerFactory
+from ui.range_ring import draw_range_ring
 
 _TOWER_HOTKEYS = {
     pygame.K_1: 1,
@@ -269,6 +270,13 @@ class TowerPlacementController:
 
         world_range = self._tower_config.ranges[self.buying_tower_type - 1][0]
         scaled_range = int(world_range * self._camera.scale)
+        min_ranges = self._tower_config.min_ranges
+        world_min_range = (
+            min_ranges[self.buying_tower_type - 1][0]
+            if self.buying_tower_type <= len(min_ranges)
+            else 0
+        )
+        scaled_min_range = int(world_min_range * self._camera.scale)
         center = self._camera.world_to_screen(
             (
                 self.cursor_col * TILE_SIZE + HALF_TILE,
@@ -280,16 +288,15 @@ class TowerPlacementController:
         blocked = (
             not self._is_placeable(self.cursor_row, self.cursor_col) or cannot_afford
         )
-        self._blit_range_ring(surface, center, scaled_range, blocked)
+        self._blit_range_ring(surface, center, scaled_range, blocked, scaled_min_range)
 
     @staticmethod
     def _blit_range_ring(
-        surface: pygame.Surface, center, radius: int, blocked: bool
+        surface: pygame.Surface,
+        center,
+        radius: int,
+        blocked: bool,
+        min_radius: int = 0,
     ) -> None:
-        if radius <= 0:
-            return
-        surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-        pygame.draw.circle(surf, (128, 128, 128, 120), (radius, radius), radius, 0)
         outline = (255, 0, 0, 120) if blocked else (0, 200, 0, 120)
-        pygame.draw.circle(surf, outline, (radius, radius), radius, 5)
-        surface.blit(surf, (center.x - radius, center.y - radius))
+        draw_range_ring(surface, center, radius, outline, 5, min_radius)

@@ -45,8 +45,11 @@ class GroundTower(BaseTower):
     def work(
         self, enemies: list, is_started: bool, enemy_grid: EnemyGrid | None = None
     ) -> None:
-        """Aim at the nearest enemy within range (the first one in `enemies`
-        on a tie) and fire when reloaded. `enemy_grid` is this tick's grid
+        """Aim at the nearest enemy within range and outside the blind spot
+        (min_range < distance <= range; the first one in `enemies` on a
+        tie) and fire when reloaded. The choice is made afresh every tick,
+        so an enemy that walks into the blind spot is dropped for the next
+        nearest one outside it. `enemy_grid` is this tick's grid
         of `enemies`, shared by all towers; without one, a grid is built
         just for this call."""
         if not is_started or not enemies:
@@ -54,7 +57,9 @@ class GroundTower(BaseTower):
 
         if enemy_grid is None or enemy_grid.enemies is not enemies:
             enemy_grid = EnemyGrid(enemies)
-        target, delta = enemy_grid.nearest_in_range(self.position, self.range)
+        target, delta = enemy_grid.nearest_in_range(
+            self.position, self.range, self.min_range
+        )
         if target is None:
             return
 
