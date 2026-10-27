@@ -5,6 +5,10 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project aims to
 follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+This file is the short list of what changed. The [devlog](docs/devlog/README.md) has the detailed,
+illustrated history of features and design decisions (options, choice and why), and
+[docs/decisions](docs/decisions/README.md) has the architecture decision records.
+
 ## [0.3.1] – 2026-10-25
 
 ### Removed
