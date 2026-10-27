@@ -247,11 +247,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     @override
     def show_splash(self) -> None:
-        super().show_splash()
+        # Read before the splash: it plays its clip through this same
+        # GameAudio, and play_music()/stop_music() clear the paused flag.
         muted = self.audio.is_music_paused
+        super().show_splash()
         self.audio.play_music(str(self.assets.sound_path("bg_music")))
         if muted:  # the music toggle was off when the settings were saved
             self.audio.pause_music()
+        self._refresh_music_toggles()  # icons and labels follow the audio
 
     def _bind_settings_ui(self) -> None:
         """(Re-)applies live audio/window state to the settings panel's
