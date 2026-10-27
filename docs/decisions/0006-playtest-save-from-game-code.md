@@ -20,14 +20,19 @@ own `_save_game()` and `_save_settings()`. This was the owner's requirement in #
 `save.json` and `settings.json` are written, into a folder given with `--out`.
 
 Guards: `--out` is required; existing files are not overwritten without `--overwrite`; an `--out`
-inside the main checkout's own `saves/` is refused. The main checkout is found with git, or by
-reading `.git` (folder, worktree or submodule file) when git isn't available. If it still can't be
-found, any `saves` folder outside the current checkout is refused.
+inside the main checkout's own `saves/` is refused, comparing paths case-insensitively on
+Windows. The main checkout is the main work tree of the shared git folder (also for submodules and
+their worktrees); a copy nested in another repository, or with no `.git`, is its own. Without git,
+`.git` is read directly. If it still can't be found, any `saves` folder outside the current
+checkout is refused.
 
-Building the run: towers are placed first and kept out of the battle while the wave fills, so the
-spawned half stays on the path. Escapes during the fill cost no lives, so any `--level` works.
-The plane is added after the fill. Towers are created at their level by
-`TowerFactory.create(..., level=)`, the same helper the save restore and the menu demo use.
+Building the run: towers are placed first, then the wave fills to about half spawned under
+`BattleSimulation.waves_only()` (towers idle, no fighting, escapes cost no lives), so any
+`--level` works. In long, high-level waves many of the first enemies reach the end while it
+fills, so fewer than half the wave is on the path; the script prints the real number. The plane
+is added after the fill, at the map's left edge. The script uses public API only:
+`TowerFactory.create(..., level=)` (shared with the save restore and the menu demo),
+`WaveManager.spawned_count` / `wave_size`, `waves_only()` and `gameplay.path_geometry`.
 
 ## Consequences
 

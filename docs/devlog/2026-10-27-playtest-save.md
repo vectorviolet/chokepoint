@@ -29,14 +29,22 @@ Details in PR #64: the script refuses to run without `--out`, refuses to overwri
 `--overwrite`, and refuses to write into the main checkout's own `saves/`. `window_size` is left out
 of the settings so the game picks its best fit for the screen.
 
-After code review on PR #64:
-- The towers are placed before the wave fills but hold fire while it does. When they fired, wave
-  10 kept only 1 of its 7 spawned enemies, and the issue asks for half the wave on the path.
-- While the wave fills, enemies that reach the end cost no lives and can't end the run, so any
-  `--level` works (tested up to 200). The script reports how many got through.
-- The plane is added last, because placed earlier it would fly off the map during the fill.
-- The main checkout is found with git, or by reading `.git` when git isn't available. If it still
-  can't be found, the script refuses any `saves` folder outside the current checkout.
+After two code reviews on PR #64:
+- The wave is filled to about half spawned under `BattleSimulation.waves_only()`: the towers
+  (already placed) hold fire and nothing fights, and enemies that reach the end cost no lives, so
+  any `--level` works (tested up to 200). When the towers fired, wave 10 kept only 1 of its 7
+  spawned enemies, and the issue asks for half the wave on the path.
+- In long, high-level waves many of the first enemies reach the end before half have spawned, so
+  fewer are on the path (wave 100: 155 of 309 spawned, 91 on the path). The script prints the real
+  number.
+- The plane is added after the fill at the map's left edge, on the path's row, so it crosses the
+  whole map (about 18 s at x1). Placed near the entrance (column 41 of 47), it left in 3 s.
+- The main checkout is found from the shared git folder: its parent for a `.git` folder, the
+  `core.worktree` of a submodule's `.git/modules/<name>`. A copy nested in another repository,
+  or one with no `.git`, holds the real saves itself. Without git, `.git` is read directly. If the
+  checkout still can't be found, any `saves` folder outside the current checkout is refused.
+  Paths compare case-insensitively on Windows (`.../Saves` is refused too).
+- Settings write `auto_pause_between_waves: false` explicitly.
 
 ## Rejected alternatives
 

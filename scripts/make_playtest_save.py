@@ -3,10 +3,12 @@ worktree's own saves/, so a PR can be play-tested at once with Continue:
 
     uv run python scripts/make_playtest_save.py --out saves
 
-The run: --money coins (100,000), wave --level (10) about half spawned with
-its enemies on the path, paused; one tower of every type at every level on
-free build tiles beside the path, the plane upgrade bought and one plane in
-the air. The settings: music and SFX volume 0, music on, windowed.
+The run: --money coins (100,000), wave --level (10) about half spawned and
+paused, its spawned enemies on the path (in long, high-level waves the first
+ones reach the end while it fills, so fewer); one tower of every type at
+every level on build tiles beside the path, the plane upgrade bought and one
+plane starting its flight at the map's left edge. The settings: music and
+SFX volume 0, music on, auto-pause off, windowed.
 
 It builds all of this with the real game: a Game() whose saving is
 redirected to a temporary folder (saves_redirected() from smoke_test.py),
@@ -20,6 +22,7 @@ into the main checkout's own saves/ (the player's real saves).
 import argparse
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -56,12 +59,56 @@ class RefusedError(Exception):
 
 # ── where it may write ───────────────────────────────────────────────────────
 
+# Paths compare as the OS does: case-insensitively on Windows, where
+# `.../Saves` is the same folder as `.../saves`.
+_normcase = os.path.normcase
+
+
+def _key(path: Path) -> str:
+    return _normcase(os.path.normpath(str(path)))
+
+
+def is_within(path: Path, folder: Path) -> bool:
+    """Whether `path` is `folder` or inside it (both resolved)."""
+    p, f = _key(path), _key(folder)
+    return p == f or p.startswith(f.rstrip(os.sep) + os.sep)
+
+
+def _git(*args: str) -> str | None:
+    try:
+        return subprocess.run(
+            ["git", "-C", str(ROOT), *args],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def _main_worktree_of(common_dir: Path) -> Path | None:
+    """The main work tree of the git folder `common_dir`: its parent for a
+    `.git` folder, else (a submodule's .git/modules/<name>) its
+    core.worktree setting."""
+    if common_dir.name == ".git":
+        return common_dir.parent
+    try:
+        config = (common_dir / "config").read_text(encoding="utf-8")
+    except OSError:
+        return None
+    match = re.search(r"^\s*worktree\s*=\s*(.+?)\s*$", config, re.MULTILINE)
+    if match is None:
+        return None
+    worktree = Path(match.group(1))
+    return (worktree if worktree.is_absolute() else common_dir / worktree).resolve()
+
 
 def checkout_from_dot_git(root: Path) -> Path | None:
     """The main checkout, read from `root`'s .git without running git: a
-    .git folder means `root` is it; a worktree's .git file points at
-    <main>/.git/worktrees/<name>; a submodule's at <super>/.git/modules/...,
-    which still makes `root` its own checkout. None if it can't be told."""
+    .git folder, or a .git file pointing at a git folder of its own (a
+    submodule), makes `root` the main checkout; a linked worktree's .git
+    file points at <common>/worktrees/<name>, whose main work tree is the
+    main checkout. None if it can't be told."""
     dot_git = root / ".git"
     if dot_git.is_dir():
         return root
@@ -74,34 +121,33 @@ def checkout_from_dot_git(root: Path) -> Path | None:
     if not gitdir.is_absolute():
         gitdir = root / gitdir
     gitdir = gitdir.resolve()
-    if gitdir.parent.name == "worktrees":
-        return gitdir.parent.parent.parent
-    if "modules" in gitdir.parts:
+    if gitdir.parent.name != "worktrees":
         return root
-    return None
+    return _main_worktree_of(gitdir.parent.parent)
 
 
 def main_checkout() -> Path | None:
     """The repository's main checkout -- the folder holding the player's real
-    saves/. From a git worktree that's the parent of the shared .git folder.
-    Asks git first, then reads .git itself; with no .git at all (an unpacked
-    copy) this folder is the one with the real saves. None if it can't be
-    told."""
-    try:
-        common = subprocess.run(
-            ["git", "-C", str(ROOT), "rev-parse", "--git-common-dir"],
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
+    saves/: the main work tree of the shared git folder (its parent for a
+    .git folder; a submodule's core.worktree for one under .git/modules).
+    With no git, or a copy that isn't a checkout of its
+    own (no .git, or nested inside another repository), this folder is the
+    one with the real saves; without git, .git is read directly. None if it
+    can't be told."""
+    toplevel = _git("rev-parse", "--show-toplevel")
+    if toplevel is None:
         if not (ROOT / ".git").exists():
             return ROOT
+        return checkout_from_dot_git(ROOT)
+    if _key(Path(toplevel).resolve()) != _key(ROOT):
+        return ROOT  # git answered for an outer repository
+    common = _git("rev-parse", "--git-common-dir")
+    if common is None:
         return checkout_from_dot_git(ROOT)
     common_dir = Path(common)
     if not common_dir.is_absolute():
         common_dir = ROOT / common_dir
-    return common_dir.resolve().parent
+    return _main_worktree_of(common_dir.resolve())
 
 
 def check_out_dir(out: Path, overwrite: bool, file_names: list[str]) -> Path:
@@ -110,15 +156,15 @@ def check_out_dir(out: Path, overwrite: bool, file_names: list[str]) -> Path:
     if main is None:
         # The real saves/ can't be located: refuse any folder named saves
         # (or inside one) except within this checkout.
-        inside_root = out == ROOT or ROOT in out.parents
-        if "saves" in out.parts and not inside_root:
+        named_saves = any(_normcase(part) == _normcase("saves") for part in out.parts)
+        if named_saves and not is_within(out, ROOT):
             raise RefusedError(
                 f"can't find the main checkout, so refusing to write into a "
                 f"saves folder outside {ROOT}"
             )
     else:
         real_saves = (main / "saves").resolve()
-        if out == real_saves or real_saves in out.parents:
+        if is_within(out, real_saves):
             raise RefusedError(
                 f"refusing to write into the main checkout's real saves folder "
                 f"({real_saves}); use a worktree's own saves/ or another folder"
@@ -149,21 +195,19 @@ def _cwd(path: Path) -> Iterator[None]:
 
 
 def tiles_beside_path(game, count: int) -> list[tuple[int, int]]:
-    """`count` free build tiles beside the path, nearest the entrance (where
-    the camera opens) first, at least TOWER_SPACING_TILES apart."""
-    from gameplay.menu_demo import tiles_near_path
+    """`count` build tiles beside the path, nearest the entrance (where the
+    camera opens) first, at least TOWER_SPACING_TILES apart. Picked on a
+    map with no towers yet."""
+    from gameplay.path_geometry import tiles_near_path
     from util.constants import HALF_TILE, TILE_SIZE
 
     near, far = (tiles * TILE_SIZE for tiles in NEAR_PATH_TILES)
     entrance = game.tilemap.waypoints[0]
-    taken = {t.get_blocking_position() for t in game.towers} - {None}
-    candidates = [
-        tile for tile in tiles_near_path(game.tilemap, near, far) if tile not in taken
-    ]
-    candidates.sort(
+    candidates = sorted(
+        tiles_near_path(game.tilemap, near, far),
         key=lambda rc: entrance.distance_to(
             (rc[1] * TILE_SIZE + HALF_TILE, rc[0] * TILE_SIZE + HALF_TILE)
-        )
+        ),
     )
     chosen: list[tuple[int, int]] = []
     for row, col in candidates:
@@ -177,7 +221,9 @@ def tiles_beside_path(game, count: int) -> list[tuple[int, int]]:
 
 
 def plane_tile(game) -> tuple[int, int]:
-    """The tile over the path PLANE_PATH_TILES along it from the entrance."""
+    """Where the plane starts its flight: the map's left edge (as the menu
+    demo's planes do, so it crosses the whole map), on the row of the path
+    PLANE_PATH_TILES along it from the entrance."""
     from util.constants import TILE_SIZE
 
     path = game.tilemap.waypoints
@@ -189,7 +235,7 @@ def plane_tile(game) -> tuple[int, int]:
             point = a.lerp(b, left / length) if length else a
             break
         left -= length
-    return int(point.y // TILE_SIZE), int(point.x // TILE_SIZE)
+    return int(point.y // TILE_SIZE), 0
 
 
 def tower_specs(tower_config) -> list[tuple[int, int]]:
@@ -223,29 +269,24 @@ def add_tower(game, tower_type: int, level: int, row: int, col: int):
 
 def fill_wave(game, level: int) -> int:
     """Runs wave `level` from its start until about half its enemies have
-    spawned, then pauses. Enemies that reach the end of the path meanwhile
-    (only in long waves) cost no lives, so this can't end the run at any
-    level; how many did is returned."""
+    spawned, then pauses. It runs under waves_only(): the towers hold fire,
+    so the spawned enemies stay on the path, and enemies that reach its
+    end (in long waves: the first of them, before half have spawned) cost
+    no lives, so this can't end the run at any level. Returns how many
+    reached the end."""
     gs = game.game_state
     gs.level = level
     gs.has_won = level > _win_wave()
     gs.is_started = True
     gs.speed = FILL_SPEED
     wm = game.wave_manager
-    escaped = []
-    # An instance attribute shadows Game's hook (lives, game over) while
-    # filling.
-    game._on_enemy_escaped = escaped.append
-    try:
+    with game.waves_only() as escaped:
         for _ in range(MAX_FILL_TICKS):
             game._tick()
-            half = math.ceil(len(wm._spawn_queue) / 2)
-            if wm._spawn_queue and wm._queue_index >= half:
+            if wm.wave_size and wm.spawned_count >= math.ceil(wm.wave_size / 2):
                 break
         else:
             raise RuntimeError("the wave never got half spawned")
-    finally:
-        del game._on_enemy_escaped
     gs.is_started = False
     gs.speed = 1
     return len(escaped)
@@ -267,31 +308,25 @@ def build_run(game, money: int, level: int) -> int:
         specs, tiles_beside_path(game, len(specs))
     ):
         add_tower(game, tower_type, tower_level, row, col)
-    # The towers hold fire while the wave fills: the save is meant to have
-    # the spawned half of the wave on the path, not already shot down.
-    towers = list(game.towers)
-    game.towers.clear()
-    try:
-        escaped = fill_wave(game, level)
-    finally:
-        game.towers.extend(towers)
+    escaped = fill_wave(game, level)
     # The plane last: placed before, it would fly off the map while filling.
     game.game_state.plane_level = 2  # UPG PLANES bought
     add_tower(game, PLANE_TYPE, 2, *plane_tile(game))
     gs = game.game_state
     gs.money = money
-    gs.lives = game._starting_lives
     gs.selected_tower = None
     gs.selected_enemy = None
     return escaped
 
 
-def mute(game) -> None:
-    """Music and SFX at volume 0, music on (not paused)."""
+def settings_for_playtest(game) -> None:
+    """Music and SFX at volume 0, music on (not paused), auto-pause between
+    waves off -- set here rather than left to config/settings.yaml."""
     game.audio.set_music_volume(0.0)
     game.audio.set_sfx_volume(0.0)
     if game.audio.is_music_paused:
         game.audio.resume_music()
+    game.auto_pause = False
 
 
 def windowed(settings: dict) -> dict:
@@ -327,7 +362,7 @@ def make_playtest_save(
         with saves_redirected():
             game = Game()
             escaped = build_run(game, money, level)
-            mute(game)
+            settings_for_playtest(game)
             game._save_game()
             game._save_settings()
             game.settings_store.save(windowed(game.settings_store.load()))
@@ -336,8 +371,12 @@ def make_playtest_save(
             for src in (game.save_store.path, game.settings_store.path):
                 shutil.copyfile(src, out / src.name)
                 written.append(out / src.name)
-    note = f"; {escaped} more reached the end while it filled" if escaped else ""
-    report(f"wave {level}: {len(game.enemies)} enemies on the path{note}")
+    wm = game.wave_manager
+    note = f" ({escaped} reached the end while it filled)" if escaped else ""
+    report(
+        f"wave {level}: {wm.spawned_count} of {wm.wave_size} enemies spawned, "
+        f"{len(game.enemies)} on the path{note}"
+    )
     return written
 
 

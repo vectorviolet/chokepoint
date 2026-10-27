@@ -3,6 +3,9 @@ a real Game() as described, and it refuses unsafe output folders."""
 
 import importlib.util
 import json
+import math
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -39,6 +42,9 @@ def test_save_loads_in_a_real_game_as_described(script, tmp_path, tower_config):
     assert game.audio.sfx_volume() == 0
     assert not game.audio.is_music_paused  # music on, just at volume 0
     assert game.window_settings()["window_mode"] == "windowed"
+    assert game.auto_pause is False
+    settings = json.loads((out / "settings.json").read_text())
+    assert settings["auto_pause_between_waves"] is False
 
     assert game._has_saved_game()
     game._load_game()  # what the play menu's Continue does
@@ -49,11 +55,9 @@ def test_save_loads_in_a_real_game_as_described(script, tmp_path, tower_config):
     assert not gs.is_started  # paused
     assert gs.lives == game._starting_lives
 
-    queue = game.wave_manager._spawn_queue
-    spawned = game.wave_manager._queue_index
-    assert 0 < spawned < len(queue)
-    assert spawned >= len(queue) // 2
-    assert len(game.enemies) == spawned  # all on the path, none killed yet
+    wm = game.wave_manager
+    assert wm.spawned_count == math.ceil(wm.wave_size / 2) < wm.wave_size
+    assert len(game.enemies) == wm.spawned_count  # all on the path
     assert any(e.waypoint_index > 1 for e in game.enemies)  # walking it
 
     from gameplay.towers import GROUND_TOWER_TYPES, PLANE_TYPE
@@ -74,6 +78,7 @@ def test_save_loads_in_a_real_game_as_described(script, tmp_path, tower_config):
     assert len(planes) == 1 and planes[0].level == 2
     assert planes[0].tower_type == PLANE_TYPE
     assert not planes[0].should_remove()  # in the air over the map
+    assert planes[0].col == 0  # at the start of its flight: crosses the map
 
 
 @pytest.mark.parametrize("level", [1, 30, 100])
@@ -82,16 +87,20 @@ def test_any_level_gives_a_paused_half_spawned_wave(script, tmp_path, level):
     enemies reach the end while it fills mustn't end the run (#64 review)."""
     from app.game import Game
 
-    script.make_playtest_save(tmp_path / "saves", level=level, report=lambda _: None)
+    reports = []
+    script.make_playtest_save(tmp_path / "saves", level=level, report=reports.append)
     game = Game()
     game._load_game()
     gs = game.game_state
     assert gs.level == level
     assert gs.lives == game._starting_lives
     assert not gs.is_started
-    assert game.enemies
     wm = game.wave_manager
-    assert wm._queue_index >= len(wm._spawn_queue) // 2
+    assert wm.spawned_count == math.ceil(wm.wave_size / 2)
+    # In long waves the first enemies reach the end while it fills: the
+    # report says how many are really on the path.
+    assert 0 < len(game.enemies) <= wm.spawned_count
+    assert f"{len(game.enemies)} on the path" in reports[0]
     assert len(game.towers) == len(script.tower_specs(game.tower_config)) + 1
 
 
@@ -173,6 +182,24 @@ def test_without_git_a_worktree_finds_the_main_checkout(script, tmp_path, monkey
     script.check_out_dir((worktree / "saves").resolve(), True, [])  # allowed
 
 
+def test_without_git_a_submodule_worktree_finds_the_submodule(
+    script, tmp_path, monkeypatch
+):
+    """A linked worktree of a submodule: its common git folder is
+    <super>/.git/modules/<name>, whose core.worktree is the submodule's
+    main checkout."""
+    sub = tmp_path / "super" / "sub"
+    sub.mkdir(parents=True)
+    modules = tmp_path / "super" / ".git" / "modules" / "sub"
+    (modules / "worktrees" / "wt").mkdir(parents=True)
+    (modules / "config").write_text("[core]\n\tworktree = ../../../sub\n")
+    worktree = tmp_path / "wt"
+    worktree.mkdir()
+    (worktree / ".git").write_text(f"gitdir: {modules / 'worktrees' / 'wt'}\n")
+    _no_git(monkeypatch, script, worktree)
+    assert script.main_checkout() == sub.resolve()
+
+
 def test_without_git_a_plain_copy_is_its_own_checkout(script, tmp_path, monkeypatch):
     _no_git(monkeypatch, script, tmp_path)
     assert script.main_checkout() == tmp_path
@@ -193,6 +220,102 @@ def test_unknown_checkout_refuses_saves_folders_outside_it(
             script.check_out_dir(out.resolve(), True, [])
     script.check_out_dir((root / "saves").resolve(), True, [])  # its own
     script.check_out_dir((tmp_path / "elsewhere").resolve(), True, [])
+
+
+def test_saves_is_refused_in_any_letter_case(script, tmp_path, monkeypatch):
+    """Windows paths are case-insensitive: .../Saves is the real saves/.
+    Simulated here so it's checked on every OS."""
+    main = tmp_path / "main"
+    monkeypatch.setattr(script, "_normcase", str.lower)
+    monkeypatch.setattr(script, "main_checkout", lambda: main)
+    for name in ("Saves", "SAVES", "saves"):
+        with pytest.raises(script.RefusedError, match="real saves"):
+            script.check_out_dir(main / name / "x", True, [])
+    # ...and so is the fallback guard's check for a folder named saves.
+    monkeypatch.setattr(script, "main_checkout", lambda: None)
+    with pytest.raises(script.RefusedError, match="main checkout"):
+        script.check_out_dir(tmp_path / "other" / "Saves", True, [])
+
+
+@pytest.mark.skipif(os.name != "nt", reason="case-insensitive paths: Windows")
+def test_saves_is_refused_in_any_letter_case_on_windows(script, tmp_path, monkeypatch):
+    main = tmp_path / "main"
+    monkeypatch.setattr(script, "main_checkout", lambda: main)
+    with pytest.raises(script.RefusedError, match="real saves"):
+        script.check_out_dir(Path(str(main / "SaVeS").upper()), True, [])
+
+
+# ── with real git repositories ───────────────────────────────────────────────
+
+
+def _git(*args, cwd):
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=test",
+            "-c",
+            "user.email=test@example.com",
+            "-c",
+            "protocol.file.allow=always",
+            "-c",
+            "init.defaultBranch=main",
+            *args,
+        ],
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+    )
+
+
+def _repo(path: Path) -> Path:
+    path.mkdir(parents=True)
+    _git("init", "-q", cwd=path)
+    (path / "f.txt").write_text("x")
+    _git("add", "f.txt", cwd=path)
+    _git("commit", "-q", "-m", "init", cwd=path)
+    return path
+
+
+@pytest.fixture
+def git_available():
+    if shutil.which("git") is None:
+        pytest.skip("git not installed")
+
+
+def test_git_linked_worktree(script, tmp_path, monkeypatch, git_available):
+    main = _repo(tmp_path / "main")
+    _git("worktree", "add", "-q", str(tmp_path / "wt"), cwd=main)
+    monkeypatch.setattr(script, "ROOT", (tmp_path / "wt").resolve())
+    assert script._key(script.main_checkout()) == script._key(main.resolve())
+
+
+def test_git_submodule_is_its_own_checkout(
+    script, tmp_path, monkeypatch, git_available
+):
+    """Its git folder lives in <super>/.git/modules: the real saves are
+    still the submodule's own, not the superproject's .git/modules/saves."""
+    sub_origin = _repo(tmp_path / "sub_origin")
+    sup = _repo(tmp_path / "super")
+    _git("submodule", "add", "-q", str(sub_origin), "sub", cwd=sup)
+    sub = (sup / "sub").resolve()
+    monkeypatch.setattr(script, "ROOT", sub)
+    assert script._key(script.main_checkout()) == script._key(sub)
+    with pytest.raises(script.RefusedError, match="real saves"):
+        script.check_out_dir(sub / "saves", True, [])
+
+
+def test_copy_nested_in_another_repo_is_its_own_checkout(
+    script, tmp_path, monkeypatch, git_available
+):
+    """git answers for the outer repository; the copy holds the real saves."""
+    outer = _repo(tmp_path / "outer")
+    copy = outer / "games" / "chokepoint"
+    copy.mkdir(parents=True)
+    monkeypatch.setattr(script, "ROOT", copy.resolve())
+    assert script.main_checkout() == copy.resolve()
+    with pytest.raises(script.RefusedError, match="real saves"):
+        script.check_out_dir((copy / "saves").resolve(), True, [])
 
 
 def test_leaves_the_default_saves_folder_alone(script, tmp_path):
