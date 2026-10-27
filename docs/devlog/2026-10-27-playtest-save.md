@@ -29,6 +29,15 @@ Details in PR #64: the script refuses to run without `--out`, refuses to overwri
 `--overwrite`, and refuses to write into the main checkout's own `saves/`. `window_size` is left out
 of the settings so the game picks its best fit for the screen.
 
+After code review on PR #64:
+- The towers are placed before the wave fills but hold fire while it does. When they fired, wave
+  10 kept only 1 of its 7 spawned enemies, and the issue asks for half the wave on the path.
+- While the wave fills, enemies that reach the end cost no lives and can't end the run, so any
+  `--level` works (tested up to 200). The script reports how many got through.
+- The plane is added last, because placed earlier it would fly off the map during the fill.
+- The main checkout is found with git, or by reading `.git` when git isn't available. If it still
+  can't be found, the script refuses any `saves` folder outside the current checkout.
+
 ## Rejected alternatives
 
 - A checked-in save file: it would go stale with every save format change.

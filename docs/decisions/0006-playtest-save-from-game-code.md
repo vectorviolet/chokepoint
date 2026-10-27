@@ -20,7 +20,14 @@ own `_save_game()` and `_save_settings()`. This was the owner's requirement in #
 `save.json` and `settings.json` are written, into a folder given with `--out`.
 
 Guards: `--out` is required; existing files are not overwritten without `--overwrite`; an `--out`
-inside the main checkout's own `saves/` is refused.
+inside the main checkout's own `saves/` is refused. The main checkout is found with git, or by
+reading `.git` (folder, worktree or submodule file) when git isn't available. If it still can't be
+found, any `saves` folder outside the current checkout is refused.
+
+Building the run: towers are placed first and kept out of the battle while the wave fills, so the
+spawned half stays on the path. Escapes during the fill cost no lives, so any `--level` works.
+The plane is added after the fill. Towers are created at their level by
+`TowerFactory.create(..., level=)`, the same helper the save restore and the menu demo use.
 
 ## Consequences
 
