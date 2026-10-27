@@ -26,11 +26,8 @@ from gameplay.battle import BattleSimulation
 from ui.bomb_impact_feedback import BombImpactFeedback
 from gameplay.combat.wave_manager import WaveManager
 from pygamine import Camera
-from gameplay.towers import TowerFactory
+from gameplay.towers import GROUND_TOWER_TYPES, PLANE_TYPE, TowerFactory
 from util.constants import TICK_MS, TILE_SIZE, HALF_TILE
-
-GROUND_TOWER_TYPES = (1, 2, 3)
-PLANE_TYPE = 4
 
 START_LEVELS = (8, 16)  # a run starts at a random wave in this range
 WAVES_PER_RUN = 3  # ...and is replaced after this many waves
@@ -183,37 +180,19 @@ class MenuDemo(BattleSimulation):
 
     def _tiles_along_path(self) -> list[tuple[int, int]]:
         """Build tiles within reach of the enemy path."""
-        near, far = TOWER_PATH_DISTANCE
-        grid = self.tilemap.buildable_grid
-        path = self.tilemap.waypoints
-        tiles = []
-        for row, cells in enumerate(grid):
-            for col, buildable in enumerate(cells):
-                if not buildable:
-                    continue
-                centre = Vector2(
-                    col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE
-                )
-                if near <= _distance_to_path(centre, path) <= far:
-                    tiles.append((row, col))
-        return tiles
+        return tiles_near_path(self.tilemap, *TOWER_PATH_DISTANCE)
 
     def _place_towers(self) -> None:
         rng = self._rng
         count = min(rng.randint(*TOWER_COUNT), len(self._candidate_tiles))
         for row, col in rng.sample(self._candidate_tiles, count):
             tower_type = rng.choice(GROUND_TOWER_TYPES)
-            tower = self._create_tower(tower_type, row, col)
+            max_level = self._tower_config.max_levels[tower_type - 1]
             # Upgraded more often than not: a run is set mid-game.
-            tower.level = rng.choices(
-                range(1, tower.max_level + 1), weights=range(1, tower.max_level + 1)
+            level = rng.choices(
+                range(1, max_level + 1), weights=range(1, max_level + 1)
             )[0]
-            if tower.level > 1:
-                tower.load(
-                    self._assets.image_path(f"tower_{tower_type}_lvl{tower.level}")
-                )
-                tower.hp = tower.maxHP
-            self.towers.append(tower)
+            self.towers.append(self._create_tower(tower_type, row, col, level))
 
     def _launch_plane(self) -> None:
         rng = self._rng
@@ -226,7 +205,7 @@ class MenuDemo(BattleSimulation):
         row = max(0, min(len(self.tilemap.buildable_grid) - 1, int(y // TILE_SIZE)))
         self.towers.append(self._create_tower(PLANE_TYPE, row, 0))
 
-    def _create_tower(self, tower_type: int, row: int, col: int):
+    def _create_tower(self, tower_type: int, row: int, col: int, level: int = 1):
         return TowerFactory.create(
             tower_type,
             row,
@@ -235,6 +214,7 @@ class MenuDemo(BattleSimulation):
             self._assets,
             self._audio,
             self.tilemap.map_width,
+            level=level,
         )
 
     # ── camera ────────────────────────────────────────────────────────────────
@@ -281,6 +261,21 @@ class MenuDemo(BattleSimulation):
             step.scale_to_length(max_step)
         self._camera_pos += step
         self.camera.center_on(self._camera_pos)
+
+
+def tiles_near_path(tilemap, near: float, far: float) -> list[tuple[int, int]]:
+    """Build tiles (row, col), row by row, whose centre is `near` to `far`
+    world px from the enemy path. The play-test save script uses it too."""
+    path = tilemap.waypoints
+    tiles = []
+    for row, cells in enumerate(tilemap.buildable_grid):
+        for col, buildable in enumerate(cells):
+            if not buildable:
+                continue
+            centre = Vector2(col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
+            if near <= _distance_to_path(centre, path) <= far:
+                tiles.append((row, col))
+    return tiles
 
 
 def _distance_to_path(point: Vector2, path: list[Vector2]) -> float:

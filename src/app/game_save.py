@@ -122,12 +122,8 @@ class GameSaveMixin:
                 self.assets,
                 self.audio,
                 self.tilemap.map_width,
+                level=t["level"],
             )
-            tower.level = t["level"]
-            if tower.level != 1:
-                tower.load(
-                    self.assets.image_path(f"tower_{tower.tower_type}_lvl{tower.level}")
-                )
             tower.hp = t["hp"]
             # Saves from before the tower info panel have no record: start at 0.
             tower.kills = t.get("kills", 0)
