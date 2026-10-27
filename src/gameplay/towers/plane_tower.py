@@ -44,7 +44,8 @@ class PlaneTower(BaseTower):
         if game_state.is_started and not self._is_off_map():
             self.position.x += self.speed * game_state.speed
             self.rect.center = self.position
-            self._maybe_drop_bomb()
+            if not self._is_past_the_edge():
+                self._maybe_drop_bomb()
 
     def _maybe_drop_bomb(self) -> None:
         if self.now - self._last_bomb_drop_at < BOMB_DROP_INTERVAL_MS:
@@ -110,6 +111,12 @@ class PlaneTower(BaseTower):
     def get_blocking_position(self) -> tuple | None:
         return None  # Planes fly over the map and never block a build tile
 
+    def _is_past_the_edge(self) -> bool:
+        """Its centre has crossed the map's right edge: it drops no more
+        bombs (they would land off the map), while its sprite slides off."""
+        return self.position.x > self._map_width
+
     def _is_off_map(self) -> bool:
-        # Off-map only once the entire sprite has cleared the right edge of the tilemap.
-        return self.position.x - self.rect.width / 2 > self._map_width
+        """Its whole sprite has cleared the map's right edge. Uses the
+        image's width: `self.rect` keeps a zero size on a plane."""
+        return self.position.x - self.image.get_width() / 2 > self._map_width
