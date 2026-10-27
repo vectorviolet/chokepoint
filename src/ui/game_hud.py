@@ -76,7 +76,9 @@ class GameHUD:
         for i, button in enumerate(self.buy_buttons):
             look = "lvl2" if i == 3 and self._game_state.plane_level == 2 else None
             affordable = money >= self._tower_config.prices[i][0]
-            button.set_state(look if affordable else disabled_state(look))
+            state = look if affordable else disabled_state(look)
+            if button.state != state:  # each kill pays: skip needless redraws
+                button.set_state(state)
 
     def flash_money(self) -> None:
         """A brief red flash of the money counter (a refused purchase)."""

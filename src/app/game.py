@@ -253,7 +253,6 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         }
         self._bind_settings_ui()
         self._refresh_auto_pause_button()
-        self._refresh_keep_placing_button()
         self._build_menu_controllers()
         self._show_path_entrance()
         self._construction_complete = True

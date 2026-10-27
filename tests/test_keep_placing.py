@@ -150,6 +150,27 @@ def test_a_shift_press_toggles_it(game, shift):
     assert game.keep_placing is False
 
 
+@pytest.mark.parametrize(
+    "mod",
+    [pygame.KMOD_LALT, pygame.KMOD_RALT, pygame.KMOD_LCTRL, pygame.KMOD_LMETA],
+    ids=["alt", "right-alt", "ctrl", "meta"],
+)
+@pytest.mark.parametrize("shift", [pygame.K_LSHIFT, pygame.K_RSHIFT])
+def test_shift_with_ctrl_alt_or_meta_does_not_toggle(game, shift, mod):
+    # Alt+Shift switches the keyboard layout on Windows; Ctrl+Shift starts
+    # shortcuts. Only a plain Shift press flips the toggle.
+    key(game, shift, mod=mod | pygame.KMOD_LSHIFT)
+
+    assert game.keep_placing is False
+    assert game.played == []
+    assert "keep_placing" not in game.settings_store.load()
+
+
+def test_a_plain_shift_press_with_its_own_mod_toggles(game):
+    key(game, pygame.K_LSHIFT, mod=pygame.KMOD_LSHIFT)  # as SDL sends it
+    assert game.keep_placing is True
+
+
 def test_holding_shift_does_nothing_more(game, mouse):
     key(game, pygame.K_LSHIFT)
     key(game, pygame.K_LSHIFT, repeat=True)  # a key repeat, if enabled
@@ -365,8 +386,17 @@ def test_the_unaffordable_plane_upgrade_is_denied_the_same_way(game, mouse):
     click(game, mouse, panel(game)["upgrade_plane_button"])
 
     assert game.game_state.plane_level == 1
-    assert game.played[-1] == denied_sound(game)
+    assert game.played == [denied_sound(game)]  # no click on top
     assert game.hud.is_flashing
+
+
+def test_an_affordable_plane_upgrade_clicks_as_before(game, mouse):
+    set_money(game, game.tower_config.prices[3][1])
+
+    click(game, mouse, panel(game)["upgrade_plane_button"])
+
+    assert game.game_state.plane_level == 2
+    assert game.played == [str(game.click_sound_path)]
 
 
 def test_an_affordable_pick_plays_no_denied_sound(game):

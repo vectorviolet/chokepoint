@@ -26,12 +26,14 @@ class FakeBuyButton:
     def __init__(self, states=(None,)):
         self.images = {state: pygame.Surface((8, 8)) for state in states}
         self.state = None
+        self.set_state_calls = 0
 
     def add_surface(self, state, surface):
         self.images[state] = surface
 
     def set_state(self, state):
         self.state = state
+        self.set_state_calls += 1
 
 
 def make_panel():
@@ -154,3 +156,21 @@ def test_plane_upgrade_button_shows_its_configured_price_on_hover(tower_config):
 
     expected = f"{price / 1000:g}K $" if price >= 1000 else f"{price} $"
     assert panel["upgrade_plane_button_text"].state_texts == {"hover": expected}
+
+
+def test_buy_buttons_are_only_updated_when_their_look_changes(tower_config):
+    hud, panel, game_state = make_hud(tower_config, money=10_000)
+    calls = [panel[f"buy_tower_{i + 1}"].set_state_calls for i in range(4)]
+
+    game_state.increase_money(5)  # a kill reward: every tower still affordable
+
+    assert [panel[f"buy_tower_{i + 1}"].set_state_calls for i in range(4)] == calls
+
+
+def test_buy_buttons_grey_out_when_money_falls_short(tower_config):
+    hud, panel, game_state = make_hud(tower_config, money=tower_config.prices[0][0])
+
+    assert panel["buy_tower_1"].state is None
+    assert panel["buy_tower_2"].state == "disabled"
+    game_state.decrease_money(1)
+    assert panel["buy_tower_1"].state == "disabled"

@@ -84,18 +84,10 @@ class FakeTowerController:
 
 
 class FakeHud:
-    """Shows the plane buy button's look like GameHUD.refresh_buy_buttons
-    (without the greyed looks) and counts money flashes."""
+    """Counts money flashes."""
 
-    def __init__(self, game):
-        self._game = game
+    def __init__(self):
         self.flashes = 0
-
-    def refresh_buy_buttons(self) -> None:
-        plane_level = self._game.game_state.plane_level
-        self._game.panel_manager["game"]["buy_tower_4"].set_state(
-            "lvl2" if plane_level == 2 else None
-        )
 
     def flash_money(self) -> None:
         self.flashes += 1
@@ -205,7 +197,7 @@ class FakeGame(GameEventsMixin):
         self.tower_config = load_tower_config()
         self.camera = FakeCamera()
         self.tower_controller = FakeTowerController()
-        self.hud = FakeHud(self)
+        self.hud = FakeHud()
         self.hud_slide = FakeHudSlide()
         self.assets = FakeAssets()
         self.keep_placing = False
@@ -645,7 +637,8 @@ def test_upgrade_plane_succeeds_with_enough_money():
 
     assert game.game_state.money == 0
     assert game.game_state.plane_level == 2
-    assert game.panel_manager["game"]["buy_tower_4"].state == "lvl2"
+    # (The plane's buy button takes its lvl2 look from GameHUD's money
+    # listener; tests/test_keep_placing.py checks that in a real Game.)
     assert game.panel_manager["game"]["upgrade_plane_button"].state == "purchased"
 
 
@@ -658,7 +651,7 @@ def test_upgrade_plane_fails_with_insufficient_money():
     assert game.game_state.money == PLANE_UPGRADE_PRICE - 1
     assert game.game_state.plane_level == 1
     # Refused like an unaffordable tower: the denied sound and a money flash.
-    assert game.audio.played[-1] == "assets/sfx/denied.ogg"
+    assert game.audio.played == ["assets/sfx/denied.ogg"]  # no click on top
     assert game.hud.flashes == 1
     assert game.hud_slide.peeks == ["money"]
 

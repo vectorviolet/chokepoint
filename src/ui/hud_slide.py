@@ -139,8 +139,8 @@ class HudSlide:
         }
         self._peek_ms = {"lives": 0.0, "money": 0.0}
         self.rebind(panel_manager, canvas)
-        game_state.add_money_listener(lambda _: self._peek("money"))
-        game_state.add_lives_listener(lambda _: self._peek("lives"))
+        game_state.add_money_listener(lambda _: self.peek("money"))
+        game_state.add_lives_listener(lambda _: self.peek("lives"))
 
     def rebind(self, panel_manager: PanelManager, canvas: tuple[int, int]) -> None:
         """Pick up the objects of a freshly (re)built game panel."""
@@ -190,10 +190,7 @@ class HudSlide:
 
     def peek(self, name: str) -> None:
         """Brings a counter ("money" or "lives") back for PEEK_MS while the
-        HUD is hidden, e.g. to show it flashing; no-op while shown."""
-        self._peek(name)
-
-    def _peek(self, name: str) -> None:
+        HUD is hidden (a change, or the money flash); no-op while shown."""
         if self.shown:
             return
         self._peek_ms[name] = PEEK_MS
