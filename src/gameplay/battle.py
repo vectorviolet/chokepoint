@@ -154,6 +154,8 @@ class BattleSimulation:
                         bullet.update(self)
         finally:
             self.tower_grid = None
+        if self.game_state.selected_enemy not in self.enemies:
+            self.game_state.selected_enemy = None  # it died or escaped
 
     # ── rendering ─────────────────────────────────────────────────────────────
 
@@ -186,4 +188,11 @@ class BattleSimulation:
                 enemy.draw_muzzle(surface, camera)
                 for bullet in enemy.bullets:
                     camera.draw(surface, bullet)
-            hp_bar.draw(surface, camera, enemy.position, enemy.hp, enemy.maxHP)
+            hp_bar.draw(
+                surface,
+                camera,
+                enemy.position,
+                enemy.hp,
+                enemy.maxHP,
+                force=enemy is self.game_state.selected_enemy,
+            )
