@@ -13,6 +13,7 @@ from pygame.math import Vector2
 
 import app.game
 from app.game import Game
+from gameplay.battle import OrphanShot
 from gameplay.combat.enemy import Enemy
 from gameplay.combat.projectile import Bomb
 from gameplay.combat.tank import Tank, TankBullet
@@ -149,10 +150,10 @@ def test_hp_bars_stay_above_planes(battle, tower_config, assets, monkeypatch):
     assert index_of(drawn, ("hp", tuple(enemy.position))) > plane_at
 
 
-def test_orphan_bombs_stay_under_enemies(battle, tower_config, assets, monkeypatch):
+def test_orphan_shots_stay_under_enemies(battle, tower_config, assets, monkeypatch):
     tower, plane, bomb, enemy = stage(battle, tower_config, assets)
     orphan = Bomb(plane, Vector2(0, 0))
-    battle.orphan_bombs = [orphan]
+    battle._orphan_tower_shots = [OrphanShot(plane, orphan)]
 
     drawn = record_layers(battle, battle.camera, monkeypatch)
 

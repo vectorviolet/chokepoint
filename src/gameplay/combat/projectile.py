@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 
 class Projectile(RotatableObject):
+    outlives_source = True  # flies on if its tower is sold or destroyed
     EXPLODE_DISTANCE = 30
     BULLET_SPEED = 2
     FLAME_SCALE = 0.7  # tower-2 trail flame size relative to the missile sprite
@@ -157,6 +158,7 @@ class Bomb(RotatableObject):
     tower's level.
     """
 
+    outlives_source = True  # falls on after its plane leaves the map
     FALL_DURATION_MS = 600
     DRAG = 0.94  # per-tick velocity multiplier at x1 (air resistance)
     SPRITE_SCALE = 0.6  # bullet_2_lvl1 is sized for missiles; scale down for bombs

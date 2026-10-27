@@ -16,18 +16,59 @@ simulation. A subclass provides the state it operates on:
 and may override the two hooks below for its own rules. It also satisfies
 domain.protocols.IGameContext, which projectiles and tanks are updated with.
 
-It keeps one list of its own, `orphan_bombs`: bombs whose plane has left
-the map. They keep falling and land like any other; an owner that resets
-the battle (new game, load, a new demo run) sets it back to `()`.
+It keeps its own orphan shots (`orphan_shots`): shots still in flight
+whose shooter is gone -- a plane that left the map, a tower sold or
+destroyed, a tank killed or escaped. They are adopted where the shooter is
+removed, keep flying and hit like any other, credited to their shooter; an
+owner that resets the battle (new game, load, a new demo run) calls
+`_clear_orphan_shots()`. A tower sold outside the tick is reported with
+`_tower_sold()` (the game's placement controller does).
 """
 
 from __future__ import annotations
 
 import pygame
 
-from gameplay.combat.projectile import Bomb
 from gameplay.combat.targeting import EnemyGrid, TowerGrid
 from ui import hp_bar
+
+
+class OrphanShot:
+    """A shot in flight whose shooter (`source`) is gone. The shot stays in
+    its source's `bullets`, which it leaves when it lands, and keeps the
+    source as the one credited with its kills and money.
+
+    `after`, for a tower's shot: the live tower it updates right after,
+    keeping its source's place in the update order (None: before every
+    tower). Tank shells don't use it."""
+
+    __slots__ = ("source", "shot", "after")
+
+    def __init__(self, source, shot, after=None) -> None:
+        self.source = source
+        self.shot = shot
+        self.after = after
+
+    def update(self, ctx) -> bool:
+        """Moves the shot on; True once it has landed."""
+        self.shot.update(ctx)
+        return not any(b is self.shot for b in self.source.bullets)
+
+
+def _in_flight(source) -> list:
+    """`source`'s shots that outlive it: those still in flight. Instant
+    hits and cosmetic flashes (no `outlives_source`) go with their source."""
+    return [
+        b
+        for b in getattr(source, "bullets", ())
+        if getattr(b, "outlives_source", False)
+    ]
+
+
+def _update_orphans(orphans, ctx, landed: set) -> None:
+    for orphan in orphans:
+        if orphan.update(ctx):
+            landed.add(id(orphan))
 
 
 class BattleSimulation:
@@ -35,10 +76,11 @@ class BattleSimulation:
     # This tick's grid of the towers while enemies update, for tanks
     # (IGameContext is free to lack it); None the rest of the time.
     tower_grid: TowerGrid | None = None
-    # Bombs still falling after their plane left the map and was removed
-    # (see _update_towers). Always replaced, never mutated in place, so the
-    # empty class default is safe to share.
-    orphan_bombs: tuple | list = ()
+    # OrphanShots whose shooter was removed: towers' shots in update order
+    # (see _tower_removed), and tanks' shells. Always replaced, never
+    # mutated in place, so the empty class defaults are safe to share.
+    _orphan_tower_shots: tuple | list = ()
+    _orphan_tank_shells: tuple | list = ()
 
     # ── IGameContext interface ────────────────────────────────────────────────
 
@@ -62,6 +104,7 @@ class BattleSimulation:
         self.game_state.increase_money(amount)
 
     def enemy_killed(self, enemy) -> None:
+        self._tank_removed(enemy)
         self.increase_money(enemy.killMoney)
         self._on_enemy_killed(enemy)
 
@@ -95,7 +138,7 @@ class BattleSimulation:
         kept = []
         for tower in self.towers:
             if tower.should_remove():
-                self._adopt_orphan_bombs(tower)
+                self._tower_removed(tower, kept[-1] if kept else None)
                 if self.game_state.selected_tower is tower:
                     # A plane that left the map or a destroyed tower: its
                     # info panel closes.
@@ -103,6 +146,17 @@ class BattleSimulation:
             else:
                 kept.append(tower)
         self.towers[:] = kept
+        started = self.game_state.is_started
+        # Orphan shots update where their tower was in the order, so the
+        # same shot as before lands first and takes the kill.
+        groups: dict = {}
+        if started:
+            for orphan in self._orphan_tower_shots:
+                key = None if orphan.after is None else id(orphan.after)
+                groups.setdefault(key, []).append(orphan)
+        landed: set = set()
+        if groups:
+            _update_orphans(groups.pop(None, ()), self, landed)
         positions: set[tuple] = set()
         # Enemies don't move while towers update, and kills only remove
         # them, which the grid notices: one grid serves the whole loop.
@@ -112,33 +166,79 @@ class BattleSimulation:
             pos = tower.get_blocking_position()
             if pos:
                 positions.add(pos)
-            for bullet in list(tower.bullets):  # copy: a landing bomb removes itself
-                if self.game_state.is_started:
+            if started:
+                for bullet in list(tower.bullets):  # copy: a landing bomb leaves
                     bullet.update(self)
-        self._update_orphan_bombs()
+            if groups:
+                _update_orphans(groups.pop(id(tower), ()), self, landed)
+        for rest in groups.values():  # their tower left unannounced
+            _update_orphans(rest, self, landed)
+        if landed:
+            self._orphan_tower_shots = [
+                o for o in self._orphan_tower_shots if id(o) not in landed
+            ]
         self._on_tower_positions(positions)
 
-    def _adopt_orphan_bombs(self, tower) -> None:
-        """`tower` is being removed (a plane that left the map): its bombs
-        still falling carry on without it. Each bomb stays in its plane's
-        `bullets`, which it leaves when it lands, and keeps the plane as the
-        tower credited with its kills and money."""
-        bombs = [b for b in tower.bullets if isinstance(b, Bomb)]
-        if bombs:
-            self.orphan_bombs = [*self.orphan_bombs, *bombs]
+    # ── orphan shots ──────────────────────────────────────────────────────────
 
-    def _update_orphan_bombs(self) -> None:
-        if not self.orphan_bombs:
+    @property
+    def orphan_shots(self) -> list:
+        """Every OrphanShot in flight: towers' shots, then tanks' shells."""
+        return [*self._orphan_tower_shots, *self._orphan_tank_shells]
+
+    def _tower_sold(self, tower, index: int) -> None:
+        """`tower`, at `index` in `towers`, was sold and removed between
+        ticks: its shots in flight carry on."""
+        self._tower_removed(tower, self.towers[index - 1] if index > 0 else None)
+
+    def _tower_removed(self, tower, after) -> None:
+        """`tower` leaves the battle; `after` is the live tower that came
+        before it in `towers` (None: it was first). Its shots in flight
+        carry on in its place in the update order: right after `after`'s
+        shots and orphans, ahead of the orphans that updated after it."""
+        shots = _in_flight(tower)
+        orphans = self._orphan_tower_shots
+        followers = [o for o in orphans if o.after is tower]
+        if not shots and not followers:
             return
-        if self.game_state.is_started:
-            for bomb in self.orphan_bombs:
-                bomb.update(self)
-        # A bomb that landed has left its plane's bullets: forget it.
-        self.orphan_bombs = [
-            b for b in self.orphan_bombs if any(x is b for x in b.tower.bullets)
-        ]
+        rank = {id(t): i for i, t in enumerate(self.towers)}
+        after_rank = -1 if after is None else rank.get(id(after), len(rank))
+
+        def later(o) -> bool:
+            if o.after is tower:
+                return True
+            return o.after is not None and rank.get(id(o.after), len(rank)) > after_rank
+
+        at = next((i for i, o in enumerate(orphans) if later(o)), len(orphans))
+        for o in followers:
+            o.after = after
+        new = [OrphanShot(tower, shot, after) for shot in shots]
+        self._orphan_tower_shots = [*orphans[:at], *new, *orphans[at:]]
+
+    def _tank_removed(self, enemy) -> None:
+        """`enemy` died or escaped: a tank's shells in flight carry on."""
+        shells = _in_flight(enemy)
+        if shells:
+            new = [OrphanShot(enemy, shell) for shell in shells]
+            self._orphan_tank_shells = [*self._orphan_tank_shells, *new]
+
+    def _clear_orphan_shots(self) -> None:
+        """The battle is reset (new game, load, a new demo run): shots in
+        flight aren't saved."""
+        self._orphan_tower_shots = ()
+        self._orphan_tank_shells = ()
 
     def _update_enemies(self) -> None:
+        # Shells of tanks killed this tick fly on first, before the wave
+        # can be cleared and auto-pause the run: every shell moves on the
+        # tick its tank died, as its live shells would.
+        if self._orphan_tank_shells and self.game_state.is_started:
+            landed: set = set()
+            _update_orphans(self._orphan_tank_shells, self, landed)
+            if landed:
+                self._orphan_tank_shells = [
+                    o for o in self._orphan_tank_shells if id(o) not in landed
+                ]
         if self.wave_manager:
             self.wave_manager.update(self.enemies, self.game_state)
         # Towers don't move or get removed while enemies update.
@@ -147,6 +247,7 @@ class BattleSimulation:
             for enemy in list(self.enemies):  # copy: reaching the end removes it
                 if enemy.reached_end():
                     self.enemies.remove(enemy)
+                    self._tank_removed(enemy)
                     self._on_enemy_escaped(enemy)
                     continue
                 if not self.game_state.is_started:
@@ -179,9 +280,8 @@ class BattleSimulation:
             if not tower.is_flying:  # planes come after the explosions
                 self._draw_tower(tower, surface, camera)
 
-        # Bombs whose plane already left the map: drawn where its bombs would be.
-        for bomb in self.orphan_bombs:
-            camera.draw(surface, bomb)
+        # Shots whose tower is gone: drawn where its shots would be.
+        self._draw_orphans(surface, camera, self._orphan_tower_shots)
 
         for enemy in self.enemies:
             camera.draw(surface, enemy)
@@ -189,6 +289,7 @@ class BattleSimulation:
                 enemy.draw_muzzle(surface, camera)
                 for bullet in enemy.bullets:
                     camera.draw(surface, bullet)
+        self._draw_orphans(surface, camera, self._orphan_tank_shells)
 
         if self.bomb_impacts is not None:
             self.bomb_impacts.draw(surface, camera)
@@ -217,3 +318,7 @@ class BattleSimulation:
                 enemy.maxHP,
                 force=enemy is self.game_state.selected_enemy,
             )
+
+    def _draw_orphans(self, surface, camera, orphans) -> None:
+        for orphan in orphans:
+            camera.draw(surface, orphan.shot)
