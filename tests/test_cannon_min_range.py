@@ -227,7 +227,7 @@ def test_the_info_panel_shows_the_cannons_min_range(tower_config, assets):
 
 
 def test_the_info_panel_shows_no_min_range_for_other_towers(tower_config, assets):
-    for tower_type in (1, 2, 4):
+    for tower_type in (1, 2):  # (a plane shows its flight speed in that row)
         texts = stat_texts(make_tower(tower_config, assets, tower_type))
         assert texts["min_range"] == "-"
 

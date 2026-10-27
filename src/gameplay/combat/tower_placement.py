@@ -120,6 +120,23 @@ class TowerPlacementController:
                 return enemy
         return None
 
+    def get_clicked_plane(self, mouse_pos: tuple) -> BaseTower | None:
+        """The flying tower (plane) under `mouse_pos` (screen), or None. Hit
+        like an enemy: inside its sprite rect grown by ENEMY_CLICK_PADDING
+        on every side; of several hit, the one drawn on top (the latest in
+        the tower list) wins."""
+        if not self._game_area.collidepoint(mouse_pos):
+            return None
+        world = self._camera.screen_to_world(mouse_pos)
+        point = (int(world.x), int(world.y))
+        pad = ENEMY_CLICK_PADDING * 2
+        for tower in reversed(self._towers):
+            if not tower.is_flying:
+                continue
+            if tower.sprite_rect().inflate(pad, pad).collidepoint(point):
+                return tower
+        return None
+
     def handle_event(self, event, mouse_pos: tuple) -> None:
         self._handle_buy_tower_buttons(event, mouse_pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
@@ -177,11 +194,19 @@ class TowerPlacementController:
         return hit
 
     def _handle_selection(self, mouse_pos: tuple) -> None:
-        """A click on the map (not in placement mode): an enemy under the
-        cursor is selected first, as enemies are drawn over towers; else a
-        tower; else the click clears both selections."""
+        """A click on the map (not in placement mode): a plane under the
+        cursor is selected first, as planes fly over everything; else an
+        enemy, as enemies are drawn over ground towers; else a ground tower;
+        else the click clears both selections. A plane or a ground tower
+        clicked again while selected is deselected."""
         if self.is_construct_mode():
             return  # the click places a tower instead
+        plane = self.get_clicked_plane(mouse_pos)
+        if plane is not None:
+            self._game_state.selected_enemy = None
+            is_selected = self._game_state.selected_tower is plane
+            self._game_state.selected_tower = None if is_selected else plane
+            return
         enemy = self.get_clicked_enemy(mouse_pos)
         if enemy is not None:
             self._game_state.selected_enemy = enemy

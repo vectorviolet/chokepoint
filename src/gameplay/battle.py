@@ -96,6 +96,10 @@ class BattleSimulation:
         for tower in self.towers:
             if tower.should_remove():
                 self._adopt_orphan_bombs(tower)
+                if self.game_state.selected_tower is tower:
+                    # A plane that left the map or a destroyed tower: its
+                    # info panel closes.
+                    self.game_state.selected_tower = None
             else:
                 kept.append(tower)
         self.towers[:] = kept

@@ -19,6 +19,9 @@ class BaseTower(RotatableObject):
     # False: the battle draws this tower's bullets over it. A tower that
     # layers its own (the plane, with bombs under it) sets True.
     draws_own_bullets = False
+    # True for a tower that flies (the plane): it's clicked by its sprite,
+    # not its tile, and has no sell/upgrade buttons.
+    is_flying = False
 
     def __init__(
         self, tower_type: int, row: int, col: int, config: TowerConfig, assets, audio
