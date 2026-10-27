@@ -83,11 +83,12 @@ paths resolve in both. `config_loader` anchors to that root too.
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference |
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
 | `hud_slide` | `HudSlide` | Tab slides the in-game HUD (counters, control buttons, tower bar) off the screen edges and back, drawn-only and on real time; money/lives counters peek back for 1.5 s when they change. `toggle()` is the entry point for a future on-screen button |
-| `tower_info` | `TowerInfoPanel` | The selected tower's info panel (`tower_info_*` objects in `config/panels.yaml`): kills, money earned, range, damage, fire rate, HP bar, and "current → next" upgrade previews below max level. Refreshed every frame from `_selected_tower()`; slides away with the HUD on Tab. Kills/money are credited to the tower whose shot or bomb landed the killing blow (`Enemy.decrease_hp(..., source=tower)`) and saved with it |
+| `tower_info` | `TowerInfoPanel` | The selected tower's info panel (`tower_info_*` objects in `config/panels.yaml`): kills, money earned, range, blind spot (the heavy cannon's minimum range; "-" for the rest), damage, fire rate, HP bar, and "current → next" upgrade previews below max level. A click on a flying plane (its sprite padded like an enemy's; planes win over enemies and ground towers under the cursor) opens it on that plane: Splash, Speed and Bombs (per second) rows instead of Range, Blind spot and Fire rate, HP "-" with no bar, previews for the global UPG PLANES upgrade, no sell/upgrade buttons; it closes when the plane leaves the map. Refreshed every frame from `_selected_tower()`; slides away with the HUD on Tab. Kills/money are credited to the tower whose shot or bomb landed the killing blow (`Enemy.decrease_hp(..., source=tower)`) and saved with it |
 | `buy_tooltip` | `BuyTooltip` | Hovering a buy button shows the tower's name and one-line strength/weakness (`name` + `tooltip` per tower in `config/towers.yaml`, loaded by `config_loader.load_tower_tooltips()`) on the `buy_tooltip_*` objects in `config/panels.yaml`, sized to the text and placed above the button, clamped to the screen. Hidden while the HUD is hidden or sliding; takes no clicks |
 | `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none |
 | `life_lost_feedback` | `LifeLostFeedback` | A bell (its own reserved mixer channel 2, outside pygamine's SFX pool, at the SFX volume) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
 | `place_sell_feedback` | `PlaceSellFeedback` | Placing a tower: a thud and a dust puff on its tile; selling: a coin clink and coins bursting from the tile. Sounds via `audio.play_sfx` (the SFX pool); effects in world space through the camera, on real time (cosmetic: they play out while paused and ignore x2/x4), capped at `MAX_EFFECTS`. Told by the placement controller (`feedback=`); the menu demo has none |
+| `bomb_impacts` | `BombImpactFeedback` | Where a plane's bomb lands: an explosion sized to its splash radius (smoke + fireball, drawn over towers and enemies but under HP bars, through the camera) and an impact sound via `audio.play_sfx`, capped at one per 150 ms and 3 per second. The bomb deals its damage at impact on game time and calls `ctx.bomb_landed()`; the explosion is cosmetic and runs on real time (plays out while paused, ignores x2/x4), at most `MAX_EXPLOSIONS`. The menu demo has its own, silent |
 
 ### Panel / UI system
 
@@ -109,15 +110,19 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 - Types 1 & 3: instant-hit `MuzzleFlash` at barrel tips (twin barrels for type 1 and type 3 lvl 2)
 - Type 2: homing `Projectile`
-- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path
+- Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on in `BattleSimulation.orphan_bombs` and land as usual (credited to the departed plane); in-flight bombs aren't saved
+
+Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py`): `BattleSimulation` builds an `EnemyGrid` for ground towers in `_update_towers` and a `TowerGrid` (as `tower_grid`) for tanks in `_update_enemies`. They must pick exactly what a full scan would (nearest, first in list on a tie, inclusive range; a tower's optional blind spot, `min_ranges` in `config/towers.yaml` -- only the heavy cannon has one -- is exclusive at its edge: targetable when `min_range < distance <= range`); `tests/test_targeting.py` checks that against the old algorithms.
 
 ### Projectiles / IGameContext
 
-`Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.towers`, `.speed`, `.time_ms`, `.map_width`, `.map_height`, and `.increase_money()`. This avoids circular imports — projectiles never import `Game`.
+`Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.towers`, `.speed`, `.time_ms`, `.map_width`, `.map_height`, `.increase_money()` and `.bomb_landed()`. This avoids circular imports — projectiles never import `Game`.
 
 ### Rendering order (game panel)
 
-Tilemap → towers + bullets → enemies → border lines → HUD → tower placement overlay (cursor + range ring)
+Tilemap → towers + their bullets (a plane draws its own: shadow → falling bombs → plane, so bombs are under it) → enemies + their bullets → bomb explosions → HP bars (towers', then enemies', so fire never hides one) → border lines → HUD → tower placement overlay (cursor + range ring)
+
+The battle part (`BattleSimulation._draw_battle`) is shared by the game and the menu demo; `tests/test_draw_order.py` checks it.
 
 ### Config files
 

@@ -31,6 +31,7 @@ from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
+from ui.bomb_impact_feedback import BombImpactFeedback
 from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
 from ui.place_sell_feedback import PlaceSellFeedback
@@ -42,7 +43,7 @@ from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
 from gameplay.combat.tower_placement import TowerPlacementController
-from gameplay.towers import BaseTower, GroundTower
+from gameplay.towers import BaseTower
 from gameplay.combat.wave_manager import WaveManager
 from gameplay.battle import BattleSimulation
 from gameplay.menu_demo import MenuDemo
@@ -188,6 +189,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.audio.play_sfx,
             self.assets.sound_path("tower_placed"),
             self.assets.sound_path("tower_sold"),
+        )
+        self.bomb_impacts = BombImpactFeedback(
+            self.assets, self.audio.play_sfx, self.assets.sound_path("bomb_impact")
         )
         self.tower_controller = TowerPlacementController(
             self.towers,
@@ -532,6 +536,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.hud_slide.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
         self.place_sell_feedback.update(frame_ms)
+        self.bomb_impacts.update(frame_ms)
         self.life_lost_feedback.update(frame_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)
@@ -604,14 +609,11 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         counter = panel["coin_text"].rect.move(self.hud_slide.offset("money"))
         self.kill_feedback.draw_pop(self.window, counter)
 
-    def _selected_tower(self) -> GroundTower | None:
-        """The selected tower, if it's still standing (it may have been sold
-        or destroyed since). Only ground towers can be selected: a plane
-        leaves its tile at once."""
+    def _selected_tower(self) -> BaseTower | None:
+        """The selected tower or plane, if it's still there (a tower may have
+        been sold or destroyed since, a plane may have left the map)."""
         selected = self.game_state.selected_tower
-        if selected is None or selected not in self.towers:
-            return None
-        return selected if isinstance(selected, GroundTower) else None
+        return selected if selected in self.towers else None
 
     def _selected_enemy(self) -> Enemy | None:
         """The enemy clicked for its HP numbers, if it's still on the map

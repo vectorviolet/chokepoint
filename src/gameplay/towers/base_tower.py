@@ -5,6 +5,7 @@ from util.constants import TILE_SIZE, HALF_TILE
 from gameplay.rotatable_object import RotatableObject
 from pygamine import StateObject
 from domain.game_state import GameState, TowerConfig
+from ui.range_ring import draw_range_ring
 
 UPGRADE_BTN_OFFSET = Vector2(-55, -105)
 SELL_BTN_OFFSET = Vector2(20, -110)
@@ -15,6 +16,13 @@ SELL_REFUND = 0.7
 
 
 class BaseTower(RotatableObject):
+    # False: the battle draws this tower's bullets over it. A tower that
+    # layers its own (the plane, with bombs under it) sets True.
+    draws_own_bullets = False
+    # True for a tower that flies (the plane): it's clicked by its sprite,
+    # not its tile, and has no sell/upgrade buttons.
+    is_flying = False
+
     def __init__(
         self, tower_type: int, row: int, col: int, config: TowerConfig, assets, audio
     ) -> None:
@@ -44,6 +52,12 @@ class BaseTower(RotatableObject):
     @property
     def range(self) -> int:
         return self._config.ranges[self.tower_type - 1][self.level - 1]
+
+    @property
+    def min_range(self) -> int:
+        """The blind spot's radius: enemies this close or closer can't be
+        targeted. 0 for towers without one."""
+        return _min_range(self._config, self.tower_type - 1, self.level - 1)
 
     @property
     def damage(self) -> int:
@@ -92,6 +106,7 @@ class BaseTower(RotatableObject):
         hps = self._config.hps[i]
         return {
             "range": self._config.ranges[i][j],
+            "min_range": _min_range(self._config, i, j),
             "damage": self._config.damages[i][j],
             "reload_ms": self._config.speeds[i][j],
             "max_hp": None if hps is None else hps[j],
@@ -164,10 +179,8 @@ class BaseTower(RotatableObject):
         if radius <= 0:
             return
         center = camera.world_to_screen(self.position)
-        surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
-        pygame.draw.circle(surf, (128, 128, 128, 120), (radius, radius), radius, 0)
-        pygame.draw.circle(surf, (0, 200, 0, 120), (radius, radius), radius, 2)
-        surface.blit(surf, (center.x - radius, center.y - radius))
+        min_radius = int(self.min_range * camera.scale)
+        draw_range_ring(surface, center, radius, (0, 200, 0, 120), 2, min_radius)
 
     def draw_selected_ui(
         self, surface: pygame.Surface, game_state: GameState, camera
@@ -211,11 +224,21 @@ class BaseTower(RotatableObject):
     def get_blocking_position(self) -> tuple | None:
         return self.row, self.col
 
-    def update(self, game_state: GameState, enemies: list) -> None:
+    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:
+        """One tick. `enemy_grid` is the tick's gameplay.combat.targeting
+        .EnemyGrid of `enemies` (or None), for towers that look for targets."""
         raise NotImplementedError
 
     def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
         raise NotImplementedError
 
-    def work(self, enemies: list, is_started: bool) -> None:
+    def work(self, enemies: list, is_started: bool, enemy_grid=None) -> None:
         raise NotImplementedError
+
+
+def _min_range(config: TowerConfig, i: int, j: int) -> int:
+    """config.min_ranges[i][j], or 0 if the config has none for that tower
+    (a TowerConfig built without min_ranges)."""
+    if i < len(config.min_ranges):
+        return config.min_ranges[i][j]
+    return 0

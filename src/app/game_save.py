@@ -92,6 +92,8 @@ class GameSaveMixin:
         self.tower_controller.buying_tower_type = 0
         self.kill_feedback.clear()
         self.place_sell_feedback.clear()
+        self.bomb_impacts.clear()
+        self.orphan_bombs = ()  # in-flight bombs aren't saved
         self.life_lost_feedback.clear()
         self._sync_game_ui()
         self._show_path_entrance()
@@ -191,6 +193,8 @@ class GameSaveMixin:
         self.tower_controller.buying_tower_type = 0
         self.kill_feedback.clear()
         self.place_sell_feedback.clear()
+        self.bomb_impacts.clear()
+        self.orphan_bombs = ()  # in-flight bombs aren't saved
         self.life_lost_feedback.clear()
 
         self._sync_game_ui()

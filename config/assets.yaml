@@ -132,3 +132,4 @@ sounds:
   life_lost:         {folder: sfx, name: impactBell_heavy_003}
   tower_placed:      {folder: sfx, name: impactPlank_medium_001}
   tower_sold:        {folder: sfx, name: impactMetal_light_000}
+  bomb_impact:       {folder: sfx, name: explosionCrunch_002}

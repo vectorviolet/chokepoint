@@ -32,6 +32,12 @@ packs:
     url: https://kenney.nl/assets/mobile-controls
     license: CC0-1.0
     used_for: "HUD icons (play, pause, music, menu)"
+  kenney-sci-fi-sounds:
+    name: "Sci-Fi Sounds"
+    author: "Kenney"
+    url: https://kenney.nl/assets/sci-fi-sounds
+    license: CC0-1.0
+    used_for: "bomb impact sound"
   kenney-smoke-particles:
     name: "Smoke Particles"
     author: "Kenney"
@@ -352,6 +358,9 @@ files:
   "sounds/sfx/impactBell_heavy_003.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactBell_heavy_003.ogg"
+  "sounds/sfx/explosionCrunch_002.ogg":
+    source: kenney-sci-fi-sounds
+    original: "Audio/explosionCrunch_002.ogg"
   "sounds/sfx/impactMetal_light_000.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactMetal_light_000.ogg"

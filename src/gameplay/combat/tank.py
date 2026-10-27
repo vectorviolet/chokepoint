@@ -12,6 +12,7 @@ import pygame
 from pygame.math import Vector2
 
 from gameplay.combat.enemy import Enemy, _BASE_STATS
+from gameplay.combat.targeting import TowerGrid
 from gameplay.rotatable_object import RotatableObject
 from pygamine import load_image
 from pygamine import angle_between_delta, angle_between_points
@@ -75,17 +76,14 @@ class Tank(Enemy):
         self.bullets.append(TankMuzzleFlash(self, tip, self._muzzle_angle))
 
     def _nearest_tower(self, ctx: "IGameContext") -> tuple:
-        # Skip towers that aren't targetable (planes — no HP system).
-        candidates = [t for t in ctx.towers if t.maxHP is not None]
-        if not candidates:
-            return (None, 0)
-        best = None
-        best_dist = float("inf")
-        for t in candidates:
-            d = (t.position - self.position).length_squared()
-            if d < best_dist:
-                best, best_dist = t, d
-        return (best, best_dist)
+        """(tower, squared distance) of the nearest targetable tower (the
+        first in ctx.towers on a tie), at any distance; (None, 0) if none.
+        Planes have no HP system, so they're skipped. Uses the context's
+        per-tick `tower_grid` if it has one for ctx.towers."""
+        grid = getattr(ctx, "tower_grid", None)
+        if grid is None or grid.towers is not ctx.towers:
+            grid = TowerGrid(ctx.towers)
+        return grid.nearest(self.position)
 
     def _aim_at(self, target_pos: Vector2) -> None:
         delta = target_pos - self.position

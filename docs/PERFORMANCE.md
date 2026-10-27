@@ -2,9 +2,10 @@
 
 Spike test for issue #12: how the frame rate holds up with hundreds of enemies
 and towers, measured with `scripts/benchmark_load.py`. This document records
-the numbers and the hotspots behind them. No fixes have been made yet; each one
-listed below was tried only as a monkeypatched prototype so it could be
-measured. Which of them to adopt is a follow-up decision.
+the numbers and the hotspots behind them. Each fix listed below was first tried
+only as a monkeypatched prototype so it could be measured. Fixes 2 and 3 (grid
+targeting) are now implemented, in issue #40; see
+[Grid targeting](#grid-targeting-issue-40) for their before/after numbers.
 
 ## How to run it
 
@@ -142,7 +143,7 @@ profiler overhead roughly doubles the times):
    the angle hasn't changed. When zoom is not 1, `Camera.scale_image()` rescales
    every sprite's image on every frame (pygamine).
 
-## Proposed fixes (measured as prototypes; not implemented)
+## Proposed fixes (measured as prototypes)
 
 Each fix was monkeypatched in at runtime by a throwaway script, with no change to
 the repo, and measured with the same benchmark. The ms values are tick means,
@@ -166,7 +167,7 @@ In priority order:
    spikes at every load (the `100 x 50` x4 tick p95 goes from 16.9 to 5.0 ms) and
    is the one fix that matters for today's real game. It is a small change, but
    it is in the **pygamine submodule**, so it needs its own submodule PR.
-2. **A spatial grid for tower targeting.** Once per tick, bucket enemies into
+2. **A spatial grid for tower targeting** (done in #40, see below). Once per tick, bucket enemies into
    128 px cells. Each tower then scans only the cells its range covers, and
    compares `distance_squared_to` against `range**2` without building lists.
    The behaviour is the same: it picks the nearest enemy within range. This
@@ -174,7 +175,7 @@ In priority order:
    together with fixes 1 and 3. Just switching to `min(...,
    key=distance_squared_to)` without the grid gained only about 20%, because
    the cost is the Python loop over every pair.
-3. **Tank targeting:** skip planes with a cheap check (`hp is None` or the
+3. **Tank targeting** (done in #40, with a grid of the towers): skip planes with a cheap check (`hp is None` or the
    tower type) instead of the `maxHP` property, and use `distance_squared_to`.
    This is a small additional gain, included in the "+ sound, grid, tank" column.
 4. **Skip re-rotating** when the whole-degree angle hasn't changed (in
@@ -195,3 +196,78 @@ scope of this spike.
 the hitches players can actually hit. Fixes 2 and 3 are worth doing if endless
 mode, or later waves, are meant to grow to 100 or more enemies on screen. Fix 4
 is optional.
+
+## Grid targeting (issue #40)
+
+Ground towers and tanks now find their targets through per-tick spatial grids
+(`src/gameplay/combat/targeting.py`, cells of 128 px):
+
+- **Towers -> enemies.** `BattleSimulation._update_towers` buckets the enemies
+  once per tick (lazily, on the first query) into an `EnemyGrid`, and each
+  ground tower scans only the cells its range covers. A cheap squared-distance
+  check against `range**2` (with a tiny margin) skips everything clearly out
+  of range. The few candidates left are compared with the same
+  `(enemy.position - tower.position).length()` as before, so the choice is
+  exactly the old one: the nearest enemy, the first in the list on a tie,
+  in range up to and including `range`. Enemies killed earlier in the same
+  tick are removed from the list, and the grid rebuilds when it sees the list
+  shrink, so they're never picked.
+- **Tanks -> towers.** `_update_enemies` builds a `TowerGrid` of the targetable
+  towers (planes left out once per tick, instead of reading the `maxHP`
+  property per tank per tower). A tank searches rings of cells outward from
+  its own until no unsearched cell can hold a closer tower. It still returns
+  the nearest tower at any distance (it aims at it even when out of range),
+  the first in the list on a tie, with the old squared distance.
+- Retargeting still happens every tick, at the same tick rate.
+
+`tests/test_targeting.py` keeps the old algorithms as reference
+implementations and checks that the grids pick the same enemy or tower, with
+the same distance, on thousands of seeded random layouts (exact ties, points
+on cell borders and on the range boundary, kills between towers), and that the
+menu demo's battle with tanks added plays out identically, tick by tick, with
+the grid and with the old scans.
+
+### Before / after
+
+`scripts/benchmark_load.py` with default options, same machine as above,
+2026-10-27. "Before" is `feat/4-bomb-impact-fx` at 52a7069 (the branch #40 is
+built on), "after" is the same plus the grids. Times are tick times in ms.
+
+| enemies | towers | speed | zoom | tick mean before | tick mean after | tick p95 before | tick p95 after | sim load before | sim load after |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 30 | 20 | x1 | 1 | 0.29 | 0.44 | 0.34 | 0.51 | 5% | 7% |
+| 30 | 20 | x4 | 1 | 0.37 | 0.62 | 0.53 | 0.86 | 6% | 10% |
+| 30 | 20 | x1 | fit | 0.27 | 0.33 | 0.36 | 0.39 | 4% | 5% |
+| 30 | 20 | x4 | fit | 0.34 | 0.74 | 0.53 | 1.17 | 6% | 12% |
+| 100 | 50 | x1 | 1 | 2.26 | 2.21 | 2.66 | 3.03 | 37% | 36% |
+| 100 | 50 | x4 | 1 | 2.82 | 1.79 | 4.22 | 2.75 | 47% | 29% |
+| 100 | 50 | x1 | fit | 2.37 | 1.90 | 2.80 | 3.36 | 39% | 31% |
+| 100 | 50 | x4 | fit | 2.91 | 2.55 | 4.52 | 3.62 | 48% | 42% |
+| 300 | 150 | x1 | 1 | 14.56 | 11.62 | 16.87 | 14.03 | 240% | 192% |
+| 300 | 150 | x4 | 1 | 15.70 | 8.32 | 19.68 | 11.71 | 259% | 137% |
+| 300 | 150 | x1 | fit | 14.56 | 4.54 | 17.39 | 8.72 | 240% | 75% |
+| 300 | 150 | x4 | fit | 16.43 | 8.38 | 20.86 | 13.47 | 271% | 138% |
+| 600 | 300 | x1 | 1 | 48.42 | 14.90 | 52.38 | 18.65 | 799% | 246% |
+| 600 | 300 | x4 | 1 | 54.31 | 18.66 | 68.25 | 24.28 | 896% | 308% |
+| 600 | 300 | x1 | fit | 46.12 | 15.69 | 51.78 | 19.83 | 761% | 259% |
+| 600 | 300 | x4 | fit | 49.93 | 11.43 | 59.97 | 17.49 | 824% | 189% |
+
+The machine was noisy during these runs (a second pair of runs gave 49 -> 15 ms
+at `600 x 300` x1 but had multi-hundred-ms outliers in both), so read the
+small rows with care. At `30 x 20` the difference above is within the noise:
+the second pair gave 0.55 -> 0.68 and 0.81 -> 0.69 ms. Timing the targeting
+alone with a throwaway `timeit` script (the towers and tanks of one tick, best
+of 5, enemies along three path strips) separates it from the rest of the tick:
+
+| enemies x towers | old scans | grids |
+|---:|---:|---:|
+| 10 x 20 | 0.05 ms | 0.10 ms |
+| 30 x 20 | 0.11 ms | 0.11 ms |
+| 100 x 50 | 0.82 ms | 0.33 ms |
+| 300 x 150 | 7.1 ms | 1.5 ms |
+| 600 x 300 | 28.8 ms | 5.0 ms |
+
+So the grid costs about 0.05 ms more per tick at the smallest sizes (a fixed
+cost of looking up the cells a tower's range covers), breaks even around
+30 enemies, and wins from there on. `300 x 150` is still above the real-time
+limit at x1 zoom 1; going further is the design decision described above.

@@ -5,7 +5,6 @@ from pygame.math import Vector2
 
 from gameplay.rotatable_object import RotatableObject
 from pygamine import SpriteRenderer2D
-from pygamine import GameObject
 from pygamine import angle_between_points
 
 if TYPE_CHECKING:
@@ -153,8 +152,9 @@ class Bomb(RotatableObject):
     Released with the plane's forward velocity, then decelerates via drag
     each tick. The plane keeps powering forward at full speed, so the bomb
     visually lags behind it and lands where its momentum runs out. After
-    FALL_DURATION_MS of game time, replaces itself in tower.bullets with
-    an Explosion. Damage and radius come from the dropping tower's level.
+    FALL_DURATION_MS of game time it lands: splash damage at once, and the
+    context shows the explosion. Damage and radius come from the dropping
+    tower's level.
     """
 
     FALL_DURATION_MS = 600
@@ -196,82 +196,12 @@ class Bomb(RotatableObject):
         self.rect.center = self.position
 
     def _detonate(self, ctx: "IGameContext") -> None:
+        """Lands: damages every enemy within the splash radius once, right
+        now (on game time), then tells the context where, for the explosion
+        and its sound (cosmetic, on real time: ui.bomb_impact_feedback)."""
         if self in self.tower.bullets:
             self.tower.bullets.remove(self)
-        self.tower.bullets.append(
-            Explosion(self.position, self.tower, self.damage, self.radius, ctx.time_ms)
-        )
-
-
-class Explosion(GameObject):
-    """One-shot radius explosion: applies damage once, plays a composite
-    smoke + explosion animation, then removes itself from tower.bullets.
-
-    Composite frames are built lazily and cached on the class — every
-    explosion in the game reuses the same surface list.
-    """
-
-    TOTAL_FRAMES = 13
-    EXPLOSION_FRAMES = 9
-    FRAME_DURATION_MS = 55  # ~18 fps total
-    VISUAL_SCALE = 1.1  # composite size = ceil(radius * VISUAL_SCALE); smoke spills past the damage ring
-
-    _frames_cache: dict[int, list[pygame.Surface]] = {}
-
-    def __init__(
-        self, position: Vector2, tower, damage: int, radius: int, created_at: float
-    ) -> None:
-        super().__init__(name="explosion")
-        self.tower = tower
-        self.position = Vector2(position)
-        self.damage = damage
-        self.radius = radius
-        self._frames = Explosion._get_frames(tower.assets, radius)
-        self._created_at = created_at
-        self._damage_dealt = False
-
-        renderer = self.add_component(SpriteRenderer2D)
-        renderer.set_image(self._frames[0])
-        self.rect.size = self._frames[0].get_size()
-        self.rect.center = (int(self.position.x), int(self.position.y))
-
-    @classmethod
-    def _get_frames(cls, assets, radius: int) -> list[pygame.Surface]:
-        size = max(1, int(radius * cls.VISUAL_SCALE))
-        if size not in cls._frames_cache:
-            cls._frames_cache[size] = cls._build_frames(assets, (size, size))
-        return cls._frames_cache[size]
-
-    @classmethod
-    def _build_frames(cls, assets, target: tuple[int, int]) -> list[pygame.Surface]:
-        explosions = [
-            pygame.transform.smoothscale(assets.get_image(f"explosion_{i}"), target)
-            for i in range(cls.EXPLOSION_FRAMES)
-        ]
-        smokes = [
-            pygame.transform.smoothscale(assets.get_image(f"black_smoke_{i}"), target)
-            for i in range(cls.TOTAL_FRAMES)
-        ]
-        composite = []
-        for i in range(cls.TOTAL_FRAMES):
-            surf = pygame.Surface(target, pygame.SRCALPHA)
-            surf.blit(smokes[i], (0, 0))
-            if i < cls.EXPLOSION_FRAMES:
-                surf.blit(explosions[i], (0, 0))
-            composite.append(surf)
-        return composite
-
-    def update(self, ctx: "IGameContext") -> None:
-        if not self._damage_dealt:
-            for enemy in list(ctx.enemies):
-                if (enemy.position - self.position).length() <= self.radius:
-                    enemy.decrease_hp(self.damage, ctx, self.tower)
-            self._damage_dealt = True
-
-        elapsed = ctx.time_ms - self._created_at
-        idx = int(elapsed // self.FRAME_DURATION_MS)
-        if idx >= self.TOTAL_FRAMES:
-            if self in self.tower.bullets:
-                self.tower.bullets.remove(self)
-            return
-        self.get_component(SpriteRenderer2D).set_image(self._frames[idx])
+        for enemy in list(ctx.enemies):
+            if (enemy.position - self.position).length() <= self.radius:
+                enemy.decrease_hp(self.damage, ctx, self.tower)
+        ctx.bomb_landed(Vector2(self.position), self.radius)

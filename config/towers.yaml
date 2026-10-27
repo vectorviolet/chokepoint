@@ -1,5 +1,8 @@
 # Tower stats — all lists are per-level (index 0 = level 1, etc.)
 # speeds = milliseconds between shots (LOWER = faster fire). Type 4 uses speeds as movement.
+# min_ranges = optional blind spot per level: enemies this close or closer
+#   can't be targeted (targetable: min_range < distance <= range). Omit for
+#   none (0). Must be below the range.
 # shoot_sound = key into config/assets.yaml sounds; omit for silent towers (e.g. plane).
 # name + tooltip = what the buy button's hover tooltip shows (ui/buy_tooltip.py):
 #   the tower's name, then one line each for what it's good and bad at.
@@ -44,6 +47,7 @@ towers:
     prices:      [280, 560]
     max_level:   2
     ranges:      [256, 288]
+    min_ranges:  [96, 96]          # 1.5-tile blind spot around the cannon
     damages:     [90, 170]
     speeds:      [2200, 1800]        # DPS = 40.9 / 94.4
     hps:         [120, 200]
@@ -51,7 +55,7 @@ towers:
     name: Heavy cannon
     tooltip:
       strength: Long range, heavy hits, sturdy
-      weakness: Slowest to fire, and expensive
+      weakness: Slow to fire, expensive, can't hit enemies up close
 
   - type: 4  # Plane — drops bombs along flight path; ranges = explosion radius
     # prices[1] is the one-time global upgrade making every later plane level 2.

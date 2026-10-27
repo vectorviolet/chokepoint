@@ -18,3 +18,8 @@ class IGameContext(Protocol):
     def enemy_killed(self, enemy) -> None:
         """Pays out a kill (the enemy is already removed)."""
         ...
+
+    def bomb_landed(self, position, radius: float) -> None:
+        """A bomb landed at `position` (its splash damage already dealt);
+        shows its explosion and plays its sound."""
+        ...

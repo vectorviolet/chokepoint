@@ -23,6 +23,7 @@ from pygame.math import Vector2
 
 from domain.game_state import GameState, TowerConfig
 from gameplay.battle import BattleSimulation
+from ui.bomb_impact_feedback import BombImpactFeedback
 from gameplay.combat.wave_manager import WaveManager
 from pygamine import Camera
 from gameplay.towers import TowerFactory
@@ -89,6 +90,8 @@ class MenuDemo(BattleSimulation):
         self._assets = assets
         self._tower_config = tower_config
         self._audio = _SilentAudio()
+        # Explosions where the bombs land, silent like the rest of the demo.
+        self.bomb_impacts = BombImpactFeedback(assets, play_sfx=None)
         self._rng = rng or random.Random()
 
         self.view = Rect(0, 0, *size)
@@ -109,6 +112,7 @@ class MenuDemo(BattleSimulation):
     def update(self, frame_ms: float) -> None:
         """Advance by `frame_ms` of real time."""
         dt = frame_ms / 1000
+        self.bomb_impacts.update(frame_ms)
         if self._fading_out:
             self._fade = min(1.0, self._fade + dt / FADE_S)
             if self._fade >= 1.0:
@@ -161,6 +165,7 @@ class MenuDemo(BattleSimulation):
         self._last_level = self.game_state.level + WAVES_PER_RUN
         self.towers = []
         self.enemies = []
+        self.orphan_bombs = ()
         self.wave_manager = _DemoWaves(self.tilemap.waypoints, self._assets)
         self._place_towers()
         self._next_plane_at = rng.uniform(*PLANE_INTERVAL_MS) / 2
@@ -169,6 +174,7 @@ class MenuDemo(BattleSimulation):
         # trickling in from the edge of the map.
         for _ in range(int(PREWARM_MS / TICK_MS)):
             self._tick()
+        self.bomb_impacts.clear()  # bombs that landed while pre-warming
 
         self._camera_target = self._pick_camera_target()
         self._camera_pos = Vector2(self._target_position())
