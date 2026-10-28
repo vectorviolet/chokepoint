@@ -1,4 +1,5 @@
 # Plane info panel
+<!-- index | refs: #29, PR #58 -->
 
 **Date:** 2026-10-27 · **Area:** UI · **Issue:** [#29](https://github.com/vectorviolet/chokepoint/issues/29) · **PR:** [#58](https://github.com/vectorviolet/chokepoint/pull/58)
 

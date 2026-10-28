@@ -1,4 +1,5 @@
 # Music button state after a restart
+<!-- index | refs: #54, PR #57 -->
 
 **Date:** 2026-10-27 · **Area:** Audio, bug · **Issue:** [#54](https://github.com/vectorviolet/chokepoint/issues/54) · **PR:** [#57](https://github.com/vectorviolet/chokepoint/pull/57)
 

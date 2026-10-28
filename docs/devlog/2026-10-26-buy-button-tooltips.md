@@ -1,4 +1,5 @@
 # Buy-button tooltips
+<!-- index | refs: #6, PR #36 -->
 
 **Date:** 2026-10-26 · **Area:** UI · **Issue:** [#6](https://github.com/vectorviolet/chokepoint/issues/6) · **PR:** [#36](https://github.com/vectorviolet/chokepoint/pull/36)
 

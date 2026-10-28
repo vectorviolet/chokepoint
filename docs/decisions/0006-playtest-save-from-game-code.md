@@ -1,4 +1,5 @@
 # 0006. Play-test save built from game code
+<!-- index | refs: #63, PR #64 -->
 
 - **Status:** Accepted (implementation in [PR #64](https://github.com/vectorviolet/chokepoint/pull/64), open when this was written)
 - **Date:** 2026-10-27

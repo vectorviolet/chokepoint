@@ -1,4 +1,5 @@
 # Play-test save
+<!-- index | refs: #63, PR #64 -->
 
 **Date:** 2026-10-27 · **Area:** Tooling · **Issue:** [#63](https://github.com/vectorviolet/chokepoint/issues/63) · **PR:** [#64](https://github.com/vectorviolet/chokepoint/pull/64) (open when this entry was written)
 
