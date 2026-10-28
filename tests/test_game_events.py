@@ -50,12 +50,16 @@ class FakeScroller:
 class FakeAudio:
     def __init__(self):
         self.played = []
+        self.master_volume_value = 0.5
         self.sfx_volume_value = 0.5
         self.music_volume_value = 0.5
         self.is_music_paused = False
 
     def play_sfx(self, path) -> None:
         self.played.append(path)
+
+    def set_master_volume(self, value) -> None:
+        self.master_volume_value = value
 
     def set_sfx_volume(self, value) -> None:
         self.sfx_volume_value = value
@@ -211,6 +215,9 @@ class FakeGame(GameEventsMixin):
 
     def _refresh_window_mode_label(self) -> None:
         self.calls.append("_refresh_window_mode_label")
+
+    def _refresh_master_volume_label(self) -> None:
+        self.calls.append("_refresh_master_volume_label")
 
     def _refresh_sfx_volume_label(self) -> None:
         self.calls.append("_refresh_sfx_volume_label")
@@ -413,8 +420,12 @@ def test_settings_window_mode_back_and_next():
     assert ("cycle_window_mode", 1) in game2.calls
 
 
-def test_on_sfx_and_music_volume_changed():
+def test_on_master_sfx_and_music_volume_changed():
     game = FakeGame()
+
+    game._on_master_volume_changed(0.6)
+    assert game.audio.master_volume_value == 0.6
+    assert "_refresh_master_volume_label" in game.calls
 
     game._on_sfx_volume_changed(0.75)
     assert game.audio.sfx_volume_value == 0.75

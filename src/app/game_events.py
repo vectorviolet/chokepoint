@@ -87,6 +87,10 @@ class GameEventsMixin:
         self._refresh_window_mode_label()
         self._refresh_window_size_label()
 
+    def _on_master_volume_changed(self, value: float) -> None:
+        self.audio.set_master_volume(value)
+        self._refresh_master_volume_label()
+
     def _on_sfx_volume_changed(self, value: float) -> None:
         self.audio.set_sfx_volume(value)
         self._refresh_sfx_volume_label()

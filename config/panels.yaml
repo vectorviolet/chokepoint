@@ -336,7 +336,7 @@ panels:
         size: [700, 350]
       audio_column:
         position: [1060, 400]
-        size: [700, 350]
+        size: [700, 510]
 
       window_size_label_text:
         type: text
@@ -410,15 +410,15 @@ panels:
         parent: window_mode_next_button
         text: ">"
 
-      sfx_volume_label_text:
+      master_volume_label_text:
         type: text
         font: comic_neue
         font_size: 28
         color: white
         parent: audio_column
         position: [CENTER, 60]
-        text: "SFX VOLUME"
-      sfx_volume_value_text:
+        text: "MASTER VOLUME"
+      master_volume_value_text:
         type: text
         font: comic_neue
         font_size: 28
@@ -426,10 +426,33 @@ panels:
         parent: audio_column
         position: [CENTER, 98]
         text: "100%"
-      sfx_volume_slider:
+      master_volume_slider:
         type: slider
         parent: audio_column
         position: [CENTER, 134]
+        size: [440, 28]
+        value: 1.0
+
+      sfx_volume_label_text:
+        type: text
+        font: comic_neue
+        font_size: 28
+        color: white
+        parent: audio_column
+        position: [CENTER, 220]
+        text: "SFX VOLUME"
+      sfx_volume_value_text:
+        type: text
+        font: comic_neue
+        font_size: 28
+        color: white
+        parent: audio_column
+        position: [CENTER, 258]
+        text: "100%"
+      sfx_volume_slider:
+        type: slider
+        parent: audio_column
+        position: [CENTER, 294]
         size: [440, 28]
         value: 1.0
 
@@ -439,7 +462,7 @@ panels:
         font_size: 28
         color: white
         parent: audio_column
-        position: [CENTER, 220]
+        position: [CENTER, 380]
         text: "BGM VOLUME"
       music_volume_value_text:
         type: text
@@ -447,12 +470,12 @@ panels:
         font_size: 28
         color: white
         parent: audio_column
-        position: [CENTER, 258]
+        position: [CENTER, 418]
         text: "100%"
       music_volume_slider:
         type: slider
         parent: audio_column
-        position: [CENTER, 294]
+        position: [CENTER, 454]
         size: [440, 28]
         value: 1.0
 

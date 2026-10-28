@@ -182,6 +182,15 @@ def test_an_escape_pulses_and_rings_the_bell(game, channels):
     assert channels[0][2] == pytest.approx(0.4, abs=0.01)
 
 
+def test_the_bell_follows_the_master_volume_too(game, channels):
+    game.audio.set_sfx_volume(0.8)
+    game.audio.set_master_volume(0.5)
+
+    escape(game, damage=1)
+
+    assert channels[0][2] == pytest.approx(0.4, abs=0.01)
+
+
 def test_the_pulse_runs_on_real_time_whatever_the_speed(game, fake_ticks):
     strengths = []
     for speed in (1, 4):

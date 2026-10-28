@@ -16,5 +16,6 @@ camera:
   zoom_max: 2.0
 
 audio:
+  master_volume: 1.0  # scales the music and every SFX
   music_volume: 1.0
   sfx_volume: 1.0

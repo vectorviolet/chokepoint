@@ -39,7 +39,8 @@ def _vignette_mask(size: tuple[int, int]) -> pygame.Surface:
 
 class LifeLostFeedback:
     def __init__(self, sound_path, sfx_volume) -> None:
-        """sfx_volume: returns the current SFX volume (0-1)."""
+        """sfx_volume: returns the volume SFX play at now (0-1), i.e.
+        GameAudio.effective_sfx_volume (master x SFX)."""
         self._sound = mixer.Sound(str(sound_path))
         self._sfx_volume = sfx_volume
         self._mask: pygame.Surface | None = None
