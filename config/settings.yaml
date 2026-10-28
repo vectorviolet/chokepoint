@@ -7,6 +7,7 @@ gameplay:
   starting_money: 200
   starting_lives: 10
   auto_pause_between_waves: false  # the HUD's hourglass toggle; saved in settings
+  keep_placing: false  # the HUD's keep-placing toggle (Shift); saved in settings
 
 camera:
   edge_scroll_zone: 30

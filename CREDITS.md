@@ -19,8 +19,9 @@ freely available.
 | [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | shot, hit, life-lost, tower placed and sold sounds | 6 |
 | [Mobile Controls](https://kenney.nl/assets/mobile-controls) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | HUD icons (play, pause, music, menu) | 6 |
 | [Comic Neue](https://fonts.google.com/specimen/Comic+Neue) | Craig Rozynski | [SIL Open Font License 1.1](https://openfontlicense.org) | text font | 3 |
+| [Board Game Icons](https://kenney.nl/assets/board-game-icons) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | sell button icon, auto-pause hourglass icon, keep-placing toggle icon | 3 |
 | [Anton](https://fonts.google.com/specimen/Anton) | Vernon Adams | [SIL Open Font License 1.1](https://openfontlicense.org) | display font | 2 |
-| [Board Game Icons](https://kenney.nl/assets/board-game-icons) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | sell button icon, auto-pause hourglass icon | 2 |
+| [Interface Sounds](https://kenney.nl/assets/interface-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | denied sound (unaffordable tower) | 1 |
 | [Platformer Art Deluxe](https://kenney.nl/assets/platformer-art-deluxe) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | lives heart (temporary) | 1 |
 | [Sci-Fi Sounds](https://kenney.nl/assets/sci-fi-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | bomb impact sound | 1 |
 | [Gems / Coins Free](https://laredgames.itch.io/gems-coins-free) | La Red Games | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | coin animation | 1 |
@@ -29,7 +30,7 @@ freely available.
 Made for this game by its developer (in assets/): images/branding/logo.png, images/ui/buttons/max.png, maps/tiled_project.tiled-project, maps/tiled_tilemap.tmx, maps/tiled_tileset.tsx.
 
 CC0 assets need no attribution; they are credited here anyway. Each source's own
-license text ships with the game: `licenses/assets/font-anton.txt`, `licenses/assets/font-comic-neue.txt`, `licenses/assets/kenney-board-game-icons.txt`, `licenses/assets/kenney-impact-sounds.txt`, `licenses/assets/kenney-mobile-controls.txt`, `licenses/assets/kenney-platformer-art-deluxe.txt`, `licenses/assets/kenney-sci-fi-sounds.txt`, `licenses/assets/kenney-smoke-particles.txt`, `licenses/assets/kenney-tower-defense-top-down.txt`, `licenses/assets/kenney-ui-pack.txt`, `licenses/assets/laredgames-gems-coins.txt`, `licenses/assets/music-sakura-girl-clown.txt`.
+license text ships with the game: `licenses/assets/font-anton.txt`, `licenses/assets/font-comic-neue.txt`, `licenses/assets/kenney-board-game-icons.txt`, `licenses/assets/kenney-impact-sounds.txt`, `licenses/assets/kenney-interface-sounds.txt`, `licenses/assets/kenney-mobile-controls.txt`, `licenses/assets/kenney-platformer-art-deluxe.txt`, `licenses/assets/kenney-sci-fi-sounds.txt`, `licenses/assets/kenney-smoke-particles.txt`, `licenses/assets/kenney-tower-defense-top-down.txt`, `licenses/assets/kenney-ui-pack.txt`, `licenses/assets/laredgames-gems-coins.txt`, `licenses/assets/music-sakura-girl-clown.txt`.
 [assets/SOURCES.yaml](https://github.com/vectorviolet/chokepoint/blob/main/assets/SOURCES.yaml) in the source repository lists every asset
 file with its pack and its original file name there.
 <!-- assets:end -->
