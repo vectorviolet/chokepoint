@@ -26,6 +26,7 @@ class PlaneTower(BaseTower):
         map_width: int,
     ) -> None:
         super().__init__(tower_type, row, col, config, assets, audio)
+        self._fit_rect()
         self._map_width = map_width
         self._last_bomb_drop_at: float | None = (
             None  # set on the first update, in game time
@@ -44,7 +45,8 @@ class PlaneTower(BaseTower):
         if game_state.is_started and not self._is_off_map():
             self.position.x += self.speed * game_state.speed
             self.rect.center = self.position
-            self._maybe_drop_bomb()
+            if not self._is_past_the_edge():
+                self._maybe_drop_bomb()
 
     def _maybe_drop_bomb(self) -> None:
         if self.now - self._last_bomb_drop_at < BOMB_DROP_INTERVAL_MS:
@@ -80,11 +82,19 @@ class PlaneTower(BaseTower):
     def should_remove(self) -> bool:
         return self._is_off_map()
 
+    def load(self, path, size=(0, 0), nine_slice: int = 0) -> None:
+        super().load(path, size, nine_slice)
+        self._fit_rect()  # the plane upgrade's sprite
+
+    def _fit_rect(self) -> None:
+        """Sizes `rect` to the sprite: a plane never rotates, and only
+        rotating sizes a RotatableObject's rect."""
+        self.rect.size = self.image.get_size()
+        self.rect.center = self.position
+
     def sprite_rect(self) -> pygame.Rect:
-        """The plane's sprite in world space, for clicks on it. (Its
-        `rect` keeps a zero size: a plane never rotates, and only rotating
-        sizes a RotatableObject's rect.)"""
-        rect = pygame.Rect((0, 0), self.image.get_size())
+        """The plane's sprite in world space, for clicks on it."""
+        rect = self.rect.copy()
         rect.center = (round(self.position.x), round(self.position.y))
         return rect
 
@@ -110,6 +120,13 @@ class PlaneTower(BaseTower):
     def get_blocking_position(self) -> tuple | None:
         return None  # Planes fly over the map and never block a build tile
 
+    def _is_past_the_edge(self) -> bool:
+        """Its centre has crossed the map's right edge: it drops no more
+        bombs while its sprite slides off. (A bomb drifts on about
+        speed / (1 - Bomb.DRAG) px, so the last ones can still land a little
+        past the edge; the cut-off awaits the owner's decision, #59.)"""
+        return self.position.x > self._map_width
+
     def _is_off_map(self) -> bool:
-        # Off-map only once the entire sprite has cleared the right edge of the tilemap.
+        """Its whole sprite has cleared the map's right edge."""
         return self.position.x - self.rect.width / 2 > self._map_width

@@ -213,7 +213,9 @@ class TowerPlacementController:
         if tower is None or tower not in self._towers:
             return False
         hit = tower.hits_action_button(mouse_pos, self._camera)
-        index = self._towers.index(tower)
+        if not hit:
+            return False  # sell and upgrade both need a click on their button
+        index = self._towers.index(tower)  # where it stood, if it's sold
         tower.sell(mouse_pos, self._game_state, self._towers, self._camera)
         tower.upgrade(mouse_pos, self._game_state, self._camera)
         if tower not in self._towers:  # sold

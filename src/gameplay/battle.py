@@ -236,12 +236,22 @@ class BattleSimulation:
         new = [OrphanShot(tower, shot, after) for shot in shots]
         self._orphan_tower_shots = [*orphans[:at], *new, *orphans[at:]]
 
-    def _tank_removed(self, enemy) -> None:
-        """`enemy` died or escaped: a tank's shells in flight carry on."""
-        shells = _in_flight(enemy)
-        if shells:
-            new = [OrphanShot(enemy, shell) for shell in shells]
+    def _tank_removed(self, enemy) -> list:
+        """`enemy` died or escaped: a tank's shells in flight carry on.
+        Returns their new OrphanShots."""
+        new = [OrphanShot(enemy, shell) for shell in _in_flight(enemy)]
+        if new:
             self._orphan_tank_shells = [*self._orphan_tank_shells, *new]
+        return new
+
+    def _update_tank_shells(self, orphans) -> None:
+        """Moves `orphans` (tanks' shells) one tick and forgets the landed."""
+        landed: set = set()
+        _update_orphans(orphans, self, landed)
+        if landed:
+            self._orphan_tank_shells = [
+                o for o in self._orphan_tank_shells if id(o) not in landed
+            ]
 
     def _clear_orphan_shots(self) -> None:
         """The battle is reset (new game, load, a new demo run): shots in
@@ -254,12 +264,7 @@ class BattleSimulation:
         # can be cleared and auto-pause the run: every shell moves on the
         # tick its tank died, as its live shells would.
         if self._orphan_tank_shells and self.game_state.is_started:
-            landed: set = set()
-            _update_orphans(self._orphan_tank_shells, self, landed)
-            if landed:
-                self._orphan_tank_shells = [
-                    o for o in self._orphan_tank_shells if id(o) not in landed
-                ]
+            self._update_tank_shells(self._orphan_tank_shells)
         if self.wave_manager:
             self.wave_manager.update(self.enemies, self.game_state)
         # Towers don't move or get removed while enemies update.
@@ -268,7 +273,12 @@ class BattleSimulation:
             for enemy in list(self.enemies):  # copy: reaching the end removes it
                 if enemy.reached_end():
                     self.enemies.remove(enemy)
-                    self._tank_removed(enemy)
+                    escaped_shells = self._tank_removed(enemy)
+                    if escaped_shells and self.game_state.is_started:
+                        # Adopted after the orphan pass above: they move
+                        # now, on the tick their tank escaped, as it skips
+                        # its own bullet update below.
+                        self._update_tank_shells(escaped_shells)
                     if self._escaped_unopposed is not None:
                         self._escaped_unopposed.append(enemy)
                     else:
@@ -306,8 +316,16 @@ class BattleSimulation:
             if not tower.is_flying:  # planes come after the explosions
                 self._draw_tower(tower, surface, camera)
 
-        # Shots whose tower is gone: drawn where its shots would be.
-        self._draw_orphans(surface, camera, self._orphan_tower_shots)
+        # Shots whose tower is gone: drawn where its shots would be. A
+        # departed plane's bombs keep their layer, with the planes below.
+        ground_orphans = []
+        flying_orphans = []
+        for orphan in self._orphan_tower_shots:
+            if getattr(orphan.source, "is_flying", False):
+                flying_orphans.append(orphan)
+            else:
+                ground_orphans.append(orphan)
+        self._draw_orphans(surface, camera, ground_orphans)
 
         for enemy in self.enemies:
             camera.draw(surface, enemy)
@@ -320,8 +338,10 @@ class BattleSimulation:
         if self.bomb_impacts is not None:
             self.bomb_impacts.draw(surface, camera)
 
-        # Planes fly: each with its shadow, its falling bombs under it and,
-        # if selected, its splash ring.
+        # Planes fly: bombs of planes that left the map first, then each
+        # plane with its shadow, its falling bombs under it and, if
+        # selected, its splash ring.
+        self._draw_orphans(surface, camera, flying_orphans)
         for tower in self.towers:
             if tower.is_flying:
                 self._draw_tower(tower, surface, camera)

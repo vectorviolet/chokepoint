@@ -1,6 +1,7 @@
 """The battle's layers (#55, #60): ground towers, then enemies, then bomb
 explosions, then planes (they fly), then HP bars on top; a plane's falling
-bombs under the plane. Checked in
+bombs under the plane, and a departed plane's bombs still in the planes'
+layer. Checked in
 the real game (saves in a temporary directory) and in the menu demo, by
 recording what is drawn in which order."""
 
@@ -150,14 +151,39 @@ def test_hp_bars_stay_above_planes(battle, tower_config, assets, monkeypatch):
     assert index_of(drawn, ("hp", tuple(enemy.position))) > plane_at
 
 
-def test_orphan_shots_stay_under_enemies(battle, tower_config, assets, monkeypatch):
+def test_a_gone_ground_towers_shots_stay_under_enemies(
+    battle, tower_config, assets, monkeypatch
+):
     tower, plane, bomb, enemy = stage(battle, tower_config, assets)
-    orphan = Bomb(plane, Vector2(0, 0))
-    battle._orphan_tower_shots = [OrphanShot(plane, orphan)]
+    sold = TowerFactory.create(
+        GROUND_TYPE, 11, 11, tower_config, assets, None, map_width=3008
+    )
+    orphan = Bomb(sold, Vector2(0, 0))  # any shot in flight will do
+    battle._orphan_tower_shots = [OrphanShot(sold, orphan)]
 
     drawn = record_layers(battle, battle.camera, monkeypatch)
 
     assert index_of(drawn, orphan) < index_of(drawn, enemy)
+
+
+def test_a_departed_planes_bombs_keep_the_planes_layer(
+    battle, tower_config, assets, monkeypatch
+):
+    # #59 review: a plane lingers until its sprite is off the map, so its
+    # bombs are orphaned mid-fall; they must not drop under the enemies.
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+    departed = TowerFactory.create(
+        PLANE_TYPE, 0, 0, tower_config, assets, None, map_width=3008
+    )
+    orphan = Bomb(departed, Vector2(0, 0))
+    battle._orphan_tower_shots = [OrphanShot(departed, orphan)]
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    assert index_of(drawn, orphan) > index_of(drawn, enemy)
+    assert index_of(drawn, orphan) > index_of(drawn, "explosions")
+    assert index_of(drawn, orphan) < index_of(drawn, plane)  # under live planes
+    assert sum(x is orphan for x in drawn) == 1
 
 
 def test_hp_bars_stay_above_explosions(battle, tower_config, assets, monkeypatch):

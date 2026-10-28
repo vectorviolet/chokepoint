@@ -131,6 +131,42 @@ def test_a_tanks_shell_hits_its_tower_after_the_tank_escapes(game, tower_config)
     assert tower.hp == tower.maxHP - tank.bullet_damage
 
 
+def test_an_escaped_tanks_shell_moves_on_the_tick_it_escapes(game, tower_config):
+    # #59 review: adopted after the orphan pass, it used to freeze a tick.
+    tower = place_tower(game, MISSILE, tower_config)
+    tower.update = lambda *args: None  # holds fire
+    tank = standing_tank(game, tower)
+    shell = tank_fires(game, tank)
+    position = Vector2(shell.position)
+
+    tank.waypoint_index = len(tank.waypoints)  # reaches the end
+    game._tick()
+
+    assert tank not in game.enemies
+    assert orphans(game) == [shell]
+    assert shell.position != position
+
+
+def test_an_escaped_tanks_shell_lands_on_the_same_tick_as_with_it(game, tower_config):
+    def landing_tick(escape: bool) -> int:
+        game._start_new_game()
+        game.game_state.is_started = True
+        tower = place_tower(game, MISSILE, tower_config)
+        tower.update = lambda *args: None  # holds fire: the tank lives
+        tank = standing_tank(game, tower)
+        tank_fires(game, tank)
+        tank.update_combat = lambda ctx: None  # fires no second shell
+        if escape:
+            tank.waypoint_index = len(tank.waypoints)
+        for tick in range(ENOUGH_TICKS):
+            game._tick()
+            if tower.hp < tower.maxHP:
+                return tick
+        raise AssertionError("the shell never landed")
+
+    assert landing_tick(escape=True) == landing_tick(escape=False)
+
+
 def test_an_orphan_shell_lands_on_the_same_tick_as_with_its_tank(game, tower_config):
     def landing_tick(kill_tank: bool) -> int:
         game._start_new_game()
