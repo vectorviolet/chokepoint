@@ -1,3 +1,4 @@
+from functools import partial
 from pathlib import Path
 from typing import override
 
@@ -7,6 +8,7 @@ from pygame import Rect
 
 from app.game_events import GameEventsMixin
 from app.game_save import GameSaveMixin
+from app.volume_settings import VOLUME_SETTINGS, VolumeSetting, saved_volume
 from pygamine import Application
 from pygamine import AssetManager
 from pygamine import MenuController
@@ -114,14 +116,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
         self.settings_store = SaveStore("settings")
         saved_settings = self.settings_store.load()
-        audio["music_volume"] = saved_settings.get(
-            "music_volume", audio["music_volume"]
-        )
-        audio["sfx_volume"] = saved_settings.get("sfx_volume", audio["sfx_volume"])
-        # Old settings files without it load at the shipped default (100%).
-        audio["master_volume"] = saved_settings.get(
-            "master_volume", audio["master_volume"]
-        )
+        # Missing (e.g. master in old settings files) or broken values load
+        # at the shipped default; out-of-range ones are clamped to 0-1.
+        for volume in VOLUME_SETTINGS:
+            audio[volume.key] = saved_volume(
+                saved_settings, volume.key, audio[volume.key]
+            )
 
         # Pause the run as each wave is cleared (the HUD's hourglass toggle).
         # A global setting: old settings files without it load as off.
@@ -181,9 +181,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.load_panels(window_transform)
 
         self.audio = GameAudio(str(self.assets.sound_path("bg_music")), autoplay=False)
-        self.audio.set_music_volume(audio["music_volume"])
-        self.audio.set_sfx_volume(audio["sfx_volume"])
-        self.audio.set_master_volume(audio["master_volume"])
+        for volume in VOLUME_SETTINGS:
+            getattr(self.audio, volume.setter)(audio[volume.key])
         if not saved_settings.get("music_on", True):
             self.audio.pause_music()  # muted last session; kept by show_splash()
 
@@ -273,17 +272,11 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._refresh_window_size_label()
         self._refresh_window_mode_label()
         settings_panel = self.panel_manager["settings"]
-        settings_panel["master_volume_slider"].set_value(self.audio.master_volume())
-        settings_panel[
-            "master_volume_slider"
-        ].on_change = self._on_master_volume_changed
-        settings_panel["sfx_volume_slider"].set_value(self.audio.sfx_volume())
-        settings_panel["sfx_volume_slider"].on_change = self._on_sfx_volume_changed
-        settings_panel["music_volume_slider"].set_value(self.audio.music_volume())
-        settings_panel["music_volume_slider"].on_change = self._on_music_volume_changed
-        self._refresh_master_volume_label()
-        self._refresh_sfx_volume_label()
-        self._refresh_music_volume_label()
+        for volume in VOLUME_SETTINGS:
+            slider = settings_panel[volume.slider]
+            slider.set_value(getattr(self.audio, volume.getter)())
+            slider.on_change = partial(self._on_volume_changed, volume)
+            self._refresh_volume_label(volume)
         self._refresh_music_toggles()
 
     def _build_menu_controllers(self) -> None:
@@ -348,19 +341,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             WINDOW_MODE_LABELS[self._window_mode]
         )
 
-    def _refresh_master_volume_label(self) -> None:
-        self.panel_manager["settings"]["master_volume_value_text"].set_text(
-            f"{round(self.audio.master_volume() * 100)}%"
-        )
-
-    def _refresh_sfx_volume_label(self) -> None:
-        self.panel_manager["settings"]["sfx_volume_value_text"].set_text(
-            f"{round(self.audio.sfx_volume() * 100)}%"
-        )
-
-    def _refresh_music_volume_label(self) -> None:
-        self.panel_manager["settings"]["music_volume_value_text"].set_text(
-            f"{round(self.audio.music_volume() * 100)}%"
+    def _refresh_volume_label(self, volume: VolumeSetting) -> None:
+        self.panel_manager["settings"][volume.label].set_text(
+            f"{round(getattr(self.audio, volume.getter)() * 100)}%"
         )
 
     # ── settings persistence ─────────────────────────────────────────────────
@@ -373,9 +356,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.settings_store.save(
             {
                 **self.window_settings(),
-                "master_volume": self.audio.master_volume(),
-                "sfx_volume": self.audio.sfx_volume(),
-                "music_volume": self.audio.music_volume(),
+                **{
+                    volume.key: getattr(self.audio, volume.getter)()
+                    for volume in VOLUME_SETTINGS
+                },
                 "music_on": not self.audio.is_music_paused,
                 "auto_pause_between_waves": self.auto_pause,
             }
@@ -387,21 +371,13 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         persists immediately -- Reset is a deliberate action, not a live drag,
         so it shouldn't wait for the player to also press Back."""
         self.reset_window_settings()
-        self.audio.set_master_volume(self._default_audio_settings["master_volume"])
-        self.audio.set_sfx_volume(self._default_audio_settings["sfx_volume"])
-        self.audio.set_music_volume(self._default_audio_settings["music_volume"])
+        for volume in VOLUME_SETTINGS:
+            getattr(self.audio, volume.setter)(self._default_audio_settings[volume.key])
+        self.life_lost_feedback.apply_volume()
         self.auto_pause = self._default_auto_pause
         self._refresh_auto_pause_button()
 
-        settings_panel = self.panel_manager["settings"]
-        settings_panel["master_volume_slider"].set_value(self.audio.master_volume())
-        settings_panel["sfx_volume_slider"].set_value(self.audio.sfx_volume())
-        settings_panel["music_volume_slider"].set_value(self.audio.music_volume())
-        self._refresh_window_size_label()
-        self._refresh_window_mode_label()
-        self._refresh_master_volume_label()
-        self._refresh_sfx_volume_label()
-        self._refresh_music_volume_label()
+        self._bind_settings_ui()  # sliders, labels and window labels
         self._save_settings()
 
     # ── BattleSimulation hooks ───────────────────────────────────────────────

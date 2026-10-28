@@ -41,7 +41,12 @@ including sounds already playing. Chokepoint:
 - keeps showing the SFX and BGM sliders' own values (not multiplied by master);
 - saves `master_volume` with the settings and restores it on start; old settings files without it
   load at the default from `config/settings.yaml` (100%); "Reset to default" sets it back to 100%;
-- plays the life-lost bell on channel 2 at `effective_sfx_volume()`, so master applies there too.
+  a saved volume that isn't a number (null, a string) loads at its default, and one outside 0-1
+  is clamped, for all three volumes;
+- plays the life-lost bell on channel 2 at `effective_sfx_volume()`, and re-applies that to channel
+  2 whenever a volume changes, so master and SFX reach a bell that is already ringing too;
+- drives the three sliders from one table (`src/app/volume_settings.py`: settings key, slider,
+  label, GameAudio getter and setter) for loading, binding, labels, changes, saving and reset.
 
 The pause menu has no sliders; its Settings button opens this same screen.
 

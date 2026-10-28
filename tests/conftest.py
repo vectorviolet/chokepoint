@@ -15,7 +15,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 import pygame
 import pytest
 
-from pygamine import AssetManager, SaveStore
+from pygamine import AssetManager, GameAudio, SaveStore
 from util.config_loader import load_tower_config
 
 pygame.init()
@@ -72,6 +72,17 @@ def saves_in_tmp(tmp_path, monkeypatch):
     repo's real saves/ -- a Game() under test saves and deletes its save
     like the real one does (a lost run deletes saves/save.json)."""
     monkeypatch.setattr(SaveStore.__init__, "__defaults__", (str(tmp_path / "saves"),))
+
+
+@pytest.fixture(autouse=True)
+def audio_volumes_reset():
+    """GameAudio's master, music and SFX volumes are class-wide: put them
+    back to 1.0 after every test, so no test inherits another's volumes
+    (a Game() sets them from its settings anyway; bare GameAudio users don't)."""
+    yield
+    GameAudio._master_volume = GameAudio._music_volume = GameAudio._sfx_volume = 1.0
+    GameAudio._apply_music_volume()
+    GameAudio._apply_sfx_volume()
 
 
 @pytest.fixture

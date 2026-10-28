@@ -72,6 +72,12 @@ class LifeLostFeedback:
         channel.set_volume(self._sfx_volume())
         channel.play(self._sound)
 
+    def apply_volume(self) -> None:
+        """Sets the bell's channel to the current volume, so a bell already
+        ringing follows a master or SFX volume change."""
+        if mixer.get_init():
+            mixer.Channel(ALERT_CHANNEL).set_volume(self._sfx_volume())
+
     def clear(self) -> None:
         self._from = self._peak = 0.0
         self._elapsed_ms = float(ATTACK_MS + FADE_MS)

@@ -56,7 +56,7 @@ def test_the_press_that_skips_the_splash_does_not_start_the_game(game, kind):
 
 
 @pytest.mark.parametrize("kind", ["space", "enter"])
-def test_a_fresh_press_after_the_splash_reaches_the_menu(game, kind):
+def test_a_fresh_press_after_the_splash_activates_play(game, kind):
     skip_splash(game, kind)
 
     down, up = press(kind)

@@ -51,20 +51,23 @@ def test_moving_it_scales_music_and_sfx_live_but_not_their_own_sliders(game):
     game.audio.set_music_volume(0.8)
     game.audio.set_sfx_volume(0.6)
 
-    game._on_master_volume_changed(0.5)
+    settings(game)["master_volume_slider"].on_change(0.5)
 
     assert settings(game)["master_volume_value_text"].text == "50%"
+    assert game.audio.master_volume() == pytest.approx(0.5)
     assert game.audio.effective_music_volume() == pytest.approx(0.4)
     assert game.audio.effective_sfx_volume() == pytest.approx(0.3)
-    if mixer.get_init():
-        assert mixer.Channel(0).get_volume() == pytest.approx(0.4, abs=0.01)
+    # ...and it reached the mixer (SDL_AUDIODRIVER=dummy, so it's always up)
+    assert mixer.get_init(), "the mixer should be initialised by Game()"
+    assert mixer.Channel(0).get_volume() == pytest.approx(0.4, abs=0.01)
+    assert mixer.Channel(1).get_volume() == pytest.approx(0.3, abs=0.01)
     game._bind_settings_ui()
     assert settings(game)["music_volume_value_text"].text == "80%"
     assert settings(game)["sfx_volume_value_text"].text == "60%"
 
 
 def test_it_is_saved_and_restored(game, make_game):
-    game._on_master_volume_changed(0.3)
+    settings(game)["master_volume_slider"].on_change(0.3)
     game._save_settings()
 
     assert game.settings_store.load()["master_volume"] == pytest.approx(0.3)
@@ -84,8 +87,29 @@ def test_old_settings_without_it_load_at_100_percent(game, make_game):
     assert restarted.audio.sfx_volume() == 0.5
 
 
+@pytest.mark.parametrize(
+    "saved, expected",
+    [
+        ({"master_volume": None, "sfx_volume": None, "music_volume": None}, 1.0),
+        ({"master_volume": "loud", "sfx_volume": "0.5", "music_volume": [1]}, 1.0),
+        ({"master_volume": True, "sfx_volume": False, "music_volume": {}}, 1.0),
+        ({"master_volume": 3, "sfx_volume": 1.5, "music_volume": 7}, 1.0),
+        ({"master_volume": -1, "sfx_volume": -0.5, "music_volume": -3}, 0.0),
+    ],
+    ids=["null", "string", "other-types", "too-high", "too-low"],
+)
+def test_broken_saved_volumes_fall_back_or_are_clamped(make_game, saved, expected):
+    make_game().settings_store.save({"music_on": True, **saved})
+
+    restarted = make_game()
+
+    for name in ("master", "sfx", "music"):
+        assert getattr(restarted.audio, f"{name}_volume")() == expected
+        assert settings(restarted)[f"{name}_volume_slider"].value == expected
+
+
 def test_reset_to_defaults_sets_it_back_to_100_percent(game):
-    game._on_master_volume_changed(0.25)
+    settings(game)["master_volume_slider"].on_change(0.25)
 
     game._reset_settings()
 

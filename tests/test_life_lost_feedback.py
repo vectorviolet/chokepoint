@@ -27,6 +27,7 @@ PULSE_MS = ATTACK_MS + FADE_MS
 
 class FakeChannel:
     played = []  # (channel id, sound, volume) for every play
+    volumes = []  # (channel id, volume) for every set_volume
 
     def __init__(self, channel_id):
         self.id = channel_id
@@ -34,6 +35,7 @@ class FakeChannel:
 
     def set_volume(self, volume):
         self.volume = volume
+        FakeChannel.volumes.append((self.id, volume))
 
     def play(self, sound):
         FakeChannel.played.append((self.id, sound, self.volume))
@@ -43,6 +45,7 @@ class FakeChannel:
 def channels(monkeypatch):
     """Fakes only the bell's channel; music and SFX keep the real mixer."""
     FakeChannel.played = []
+    FakeChannel.volumes = []
     real = llf.mixer.Channel
     monkeypatch.setattr(
         llf.mixer,
@@ -113,6 +116,18 @@ def test_the_bell_plays_on_its_own_channel_at_the_sfx_volume(feedback, channels)
         (ALERT_CHANNEL, 0.3),
         (ALERT_CHANNEL, 0.3),
     ]
+
+
+def test_apply_volume_sets_the_bell_channel_to_the_current_volume(assets, channels):
+    pygame.mixer.init()
+    volume = {"now": 0.3}
+    feedback = LifeLostFeedback(assets.sound_path("life_lost"), lambda: volume["now"])
+    feedback.lives_lost(1)
+
+    volume["now"] = 0.1
+    feedback.apply_volume()
+
+    assert FakeChannel.volumes[-1] == (ALERT_CHANNEL, 0.1)
 
 
 def test_no_lives_lost_does_nothing(feedback, channels):
@@ -189,6 +204,24 @@ def test_the_bell_follows_the_master_volume_too(game, channels):
     escape(game, damage=1)
 
     assert channels[0][2] == pytest.approx(0.4, abs=0.01)
+
+
+@pytest.mark.parametrize("slider", ["master_volume_slider", "sfx_volume_slider"])
+def test_a_ringing_bell_follows_a_master_or_sfx_slider_move(game, channels, slider):
+    escape(game, damage=1)  # the bell rings at 100%
+
+    game.panel_manager["settings"][slider].on_change(0.25)
+
+    assert FakeChannel.volumes[-1] == (ALERT_CHANNEL, pytest.approx(0.25))
+
+
+def test_reset_to_defaults_brings_the_bell_back_up(game, channels):
+    game.audio.set_master_volume(0.2)
+    escape(game, damage=1)
+
+    game._reset_settings()
+
+    assert FakeChannel.volumes[-1] == (ALERT_CHANNEL, pytest.approx(1.0))
 
 
 def test_the_pulse_runs_on_real_time_whatever_the_speed(game, fake_ticks):
