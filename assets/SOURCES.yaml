@@ -26,6 +26,12 @@ packs:
     url: https://kenney.nl/assets/impact-sounds
     license: CC0-1.0
     used_for: "shot, hit, life-lost, tower placed and sold sounds"
+  kenney-interface-sounds:
+    name: "Interface Sounds"
+    author: "Kenney"
+    url: https://kenney.nl/assets/interface-sounds
+    license: CC0-1.0
+    used_for: "denied sound (unaffordable tower)"
   kenney-mobile-controls:
     name: "Mobile Controls"
     author: "Kenney"
@@ -74,7 +80,7 @@ packs:
     author: "Kenney"
     url: https://kenney.nl/assets/board-game-icons
     license: CC0-1.0
-    used_for: "sell button icon, auto-pause hourglass icon"
+    used_for: "sell button icon, auto-pause hourglass icon, keep-placing toggle icon"
   kenney-platformer-art-deluxe:
     name: "Platformer Art Deluxe"
     author: "Kenney"
@@ -157,6 +163,9 @@ files:
   "images/hud/icons/icon_hourglass.png":
     source: kenney-board-game-icons
     original: "PNG/Double (128px)/hourglass.png"
+  "images/hud/icons/icon_keep_placing.png":
+    source: kenney-board-game-icons
+    original: "PNG/Double (128px)/arrow_rotate.png"
   "images/hud/icons/icon_jump.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_jump.png"
@@ -358,6 +367,9 @@ files:
   "sounds/sfx/impactBell_heavy_003.ogg":
     source: kenney-impact-sounds
     original: "Audio/impactBell_heavy_003.ogg"
+  "sounds/sfx/error_008.ogg":
+    source: kenney-interface-sounds
+    original: "Audio/error_008.ogg"
   "sounds/sfx/explosionCrunch_002.ogg":
     source: kenney-sci-fi-sounds
     original: "Audio/explosionCrunch_002.ogg"

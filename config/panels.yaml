@@ -536,7 +536,7 @@ panels:
       control_panel_bg:
         anchor: top-right
         position: [-15, 15]
-        size: [120, 460]
+        size: [120, 560]
       button_panel:
         parent: control_panel_bg
         layout: { direction: vertical, start: [CENTER, 0], spacing: 100 }
@@ -544,6 +544,12 @@ panels:
           menu_button:          { extends: btn-sm, size: [60, 60] }
           start_pause_button:   { extends: btn-sm, size: [60, 60] }
           auto_pause_button:
+            extends: btn-sm
+            size: [60, 60]
+            states:
+                enabled:
+                    asset: btn_active
+          keep_placing_button:
             extends: btn-sm
             size: [60, 60]
             states:
@@ -557,12 +563,9 @@ panels:
                     asset: btn_active
                 x4_active:
                     asset: btn_active_2
-          upgrade_plane_button:
+          upgrade_plane_button:  # greyed "maxed" look once bought (ui/game_hud.py)
             extends: btn-sm
             size: [60, 60]
-            states:
-                purchased:
-                    asset: btn_active
 
       menu_button_icon:
         parent: menu_button
@@ -582,6 +585,11 @@ panels:
         position: [CENTER, CENTER]
         size: [32, 32]
         asset: icon_hourglass
+      keep_placing_button_icon:
+        parent: keep_placing_button
+        position: [CENTER, CENTER]
+        size: [32, 32]
+        asset: icon_keep_placing
       speed_toggle_button_text:
         extends: button_text
         parent: speed_toggle_button
@@ -596,7 +604,8 @@ panels:
         font_size: 21
         text: "UPG PLANES"
         states:
-          hover: "5K $"
+          default: "UPG PLANES"  # back to this when not hovered
+          hover: "5K $"  # the price, or MAX once bought (ui/game_hud.py)
 
       tower_panel_bg:
         anchor: bottom

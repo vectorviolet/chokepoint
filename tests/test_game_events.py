@@ -96,6 +96,29 @@ class FakeTowerController:
         self.events.append(event)
 
 
+class FakeHud:
+    """Counts money flashes."""
+
+    def __init__(self):
+        self.flashes = 0
+
+    def flash_money(self) -> None:
+        self.flashes += 1
+
+
+class FakeHudSlide:
+    def __init__(self):
+        self.peeks = []
+
+    def peek(self, name) -> None:
+        self.peeks.append(name)
+
+
+class FakeAssets:
+    def sound_path(self, key):
+        return f"assets/sfx/{key}.ogg"
+
+
 class FakePausePanel:
     def __init__(self):
         self.is_open = False
@@ -126,6 +149,7 @@ def make_game_panel():
         "start_pause_button": FakeButton(),
         "start_pause_button_icon": FakeButton(),
         "auto_pause_button": FakeButton(),
+        "keep_placing_button": FakeButton(),
         "speed_toggle_button": FakeButton(),
         "upgrade_plane_button": FakeButton(),
         "buy_tower_4": FakeButton(),
@@ -186,6 +210,10 @@ class FakeGame(GameEventsMixin):
         self.tower_config = load_tower_config()
         self.camera = FakeCamera()
         self.tower_controller = FakeTowerController()
+        self.hud = FakeHud()
+        self.hud_slide = FakeHudSlide()
+        self.assets = FakeAssets()
+        self.keep_placing = False
         self.pause_panel = FakePausePanel()
         self._resume_on_unpause = False
         self._settings_return_panel = "main_menu"
@@ -619,8 +647,10 @@ def test_upgrade_plane_succeeds_with_enough_money():
 
     assert game.game_state.money == 0
     assert game.game_state.plane_level == 2
-    assert game.panel_manager["game"]["buy_tower_4"].state == "lvl2"
-    assert game.panel_manager["game"]["upgrade_plane_button"].state == "purchased"
+    assert game.audio.played == ["assets/sfx/click.ogg"]
+    # (The plane's buy button takes its lvl2 look, and this button its maxed
+    # look, from GameHUD's money listener; tests/test_keep_placing.py checks
+    # that in a real Game.)
 
 
 def test_upgrade_plane_fails_with_insufficient_money():
@@ -631,6 +661,10 @@ def test_upgrade_plane_fails_with_insufficient_money():
 
     assert game.game_state.money == PLANE_UPGRADE_PRICE - 1
     assert game.game_state.plane_level == 1
+    # Refused like an unaffordable tower: the denied sound and a money flash.
+    assert game.audio.played == ["assets/sfx/denied.ogg"]  # no click on top
+    assert game.hud.flashes == 1
+    assert game.hud_slide.peeks == ["money"]
 
 
 def test_upgrade_plane_is_a_one_time_purchase():
@@ -641,6 +675,8 @@ def test_upgrade_plane_is_a_one_time_purchase():
     game._handle_upgrade_plane_button(click_up())
 
     assert game.game_state.money == 50_000  # unchanged -- already at level 2
+    assert game.audio.played == []  # maxed: no click, no denied sound
+    assert game.hud.flashes == 0
 
 
 def test_upgrade_plane_button_not_clicked_is_a_no_op():
