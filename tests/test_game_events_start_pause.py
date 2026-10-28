@@ -42,12 +42,14 @@ def make_game(*, is_started=False):
         click_sound_path="assets/sfx/click.ogg",
         game_state=SimpleNamespace(is_started=is_started),
     )
-    # _handle_start_pause calls self._activate(...), another mixin method --
-    # a bare SimpleNamespace has no class relationship to GameEventsMixin,
-    # so bind the real implementation directly rather than reimplementing it.
-    game._activate = lambda button, event: GameEventsMixin._activate(
-        game, button, event
+    # _handle_start_pause calls self._activate(...) and self._play_click(...),
+    # other mixin methods -- a bare SimpleNamespace has no class relationship
+    # to GameEventsMixin, so bind the real implementations directly rather
+    # than reimplementing them.
+    game._activate = lambda button, event, **kw: GameEventsMixin._activate(
+        game, button, event, **kw
     )
+    game._play_click = lambda button: GameEventsMixin._play_click(game, button)
     return game, button
 
 

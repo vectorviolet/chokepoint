@@ -17,7 +17,7 @@ Sizes are rough: [S] small, [M] medium, [L] large. [x] marks a finished item.
 
 ### Interface (ui)
 - [M] Pause panel with music and SFX controls; remove the in-game music toggle (keep it on the main menu)
-- [S] Continuous placement while Shift is held
+- [S] Continuous placement: a "keep placing" toggle in the HUD, also flipped by a Shift press (#69; replaces holding Shift, #9)
 - [x] Tab hides the whole HUD; counters reappear briefly on change (done, 1bc4c4f)
 
 ### Balance and content

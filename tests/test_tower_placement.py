@@ -435,14 +435,7 @@ def test_grid_overlay_only_draws_the_tiles_inside_the_viewport(tower_config, ass
     assert surface.blitted < 47 * 34
 
 
-# ── Shift: continuous placement (#9) ────────────────────────────────────────
-
-
-def _hold_shift(monkeypatch, held: bool) -> None:
-    """Mouse events carry no `mod`, so the controller reads the keyboard
-    state at placement time; fake it."""
-    mods = pygame.KMOD_LSHIFT if held else pygame.KMOD_NONE
-    monkeypatch.setattr(pygame.key, "get_mods", lambda: mods)
+# ── keep placing: continuous placement (#9, a toggle since #69) ─────────────
 
 
 def _tile_pos(col, row):
@@ -455,12 +448,17 @@ def _place_at(controller, col, row):
     controller.handle_event(buy_button_event(), mouse_pos=pos)
 
 
-def test_shift_held_keeps_the_type_selected_and_a_second_placement_works(
-    tower_config, assets, monkeypatch
+def test_keep_placing_is_off_by_default(tower_config, assets):
+    controller, _, _ = make_controller(tower_config, assets)
+    assert controller.keep_placing is False
+
+
+def test_keep_placing_keeps_the_type_selected_and_a_second_placement_works(
+    tower_config, assets
 ):
     controller, panel, gs = make_controller(tower_config, assets)
+    controller.keep_placing = True
     controller.buying_tower_type = GROUND_TYPE
-    _hold_shift(monkeypatch, True)
 
     _place_at(controller, 5, 5)
     assert controller.buying_tower_type == GROUND_TYPE
@@ -470,24 +468,25 @@ def test_shift_held_keeps_the_type_selected_and_a_second_placement_works(
     assert controller.buying_tower_type == GROUND_TYPE
 
 
-def test_right_shift_also_keeps_the_type_selected(tower_config, assets, monkeypatch):
-    controller, panel, gs = make_controller(tower_config, assets)
-    controller.buying_tower_type = GROUND_TYPE
-    monkeypatch.setattr(pygame.key, "get_mods", lambda: pygame.KMOD_RSHIFT)
-
-    _place_at(controller, 5, 5)
-
-    assert controller.buying_tower_type == GROUND_TYPE
-
-
-def test_shift_held_but_unaffordable_ends_placement_mode(
-    tower_config, assets, monkeypatch
+def test_keep_placing_ends_placement_when_gold_runs_out_but_stays_on(
+    tower_config, assets
 ):
     price = tower_config.prices[GROUND_TYPE - 1][0]
     gs = GameState(start_money=price + price // 2, start_lives=10)  # one, not two
     controller, panel, gs = make_controller(tower_config, assets, game_state=gs)
+    controller.keep_placing = True
     controller.buying_tower_type = GROUND_TYPE
-    _hold_shift(monkeypatch, True)
+
+    _place_at(controller, 5, 5)
+
+    assert len(controller._towers) == 1
+    assert controller.buying_tower_type == 0
+    assert controller.keep_placing is True  # the next pick carries on the same way
+
+
+def test_without_keep_placing_placement_mode_ends_as_before(tower_config, assets):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
 
     _place_at(controller, 5, 5)
 
@@ -495,21 +494,20 @@ def test_shift_held_but_unaffordable_ends_placement_mode(
     assert controller.buying_tower_type == 0
 
 
-def test_without_shift_placement_mode_ends_as_before(tower_config, assets, monkeypatch):
+def test_holding_shift_no_longer_keeps_placing(tower_config, assets, monkeypatch):
     controller, panel, gs = make_controller(tower_config, assets)
     controller.buying_tower_type = GROUND_TYPE
-    _hold_shift(monkeypatch, False)
+    monkeypatch.setattr(pygame.key, "get_mods", lambda: pygame.KMOD_LSHIFT)
 
     _place_at(controller, 5, 5)
 
-    assert len(controller._towers) == 1
     assert controller.buying_tower_type == 0
 
 
-def test_right_click_cancels_while_shift_is_held(tower_config, assets, monkeypatch):
+def test_right_click_cancels_while_keep_placing(tower_config, assets):
     controller, panel, gs = make_controller(tower_config, assets)
+    controller.keep_placing = True
     controller.buying_tower_type = GROUND_TYPE
-    _hold_shift(monkeypatch, True)
     _place_at(controller, 5, 5)
 
     controller.handle_event(
@@ -517,34 +515,13 @@ def test_right_click_cancels_while_shift_is_held(tower_config, assets, monkeypat
     )
 
     assert controller.buying_tower_type == 0
+    assert controller.keep_placing is True
 
 
-def test_releasing_shift_alone_does_not_end_placement_mode(
-    tower_config, assets, monkeypatch
-):
+def test_keep_placing_cannot_stack_two_towers_on_one_tile(tower_config, assets):
     controller, panel, gs = make_controller(tower_config, assets)
+    controller.keep_placing = True
     controller.buying_tower_type = GROUND_TYPE
-    _hold_shift(monkeypatch, True)
-    _place_at(controller, 5, 5)
-
-    _hold_shift(monkeypatch, False)
-    controller.handle_event(
-        pygame.event.Event(pygame.KEYUP, key=pygame.K_LSHIFT, mod=pygame.KMOD_NONE),
-        _tile_pos(6, 5),
-    )
-    assert controller.buying_tower_type == GROUND_TYPE
-
-    _place_at(controller, 6, 5)  # the next placement without Shift ends it
-    assert len(controller._towers) == 2
-    assert controller.buying_tower_type == 0
-
-
-def test_shift_placement_cannot_stack_two_towers_on_one_tile(
-    tower_config, assets, monkeypatch
-):
-    controller, panel, gs = make_controller(tower_config, assets)
-    controller.buying_tower_type = GROUND_TYPE
-    _hold_shift(monkeypatch, True)
 
     _place_at(controller, 5, 5)
     _place_at(controller, 5, 5)  # before any tick refreshes tower_positions
@@ -552,13 +529,166 @@ def test_shift_placement_cannot_stack_two_towers_on_one_tile(
     assert len(controller._towers) == 1
 
 
-def test_shift_held_keeps_planes_selected_too(tower_config, assets, monkeypatch):
+def test_keep_placing_keeps_planes_selected_too(tower_config, assets):
     controller, panel, gs = make_controller(tower_config, assets)
+    controller.keep_placing = True
     controller.buying_tower_type = PLANE_TYPE
-    _hold_shift(monkeypatch, True)
 
     _place_at(controller, 5, 5)
     _place_at(controller, 5, 5)  # planes block no tile
 
     assert len(controller._towers) == 2
     assert controller.buying_tower_type == PLANE_TYPE
+
+
+# ── an unaffordable tower can't be picked (#69) ─────────────────────────────
+
+
+def _denying_controller(tower_config, assets, money):
+    gs = GameState(start_money=money, start_lives=10)
+    controller, panel, gs = make_controller(tower_config, assets, game_state=gs)
+    denied = []
+    controller._on_denied = denied.append
+    return controller, panel, denied
+
+
+def _press(controller, key):
+    controller.handle_event(pygame.event.Event(pygame.KEYDOWN, key=key), (0, 0))
+
+
+def test_an_unaffordable_tower_cannot_be_picked_by_its_button(tower_config, assets):
+    price = tower_config.prices[GROUND_TYPE - 1][0]
+    controller, panel, denied = _denying_controller(tower_config, assets, price - 1)
+    panel["buy_tower_1"].clicked = True
+
+    controller.handle_event(buy_button_event(), mouse_pos=(0, 0))
+
+    assert controller.buying_tower_type == 0
+    assert denied == [GROUND_TYPE]
+
+
+def test_an_unaffordable_tower_cannot_be_picked_by_its_key(tower_config, assets):
+    price = tower_config.prices[GROUND_TYPE - 1][0]
+    controller, panel, denied = _denying_controller(tower_config, assets, price - 1)
+
+    _press(controller, pygame.K_1)
+    _press(controller, pygame.K_KP1)
+
+    assert controller.buying_tower_type == 0
+    assert denied == [GROUND_TYPE, GROUND_TYPE]
+
+
+def test_the_plane_follows_the_same_rule(tower_config, assets):
+    price = tower_config.prices[PLANE_TYPE - 1][0]
+    controller, panel, denied = _denying_controller(tower_config, assets, price - 1)
+
+    _press(controller, pygame.K_4)
+    panel["buy_tower_4"].clicked = True
+    controller.handle_event(buy_button_event(), mouse_pos=(0, 0))
+
+    assert controller.buying_tower_type == 0
+    assert denied == [PLANE_TYPE, PLANE_TYPE]
+
+
+def test_a_denied_pick_keeps_the_tower_being_placed(tower_config, assets):
+    cheap = tower_config.prices[GROUND_TYPE - 1][0]
+    controller, panel, denied = _denying_controller(tower_config, assets, cheap)
+    controller.buying_tower_type = GROUND_TYPE
+
+    _press(controller, pygame.K_4)  # the plane costs more
+
+    assert controller.buying_tower_type == GROUND_TYPE
+    assert denied == [PLANE_TYPE]
+
+
+def test_an_affordable_pick_is_not_denied(tower_config, assets):
+    price = tower_config.prices[GROUND_TYPE - 1][0]
+    controller, panel, denied = _denying_controller(tower_config, assets, price)
+
+    _press(controller, pygame.K_1)
+
+    assert controller.buying_tower_type == GROUND_TYPE
+    assert denied == []
+
+
+def test_the_tower_being_placed_can_always_be_dropped(tower_config, assets):
+    controller, panel, denied = _denying_controller(tower_config, assets, 0)
+    controller.buying_tower_type = GROUND_TYPE
+
+    _press(controller, pygame.K_1)
+
+    assert controller.buying_tower_type == 0
+    assert denied == []
+
+
+# ── the blocked-tile preview tint (#69) ─────────────────────────────────────
+
+
+def _previewed_image(controller, monkeypatch, col, row):
+    """The (unscaled) tower image the cursor preview draws over (col, row)."""
+    scaled = []
+    real = controller._camera.scale_image
+    monkeypatch.setattr(
+        controller._camera,
+        "scale_image",
+        lambda image: scaled.append(image) or real(image),
+    )
+    pos = _tile_pos(col, row)
+    controller.update_cursor(pos)
+    controller._draw_cursor_preview(pygame.Surface(GAME_AREA.size), pos)
+    return scaled[0]
+
+
+def test_the_preview_is_tinted_red_over_an_unbuildable_tile(
+    tower_config, assets, monkeypatch
+):
+    grid = [[True] * 47 for _ in range(34)]
+    grid[5][5] = False
+    controller, panel, gs = make_controller(tower_config, assets, buildable_grid=grid)
+    controller.buying_tower_type = GROUND_TYPE
+
+    image = _previewed_image(controller, monkeypatch, 5, 5)
+
+    assert image is controller._blocked_tower_images[GROUND_TYPE - 1]
+    normal = controller._tower_images[GROUND_TYPE - 1]
+    w, h = normal.get_size()
+    opaque = [
+        (x, y) for y in range(h) for x in range(w) if normal.get_at((x, y)).a == 255
+    ]
+    assert opaque
+    for point in opaque[:: max(1, len(opaque) // 50)]:
+        before, after = normal.get_at(point), image.get_at(point)
+        assert after.a == before.a
+        assert after.g < before.g or before.g == 0  # green and blue damped
+        assert after.r >= after.g and after.r >= after.b  # reddish
+
+
+def test_the_preview_is_tinted_red_over_an_occupied_tile(
+    tower_config, assets, monkeypatch
+):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    controller.tower_positions.add((5, 5))
+
+    image = _previewed_image(controller, monkeypatch, 5, 5)
+
+    assert image is controller._blocked_tower_images[GROUND_TYPE - 1]
+
+
+def test_the_preview_is_untinted_over_a_free_tile(tower_config, assets, monkeypatch):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+
+    image = _previewed_image(controller, monkeypatch, 5, 5)
+
+    assert image is controller._tower_images[GROUND_TYPE - 1]
+
+
+def test_a_plane_preview_is_never_tinted(tower_config, assets, monkeypatch):
+    grid = [[False] * 47 for _ in range(34)]  # planes ignore the grid
+    controller, panel, gs = make_controller(tower_config, assets, buildable_grid=grid)
+    controller.buying_tower_type = PLANE_TYPE
+
+    image = _previewed_image(controller, monkeypatch, 5, 5)
+
+    assert image is controller._tower_images[PLANE_TYPE - 1]

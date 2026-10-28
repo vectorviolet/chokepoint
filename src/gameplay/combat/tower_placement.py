@@ -30,13 +30,15 @@ SHORTCUT_TEXT_COLOR = (255, 255, 255)
 ENEMY_CLICK_PADDING = 8
 
 
-def _shift_held(event) -> bool:
-    """True when either Shift key is held for this event. Mouse events
-    carry no `mod`, so this falls back to the keyboard state."""
-    mods = getattr(event, "mod", None)
-    if mods is None:
-        mods = pygame.key.get_mods()
-    return bool(mods & pygame.KMOD_SHIFT)
+# Multiplied into the tower preview while the hovered tile can't be built on.
+BLOCKED_TINT = (255, 70, 70)
+
+
+def _tinted(image: pygame.Surface, tint: tuple[int, int, int]) -> pygame.Surface:
+    """A copy of `image` with its colours multiplied by `tint` (alpha kept)."""
+    tinted = image.copy()
+    tinted.fill(tint, special_flags=pygame.BLEND_RGB_MULT)
+    return tinted
 
 
 class TowerPlacementController:
@@ -55,13 +57,19 @@ class TowerPlacementController:
         feedback=None,
         enemies: list | None = None,
         on_tower_sold=None,
+        on_denied=None,
     ) -> None:
         """feedback: told when a tower is placed or sold (a sound and an
         effect on its tile; see ui.place_sell_feedback), or None.
         on_tower_sold(tower, index): told when a tower is sold, with the
         index it had in `towers` (the battle keeps its shots flying), or None.
         enemies: the battle's enemy list (shared by reference), whose
-        enemies a click can select to show their HP numbers."""
+        enemies a click can select to show their HP numbers.
+        on_denied(tower_type): told when a tower the player can't afford is
+        picked (its buy button or number key); the pick itself is refused.
+        keep_placing: the "keep placing" toggle -- while on, placement mode
+        stays on after a placement as long as another tower of the same type
+        is affordable."""
         self._towers = towers
         self._tower_config = tower_config
         self._assets = assets
@@ -74,6 +82,8 @@ class TowerPlacementController:
         self._game_area = game_area
         self._feedback = feedback
         self._on_tower_sold = on_tower_sold
+        self._on_denied = on_denied
+        self.keep_placing = False
         self._enemies = enemies if enemies is not None else []
 
         self.buying_tower_type: int = 0
@@ -89,6 +99,9 @@ class TowerPlacementController:
             assets.get_image("tower_3_lvl1"),
             assets.get_image("tower_4_lvl1"),
             assets.get_image("tower_4_lvl2"),
+        ]
+        self._blocked_tower_images = [
+            _tinted(image, BLOCKED_TINT) for image in self._tower_images
         ]
         self._shortcut_font = pygame.font.Font(assets.font_path("anton"), 20)
 
@@ -151,7 +164,7 @@ class TowerPlacementController:
             # a click elsewhere.
             if not self._handle_tower_actions(mouse_pos):
                 self._handle_selection(mouse_pos)
-            self._handle_tower_purchase(mouse_pos, keep_type=_shift_held(event))
+            self._handle_tower_purchase(mouse_pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
             self.cancel()
         if event.type == pygame.KEYDOWN:
@@ -178,9 +191,20 @@ class TowerPlacementController:
         tower_type = _TOWER_HOTKEYS.get(event.key)
         if tower_type is None:
             return
-        self.buying_tower_type = (
-            0 if self.buying_tower_type == tower_type else tower_type
-        )
+        self._pick(tower_type)
+
+    def _pick(self, tower_type: int) -> None:
+        """A buy button or number key: picks that tower for placement, or
+        drops it if it's the one being placed. A tower the player can't
+        afford can't be picked: the current placement (if any) stays and
+        on_denied is told instead."""
+        if self.buying_tower_type == tower_type:
+            self.buying_tower_type = 0
+        elif not self._can_afford(tower_type):
+            if self._on_denied is not None:
+                self._on_denied(tower_type)
+        else:
+            self.buying_tower_type = tower_type
 
     def _handle_tower_actions(self, mouse_pos: tuple) -> bool:
         """Upgrade/sell the selected tower if its button was clicked. True
@@ -232,10 +256,10 @@ class TowerPlacementController:
         is_selected = self._game_state.selected_tower is clicked
         self._game_state.selected_tower = None if is_selected else clicked
 
-    def _handle_tower_purchase(self, mouse_pos: tuple, keep_type: bool = False) -> None:
+    def _handle_tower_purchase(self, mouse_pos: tuple) -> None:
         """Place the tower being bought on the cursor's tile. Placement mode
-        then ends, unless `keep_type` (Shift held) and another tower of the
-        same type is still affordable."""
+        then ends, unless the keep-placing toggle is on and another tower of
+        the same type is still affordable (the toggle itself stays on)."""
         if not self._game_area.collidepoint(mouse_pos) or not self.buying_tower_type:
             return
         if not self._is_placeable(self.cursor_row, self.cursor_col):
@@ -261,7 +285,7 @@ class TowerPlacementController:
             # Taken at once, so a quick second click before the next tick
             # can't build on the same tile.
             self.tower_positions.add(blocking)
-        if not (keep_type and self._can_afford(self.buying_tower_type)):
+        if not (self.keep_placing and self._can_afford(self.buying_tower_type)):
             self.buying_tower_type = 0
         if self._feedback is not None:
             self._feedback.tower_placed(tower.position)
@@ -273,7 +297,7 @@ class TowerPlacementController:
         for i in range(4):
             btn = self._panel_manager["game"][f"buy_tower_{i + 1}"]
             if btn.is_clicked(event, mouse_pos):
-                self.buying_tower_type = 0 if self.buying_tower_type == i + 1 else i + 1
+                self._pick(i + 1)
 
     def draw(self, surface: pygame.Surface, mouse_pos: tuple) -> None:
         if not self.buying_tower_type:
@@ -350,7 +374,9 @@ class TowerPlacementController:
             surface.set_clip(old_clip)
             return
 
-        scaled_tower = self._camera.scale_image(self._tower_images[index])
+        tile_blocked = not self._is_placeable(self.cursor_row, self.cursor_col)
+        images = self._blocked_tower_images if tile_blocked else self._tower_images
+        scaled_tower = self._camera.scale_image(images[index])
         cell_top_left = self._camera.world_to_screen(
             (self.cursor_col * TILE_SIZE, self.cursor_row * TILE_SIZE)
         )
@@ -373,9 +399,7 @@ class TowerPlacementController:
         )
         buy_price = self._tower_config.prices[self.buying_tower_type - 1][0]
         cannot_afford = self._game_state.money < buy_price
-        blocked = (
-            not self._is_placeable(self.cursor_row, self.cursor_col) or cannot_afford
-        )
+        blocked = tile_blocked or cannot_afford
         self._blit_range_ring(surface, center, scaled_range, blocked, scaled_min_range)
 
     @staticmethod
