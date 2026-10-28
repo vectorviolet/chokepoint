@@ -19,6 +19,7 @@ images:
   icon_play:         {folder: hud/icons, name: icon_play}
   icon_pause:         {folder: hud/icons, name: icon_pause}
   icon_hourglass:    {folder: hud/icons, name: icon_hourglass}
+  icon_keep_placing: {folder: hud/icons, name: icon_keep_placing}
 
   # ── Tower buy panel icons ─────────────────────────────────────────────
   buy_tower_1:       {folder: hud/tower_bar, name: buy_tower1}
@@ -133,3 +134,4 @@ sounds:
   tower_placed:      {folder: sfx, name: impactPlank_medium_001}
   tower_sold:        {folder: sfx, name: impactMetal_light_000}
   bomb_impact:       {folder: sfx, name: explosionCrunch_002}
+  denied:            {folder: sfx, name: error_008}

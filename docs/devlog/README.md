@@ -27,6 +27,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-10-27 | [Info panel placement: overlay or sidebar](2026-10-27-info-panel-placement.md) | UI design | #33 |
 | 2026-10-27 | [Pause menu icons (postponed)](2026-10-27-pause-menu-icons.md) | UI design | #44 |
 | 2026-10-27 | [Play-test save](2026-10-27-playtest-save.md) | Tooling | #63, PR #64 |
+| 2026-10-28 | [Keep-placing toggle and no picking unaffordable towers](2026-10-28-placement-toggle.md) | Controls, UI | #69 |
 
 ## Adding an entry
 

@@ -197,10 +197,10 @@ def test_hotkeys_still_work_while_hidden(make_game, fake_ticks):
     game = make_game()
     hide(game, fake_ticks)
 
-    press(game, pygame.K_3)
+    press(game, pygame.K_1)  # the one tower the starting gold affords
     press(game, pygame.K_SPACE)
 
-    assert game.tower_controller.buying_tower_type == 3
+    assert game.tower_controller.buying_tower_type == 1
     assert game.game_state.is_started
 
 

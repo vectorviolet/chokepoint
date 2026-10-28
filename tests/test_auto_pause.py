@@ -19,6 +19,7 @@ COLUMN = (
     "menu_button",
     "start_pause_button",
     "auto_pause_button",
+    "keep_placing_button",
     "speed_toggle_button",
     "upgrade_plane_button",
 )

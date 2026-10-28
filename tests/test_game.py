@@ -293,6 +293,7 @@ def make_updating_game():
     game.mouse = SimpleNamespace(position=(1, 2), update=Spy())
     game.tower_controller = SimpleNamespace(update_cursor=Spy())
     game.hud_slide = SimpleNamespace(update=Spy(), shown=True, is_sliding=False)
+    game.hud = SimpleNamespace(update=Spy())
     game.kill_feedback = SimpleNamespace(update=Spy())
     game.place_sell_feedback = SimpleNamespace(update=Spy())
     game.bomb_impacts = SimpleNamespace(update=Spy())
@@ -309,6 +310,7 @@ def test_update_game_forwards_input_motion_scaled_to_the_frame_time():
     assert len(game.mouse.update.calls) == 1
     assert game.tower_controller.update_cursor.calls == [((1, 2),)]
     assert game.hud_slide.update.calls == [(pytest.approx(2 * TICK_MS),)]
+    assert game.hud.update.calls == [(pytest.approx(2 * TICK_MS),)]  # the money flash
 
 
 def test_update_game_runs_one_tick_per_tick_ms_of_frame_time():

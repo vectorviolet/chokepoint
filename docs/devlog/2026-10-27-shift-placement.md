@@ -1,5 +1,8 @@
 # Shift keeps placing
 
+> **Superseded** by [the keep-placing toggle](2026-10-28-placement-toggle.md) (#69): holding Shift
+> was tiring and set off Windows' Sticky Keys prompt, so a Shift *press* now flips a HUD toggle.
+
 **Date:** 2026-10-27 · **Area:** Controls · **Issue:** [#9](https://github.com/vectorviolet/chokepoint/issues/9) · **PR:** [#48](https://github.com/vectorviolet/chokepoint/pull/48)
 
 ## Context
