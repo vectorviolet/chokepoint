@@ -23,9 +23,9 @@ from gameplay.tilemap import Tilemap
 from gameplay.towers import TowerFactory
 from pygamine import SaveStore
 from ui import hp_bar
+from gameplay.towers import PLANE_TYPE
 
 GROUND_TYPE = 1
-PLANE_TYPE = 4
 TANK_TYPE = 5
 
 

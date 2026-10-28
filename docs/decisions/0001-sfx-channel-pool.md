@@ -1,4 +1,5 @@
 # 0001. SFX channel pool; drop the new sound when full
+<!-- index | refs: pygamine#1, pygamine PR #2, #3 -->
 
 - **Status:** Accepted
 - **Date:** 2026-10-26

@@ -1,4 +1,5 @@
 # Info panel placement: overlay or sidebar
+<!-- index | refs: #33 -->
 
 **Date:** 2026-10-27 · **Area:** UI design · **Issue:** [#33](https://github.com/vectorviolet/chokepoint/issues/33)
 

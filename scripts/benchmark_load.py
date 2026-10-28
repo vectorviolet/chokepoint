@@ -64,13 +64,13 @@ sys.path.insert(0, "src")
 sys.path.insert(0, "src/pygamine")
 
 from smoke_test import REAL_SAVES, saves_redirected, snapshot  # noqa: E402
+from gameplay.towers import GROUND_TOWER_TYPES as GROUND_TYPES  # noqa: E402
+from gameplay.towers import PLANE_TYPE  # noqa: E402
 
 LEVEL = 15  # enemy stats scale with the wave level
 HP_SCALE = 5  # enemies this many times tougher, so the count stays steady
 ENEMY_TYPE_WEIGHTS = {1: 4, 2: 3, 3: 2, 4: 2, 5: 1, 6: 1}
-TOWER_TYPES = (1, 2, 3, 4)
-GROUND_TYPES = (1, 2, 3)
-PLANE_TYPE = 4
+TOWER_TYPES = (*GROUND_TYPES, PLANE_TYPE)
 TICKS_PER_SECOND = 165  # util.constants; re-read in main() and checked
 
 
@@ -111,7 +111,7 @@ class LoadScenario:
     def __init__(self, game, enemy_count: int, tower_count: int, seed: int) -> None:
         from pygame.math import Vector2
 
-        from gameplay.menu_demo import _distance_to_path
+        from gameplay.path_geometry import distance_to_path
         from util.constants import HALF_TILE, TILE_SIZE
 
         self.game = game
@@ -131,7 +131,7 @@ class LoadScenario:
                     centre = Vector2(
                         col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE
                     )
-                    tiles.append((_distance_to_path(centre, path), row, col))
+                    tiles.append((distance_to_path(centre, path), row, col))
         tiles.sort()
 
         types = [TOWER_TYPES[i % len(TOWER_TYPES)] for i in range(tower_count)]

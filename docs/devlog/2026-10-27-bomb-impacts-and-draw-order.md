@@ -1,4 +1,5 @@
 # Bomb impacts and draw order
+<!-- index | refs: #4, #55, #60, PRs #49, #61 -->
 
 **Date:** 2026-10-27 · **Area:** Feedback, rendering · **Issues:** [#4](https://github.com/vectorviolet/chokepoint/issues/4), [#55](https://github.com/vectorviolet/chokepoint/issues/55), [#60](https://github.com/vectorviolet/chokepoint/issues/60) · **PRs:** [#49](https://github.com/vectorviolet/chokepoint/pull/49), [#61](https://github.com/vectorviolet/chokepoint/pull/61)
 

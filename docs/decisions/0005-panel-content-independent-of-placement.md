@@ -1,4 +1,5 @@
 # 0005. Panel content independent of its placement
+<!-- index | refs: #33 -->
 
 - **Status:** Accepted
 - **Date:** 2026-10-27

@@ -1,4 +1,5 @@
 # No sliver of the Level counter after Tab
+<!-- index | refs: #43, PR #46 -->
 
 **Date:** 2026-10-26 · **Area:** UI, bug · **Issue:** [#43](https://github.com/vectorviolet/chokepoint/issues/43) · **PR:** [#46](https://github.com/vectorviolet/chokepoint/pull/46)
 

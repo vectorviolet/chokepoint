@@ -1,4 +1,5 @@
 # Planes leave the map whole
+<!-- index | refs: #59, PR #66 -->
 
 **Date:** 2026-10-28 · **Area:** Gameplay, rendering · **Issue:** [#59](https://github.com/vectorviolet/chokepoint/issues/59) · **PR:** [#66](https://github.com/vectorviolet/chokepoint/pull/66)
 

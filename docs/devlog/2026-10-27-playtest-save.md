@@ -1,4 +1,5 @@
 # Play-test save
+<!-- index | refs: #63, PR #64 -->
 
 **Date:** 2026-10-27 · **Area:** Tooling · **Issue:** [#63](https://github.com/vectorviolet/chokepoint/issues/63) · **PR:** [#64](https://github.com/vectorviolet/chokepoint/pull/64) (open when this entry was written)
 
@@ -28,6 +29,23 @@ bought with a plane in the air, music and SFX volume 0. See
 Details in PR #64: the script refuses to run without `--out`, refuses to overwrite without
 `--overwrite`, and refuses to write into the main checkout's own `saves/`. `window_size` is left out
 of the settings so the game picks its best fit for the screen.
+
+After two code reviews on PR #64:
+- The wave is filled to about half spawned under `BattleSimulation.waves_only()`: the towers
+  (already placed) hold fire and nothing fights, and enemies that reach the end cost no lives, so
+  any `--level` works (tested up to 200). When the towers fired, wave 10 kept only 1 of its 7
+  spawned enemies, and the issue asks for half the wave on the path.
+- In long, high-level waves many of the first enemies reach the end before half have spawned, so
+  fewer are on the path (wave 100: 155 of 309 spawned, 91 on the path). The script prints the real
+  number.
+- The plane is added after the fill at the map's left edge, on the path's row, so it crosses the
+  whole map (about 18 s at x1). Placed near the entrance (column 41 of 47), it left in 3 s.
+- The main checkout is found from the shared git folder: its parent for a `.git` folder, the
+  `core.worktree` of a submodule's `.git/modules/<name>`. A copy nested in another repository,
+  or one with no `.git`, holds the real saves itself. Without git, `.git` is read directly. If the
+  checkout still can't be found, any `saves` folder outside the current checkout is refused.
+  Paths compare case-insensitively on Windows (`.../Saves` is refused too).
+- Settings write `auto_pause_between_waves: false` explicitly.
 
 ## Rejected alternatives
 

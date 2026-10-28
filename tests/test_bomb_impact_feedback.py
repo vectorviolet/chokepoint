@@ -27,9 +27,9 @@ from ui.bomb_impact_feedback import (
     TOTAL_FRAMES,
     BombImpactFeedback,
 )
+from gameplay.towers import PLANE_TYPE
 
 SOUND = "sfx/boom.ogg"
-PLANE_TYPE = 4
 
 
 class SfxSpy:
