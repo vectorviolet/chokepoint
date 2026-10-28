@@ -7,8 +7,8 @@ The run: --money coins (100,000), wave --level (10) about half spawned and
 paused, its spawned enemies on the path (in long, high-level waves the first
 ones reach the end while it fills, so fewer); one tower of every type at
 every level on build tiles beside the path, the plane upgrade bought and one
-plane starting its flight at the map's left edge. The settings: music and
-SFX volume 0, music on, auto-pause off, windowed.
+plane starting its flight at the map's left edge. The settings: master,
+music and SFX volume 0, music on, auto-pause off, windowed.
 
 It builds all of this with the real game: a Game() whose saving is
 redirected to a temporary folder (saves_redirected() from smoke_test.py),
@@ -320,8 +320,9 @@ def build_run(game, money: int, level: int) -> int:
 
 
 def settings_for_playtest(game) -> None:
-    """Music and SFX at volume 0, music on (not paused), auto-pause between
+    """Master, music and SFX at volume 0, music on (not paused), auto-pause between
     waves off -- set here rather than left to config/settings.yaml."""
+    game.audio.set_master_volume(0.0)
     game.audio.set_music_volume(0.0)
     game.audio.set_sfx_volume(0.0)
     if game.audio.is_music_paused:

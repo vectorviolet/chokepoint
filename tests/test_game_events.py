@@ -13,6 +13,7 @@ import pygame
 import pytest
 
 from app.game_events import GameEventsMixin
+from app.volume_settings import VOLUME_SETTINGS
 from domain.game_state import GameState
 from util.config_loader import load_tower_config
 
@@ -50,12 +51,16 @@ class FakeScroller:
 class FakeAudio:
     def __init__(self):
         self.played = []
+        self.master_volume_value = 0.5
         self.sfx_volume_value = 0.5
         self.music_volume_value = 0.5
         self.is_music_paused = False
 
     def play_sfx(self, path) -> None:
         self.played.append(path)
+
+    def set_master_volume(self, value) -> None:
+        self.master_volume_value = value
 
     def set_sfx_volume(self, value) -> None:
         self.sfx_volume_value = value
@@ -65,6 +70,14 @@ class FakeAudio:
 
     def toggle_music(self) -> None:
         self.is_music_paused = not self.is_music_paused
+
+
+class FakeLifeLostFeedback:
+    def __init__(self):
+        self.volume_applied = 0
+
+    def apply_volume(self) -> None:
+        self.volume_applied += 1
 
 
 class FakeCamera:
@@ -207,6 +220,7 @@ class FakeGame(GameEventsMixin):
         self._victory_popup_open = False
         self._gameover_popup_open = False
         self._has_saved_game_value = has_saved_game
+        self.life_lost_feedback = FakeLifeLostFeedback()
         self.calls: list = []
 
     # -- stand-ins for GameSaveMixin / Game / Application ---------------------
@@ -240,11 +254,8 @@ class FakeGame(GameEventsMixin):
     def _refresh_window_mode_label(self) -> None:
         self.calls.append("_refresh_window_mode_label")
 
-    def _refresh_sfx_volume_label(self) -> None:
-        self.calls.append("_refresh_sfx_volume_label")
-
-    def _refresh_music_volume_label(self) -> None:
-        self.calls.append("_refresh_music_volume_label")
+    def _refresh_volume_label(self, volume) -> None:
+        self.calls.append(("_refresh_volume_label", volume.key))
 
     def on_exit_request(self) -> None:
         self.calls.append("on_exit_request")
@@ -441,16 +452,15 @@ def test_settings_window_mode_back_and_next():
     assert ("cycle_window_mode", 1) in game2.calls
 
 
-def test_on_sfx_and_music_volume_changed():
+@pytest.mark.parametrize("volume", VOLUME_SETTINGS, ids=lambda v: v.key)
+def test_on_volume_changed(volume):
     game = FakeGame()
 
-    game._on_sfx_volume_changed(0.75)
-    assert game.audio.sfx_volume_value == 0.75
-    assert "_refresh_sfx_volume_label" in game.calls
+    game._on_volume_changed(volume, 0.25)
 
-    game._on_music_volume_changed(0.25)
-    assert game.audio.music_volume_value == 0.25
-    assert "_refresh_music_volume_label" in game.calls
+    assert getattr(game.audio, f"{volume.key}_value") == 0.25
+    assert ("_refresh_volume_label", volume.key) in game.calls
+    assert game.life_lost_feedback.volume_applied == 1  # a ringing bell follows
 
 
 # ── game panel ───────────────────────────────────────────────────────────────

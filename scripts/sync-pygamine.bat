@@ -1,6 +1,6 @@
 @echo off
-REM Fetch latest pygamine from origin/main (.gitmodules pins branch=main, update=merge)
-REM and stage the new submodule pointer. Run 'git commit && git push' afterward to publish.
+REM Moves the engine to the newest pygamine origin/main (.gitmodules: branch = main)
+REM and stages the new submodule pointer (git submodule update --remote --merge). Run 'git commit && git push' afterward to publish.
 cd /d "%~dp0.."
 git submodule update --remote --merge src/pygamine
 git add src/pygamine

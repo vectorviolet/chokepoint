@@ -92,13 +92,13 @@ class GameEventsMixin:
         self._refresh_window_mode_label()
         self._refresh_window_size_label()
 
-    def _on_sfx_volume_changed(self, value: float) -> None:
-        self.audio.set_sfx_volume(value)
-        self._refresh_sfx_volume_label()
-
-    def _on_music_volume_changed(self, value: float) -> None:
-        self.audio.set_music_volume(value)
-        self._refresh_music_volume_label()
+    def _on_volume_changed(self, volume, value: float) -> None:
+        """A Settings volume slider moved (`volume`: a VolumeSetting row)."""
+        getattr(self.audio, volume.setter)(value)
+        self._refresh_volume_label(volume)
+        # GameAudio keeps its own channels in step; the bell's channel 2 is
+        # the game's, so a bell already ringing follows master/SFX here.
+        self.life_lost_feedback.apply_volume()
 
     def _handle_game_event(self, event) -> None:
         if self._victory_popup_open:
