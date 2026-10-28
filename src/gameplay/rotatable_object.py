@@ -2,7 +2,7 @@ from typing import override
 import pygame
 from pygame.math import Vector2
 
-from pygamine import angle_between_delta
+from pygamine import angle_of_delta
 from pygamine import ImagePath, PathLike
 from pygamine import SpriteRenderer2D
 from pygamine import StateObject
@@ -44,7 +44,7 @@ class RotatableObject(StateObject):
         if delta.length_squared() == 0:
             return
 
-        self.rotate_to_angle(angle_between_delta(delta))
+        self.rotate_to_angle(angle_of_delta(delta))
 
     def rotate_to_angle(self, angle: float) -> None:
         rotation = self.sprite_orientation - angle

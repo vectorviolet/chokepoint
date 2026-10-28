@@ -15,7 +15,7 @@ from gameplay.combat.enemy import Enemy, _BASE_STATS
 from gameplay.combat.targeting import TowerGrid
 from gameplay.rotatable_object import RotatableObject
 from pygamine import load_image
-from pygamine import angle_between_delta, angle_between_points
+from pygamine import angle_of_delta, angle_between_points
 
 if TYPE_CHECKING:
     from domain.protocols import IGameContext
@@ -89,7 +89,7 @@ class Tank(Enemy):
         delta = target_pos - self.position
         if delta.length_squared() == 0:
             return
-        self._muzzle_angle = angle_between_delta(delta)
+        self._muzzle_angle = angle_of_delta(delta)
         self._muzzle_image = pygame.transform.rotate(
             self._muzzle_base, -self._muzzle_angle
         )
