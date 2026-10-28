@@ -44,6 +44,24 @@ that way. So:
   `SaveStore.delete` with no-ops. Alternatively, run it with a temporary directory as the cwd.
 - Never run such a script in a way that can write to, overwrite or delete `saves/`.
 
+### Play-test save
+
+To play-test a PR from a ready-made run, inside its **worktree** (never the main checkout):
+
+```bash
+uv run python scripts/make_playtest_save.py --out saves   # then: uv run python __main__.py → Continue
+```
+
+It writes `save.json` and `settings.json` into `--out`: 100,000 coins (`--money`), wave 10
+(`--level`) about half spawned and paused (at high levels many of its first enemies reach the end
+while it fills; the script prints how many are on the path), one tower of every type at every
+level beside the path, the plane upgrade bought with one plane starting its flight at the map's
+left edge, music/SFX volume 0 (music on), auto-pause off, windowed. The wave fills under
+`BattleSimulation.waves_only()`: towers idle, no fighting, escapes cost no lives. It builds the
+run with a real `Game()` (saves redirected) and the game's own save code, so it always matches
+the save format. It refuses existing files without `--overwrite`
+and refuses the main checkout's own `saves/`.
+
 ### Building a distributable
 
 `pyinstaller chokepoint.spec --noconfirm` produces a standalone onedir bundle in
@@ -67,9 +85,14 @@ paths resolve in both. `config_loader` anchors to that root too.
 
 Every PR that adds a feature or settles a design decision adds or updates an entry in
 `docs/devlog/` (`YYYY-MM-DD-short-title.md`: context, options with screenshots, decision and who
-made it, rejected alternatives, result) and its row in `docs/devlog/README.md`. Architecture and
-system choices get an ADR in `docs/decisions/` (`NNNN-title.md`). Images are PNGs of this game in
-`docs/devlog/img/`, at most 1280 px wide. Templates are in both READMEs. `CHANGELOG.md` stays short.
+made it, rejected alternatives, result). Architecture and system choices get an ADR in
+`docs/decisions/` (`NNNN-title.md`). Images are PNGs of this game in `docs/devlog/img/`, at most
+1280 px wide. Templates are in both READMEs. `CHANGELOG.md` stays short.
+
+The index tables in `docs/devlog/README.md` and `docs/decisions/README.md` are generated: add your
+entry file (with its `<!-- index | refs: #N, PR #M -->` line under the title), run
+`uv run python scripts/gen_devlog_index.py`, and commit the README with it. Never edit a table by
+hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what an entry needs.
 
 ## Architecture
 

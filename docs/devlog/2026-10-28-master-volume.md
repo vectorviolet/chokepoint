@@ -1,4 +1,5 @@
 # Master volume
+<!-- index | refs: #45, PR #73 -->
 
 **Date:** 2026-10-28 · **Area:** Audio, UI · **Issue:** [#45](https://github.com/vectorviolet/chokepoint/issues/45) · **PR:** [#73](https://github.com/vectorviolet/chokepoint/pull/73) (open when this entry was written)
 

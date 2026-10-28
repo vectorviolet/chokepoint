@@ -37,6 +37,16 @@ class WaveManager:
         self.on_wave_cleared: Callable[[], None] | None = None
         self._clear_announced: bool = False
 
+    @property
+    def spawned_count(self) -> int:
+        """Enemies of the current wave spawned so far."""
+        return self._queue_index
+
+    @property
+    def wave_size(self) -> int:
+        """Enemies in the current wave (0 before its first update)."""
+        return len(self._spawn_queue)
+
     def _build_queue(self, level: int) -> None:
         wave = WAVE_COMPOSITIONS.get(level) or self._wave_for(level)
         self._spawn_queue = [

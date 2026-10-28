@@ -1,4 +1,5 @@
 # Heavy cannon blind spot
+<!-- index | refs: #11, PR #56 -->
 
 **Date:** 2026-10-27 · **Area:** Gameplay · **Issue:** [#11](https://github.com/vectorviolet/chokepoint/issues/11) · **PR:** [#56](https://github.com/vectorviolet/chokepoint/pull/56)
 

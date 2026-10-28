@@ -1,4 +1,5 @@
 # Enemy HP on click
+<!-- index | refs: #7, PR #47 -->
 
 **Date:** 2026-10-27 · **Area:** UI · **Issue:** [#7](https://github.com/vectorviolet/chokepoint/issues/7) · **PR:** [#47](https://github.com/vectorviolet/chokepoint/pull/47)
 

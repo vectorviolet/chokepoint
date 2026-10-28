@@ -1,4 +1,5 @@
 # Tower info panel
+<!-- index | refs: #5, PR #28 -->
 
 **Date:** 2026-10-26 · **Area:** UI · **Issue:** [#5](https://github.com/vectorviolet/chokepoint/issues/5) · **PR:** [#28](https://github.com/vectorviolet/chokepoint/pull/28)
 

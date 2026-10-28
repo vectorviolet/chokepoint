@@ -1,4 +1,5 @@
 # Auto-pause between waves
+<!-- index | refs: #34, PR #53 -->
 
 **Date:** 2026-10-27 · **Area:** Gameplay, UI · **Issue:** [#34](https://github.com/vectorviolet/chokepoint/issues/34) · **PR:** [#53](https://github.com/vectorviolet/chokepoint/pull/53)
 

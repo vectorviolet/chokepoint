@@ -3,8 +3,8 @@ from pygame.math import Vector2
 from domain.game_state import GameState
 from gameplay.towers import TowerFactory
 from gameplay.towers.base_tower import BTN_SIZE, SELL_BTN_OFFSET, UPGRADE_BTN_OFFSET
+from gameplay.towers import PLANE_TYPE
 
-PLANE_TYPE = 4
 GROUND_TYPE = 1
 MAP_WIDTH = 3008
 

@@ -1,4 +1,5 @@
 # Keep-placing toggle and no picking unaffordable towers
+<!-- index | refs: #69 -->
 
 **Date:** 2026-10-28 · **Area:** Controls, UI · **Issue:** [#69](https://github.com/vectorviolet/chokepoint/issues/69) · **PR:** to be filled in at merge
 

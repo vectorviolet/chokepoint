@@ -1,4 +1,5 @@
 # 0002. Bombs deal damage at landing; the explosion is cosmetic
+<!-- index | refs: #4, PR #49 -->
 
 - **Status:** Accepted
 - **Date:** 2026-10-27
