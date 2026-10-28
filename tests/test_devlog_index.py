@@ -91,3 +91,8 @@ def test_updated_readme_replaces_only_between_markers():
     assert gen_index.updated_readme(text, "new") == (
         f"intro\n{gen_index.BEGIN}\nnew\n{gen_index.END}\noutro\n"
     )
+
+
+def test_missing_markers_name_the_readme():
+    with pytest.raises(gen_index.EntryError, match="docs/devlog/README.md"):
+        gen_index.updated_readme("no markers here\n", "new", "docs/devlog/README.md")
