@@ -19,6 +19,7 @@ links; a changed decision gets a new ADR that supersedes the old one.
 | [0004](0004-grid-targeting.md) | Grid targeting with identical target choice | Accepted | 2026-10-27 | #40, PR #51 |
 | [0005](0005-panel-content-independent-of-placement.md) | Panel content independent of its placement | Accepted | 2026-10-27 | #33 |
 | [0006](0006-playtest-save-from-game-code.md) | Play-test save built from game code | Accepted | 2026-10-27 | #63, PR #64 |
+| [0007](0007-headless-balance-simulator.md) | Headless balance simulator on the real game | Accepted | 2026-10-29 | #70, #10 |
 <!-- index:end -->
 
 ## Adding an ADR
