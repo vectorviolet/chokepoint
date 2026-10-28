@@ -38,6 +38,7 @@ def test_save_loads_in_a_real_game_as_described(script, tmp_path, tower_config):
     assert sorted(p.name for p in out.iterdir()) == ["save.json", "settings.json"]
 
     game = Game()
+    assert game.audio.master_volume() == 0
     assert game.audio.music_volume() == 0
     assert game.audio.sfx_volume() == 0
     assert not game.audio.is_music_paused  # music on, just at volume 0
