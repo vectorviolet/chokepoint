@@ -1,4 +1,5 @@
 # 0003. Shots in flight outlive their source
+<!-- index | refs: #50, PR #52, #62, PR #65 -->
 
 - **Status:** Accepted
 - **Date:** 2026-10-27

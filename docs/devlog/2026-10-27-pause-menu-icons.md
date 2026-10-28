@@ -1,4 +1,5 @@
 # Pause menu icons (postponed)
+<!-- index | refs: #44 -->
 
 **Date:** 2026-10-27 · **Area:** UI design · **Issue:** [#44](https://github.com/vectorviolet/chokepoint/issues/44)
 

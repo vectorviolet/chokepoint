@@ -1,4 +1,5 @@
 # Place and sell effects, and the quiet wood sound
+<!-- index | refs: #3, PR #41 -->
 
 **Date:** 2026-10-26 · **Area:** Feedback, audio · **Issue:** [#3](https://github.com/vectorviolet/chokepoint/issues/3) · **PR:** [#41](https://github.com/vectorviolet/chokepoint/pull/41)
 

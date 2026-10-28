@@ -1,4 +1,5 @@
 # 0004. Grid targeting with identical target choice
+<!-- index | refs: #40, PR #51 -->
 
 - **Status:** Accepted
 - **Date:** 2026-10-27

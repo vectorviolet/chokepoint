@@ -1,4 +1,5 @@
 # Shift keeps placing
+<!-- index | refs: #9, PR #48 -->
 
 > **Superseded** by [the keep-placing toggle](2026-10-28-placement-toggle.md) (#69): holding Shift
 > was tiring and set off Windows' Sticky Keys prompt, so a Shift *press* now flips a HUD toggle.

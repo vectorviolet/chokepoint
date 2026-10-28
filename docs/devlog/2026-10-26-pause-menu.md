@@ -1,4 +1,5 @@
 # Pause menu: from volume sliders to a menu
+<!-- index | refs: #8, PR #42 -->
 
 **Date:** 2026-10-26 · **Area:** UI · **Issue:** [#8](https://github.com/vectorviolet/chokepoint/issues/8) · **PR:** [#42](https://github.com/vectorviolet/chokepoint/pull/42)
 
