@@ -3,8 +3,8 @@ from pygame.math import Vector2
 from gameplay.combat.enemy import Enemy
 from gameplay.combat.projectile import Bomb
 from gameplay.towers import TowerFactory
+from gameplay.towers import PLANE_TYPE
 
-PLANE_TYPE = 4
 MAP_WIDTH = 3008
 WAYPOINTS = [Vector2(0, 0), Vector2(500, 0)]
 

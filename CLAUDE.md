@@ -44,6 +44,24 @@ that way. So:
   `SaveStore.delete` with no-ops. Alternatively, run it with a temporary directory as the cwd.
 - Never run such a script in a way that can write to, overwrite or delete `saves/`.
 
+### Play-test save
+
+To play-test a PR from a ready-made run, inside its **worktree** (never the main checkout):
+
+```bash
+uv run python scripts/make_playtest_save.py --out saves   # then: uv run python __main__.py → Continue
+```
+
+It writes `save.json` and `settings.json` into `--out`: 100,000 coins (`--money`), wave 10
+(`--level`) about half spawned and paused (at high levels many of its first enemies reach the end
+while it fills; the script prints how many are on the path), one tower of every type at every
+level beside the path, the plane upgrade bought with one plane starting its flight at the map's
+left edge, music/SFX volume 0 (music on), auto-pause off, windowed. The wave fills under
+`BattleSimulation.waves_only()`: towers idle, no fighting, escapes cost no lives. It builds the
+run with a real `Game()` (saves redirected) and the game's own save code, so it always matches
+the save format. It refuses existing files without `--overwrite`
+and refuses the main checkout's own `saves/`.
+
 ### Building a distributable
 
 `pyinstaller chokepoint.spec --noconfirm` produces a standalone onedir bundle in
