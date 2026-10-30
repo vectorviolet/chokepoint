@@ -508,7 +508,7 @@ panels:
         extends: stat_text
         position: [15, 15]
         padding: [5, 10]
-        text: "Level 1"
+        text: "Round 1"
       live_text:
         extends: stat_text
         position: [15, 75]
@@ -757,7 +757,7 @@ panels:
         color: white
         parent: victory_panel_bg
         position: [CENTER, 140]
-        text: "Wave 25 cleared"
+        text: "Round 25 cleared"
 
       victory_buttons:
         parent: victory_panel_bg

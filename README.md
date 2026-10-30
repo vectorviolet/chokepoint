@@ -2,21 +2,50 @@
 
 ![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vectorviolet/chokepoint/badges/coverage.json)
 
-Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 waves of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
+Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 rounds of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
 
-![Gameplay](docs/preview.gif)
+![Current source-build gameplay with tower fire, enemy HP bars and kill rewards](docs/preview.gif)
+
+The preview and screenshots below show the current source build. Downloadable releases may
+lag behind these changes; see the [changelog](CHANGELOG.md) and [devlog](docs/devlog/README.md).
 
 ## Gameplay
 
-You start with **$200** and **10 lives**. Buy towers from the bar at the bottom of the screen, place them on the map, and upgrade them as you earn money from kills; selling a tower refunds 70% of everything you spent on it. Survive all 25 waves to win — clearing wave 25 opens a victory screen where you can play again, return to the main menu, or keep going in endless mode as waves keep escalating past 25. Enemy HP and reward scale +25% per wave; each wave's total payout funds roughly one upgrade.
+You start with **$200** and **10 lives**. Buy towers from the bar at the bottom of the screen,
+place them on the map, and upgrade them as you earn money from kills; selling a tower refunds
+70% of everything you spent on it. Survive all 25 rounds to win — clearing round 25 opens a
+victory screen where you can play again, return to the main menu, or continue in endless mode.
+Enemy HP and kill rewards scale by `1 + 0.25 × (round − 1)` from their base values, rounded
+down to integers; this is linear growth, not a compounded 25% increase.
+
+Click a ground tower or flying plane to inspect its stats, kills, earnings and upgrade
+previews. Click an enemy to see its HP as numbers. The HUD includes toggles for continuous
+placement and auto-pause between rounds, and Tab slides it out of the way. The main menu has
+its own live battle running in the background.
 
 ### Screenshots
 
-| Menu | Gameplay | Upgrades |
-|------|----------|----------|
-| ![](docs/screenshots/01_menu.png) | ![](docs/screenshots/02_gameplay.png) | ![](docs/screenshots/03_upgrades.png) |
+Captured from the current source build at 1920×1080. The gameplay images use a staged round-15
+run with several tower types and levels; they are not a fresh $200 start.
+
+| Main menu with a live battle | Gameplay and kill feedback |
+|---|---|
+| ![Main menu over an animated battle](docs/screenshots/01_menu.png) | ![Round 15 with mixed towers, enemy HP bars and flying reward coins](docs/screenshots/02_gameplay.png) |
+
+| Tower stats and upgrade previews | Pause menu |
+|---|---|
+| ![Selected missile tower showing range, HP and next-level stat previews](docs/screenshots/03_upgrades.png) | ![Pause menu with Back, Settings, Music and Main menu](docs/screenshots/04_pause.png) |
+
+<details>
+<summary>Display and audio settings</summary>
+
+![Window size and mode controls with master, SFX and music volume sliders](docs/screenshots/05_settings.png)
+
+</details>
 
 ### Enemies
+
+Base stats before round scaling; Damage is the lives lost when an enemy escapes.
 
 | # | Role         | HP   | Speed | Reward | Damage |
 |---|--------------|------|-------|--------|--------|
@@ -35,10 +64,13 @@ Types 5–6 are armed: while advancing, they fire on the nearest ground tower in
 |---|----------------|--------|------------|------------------------------------------|
 | 1 | Rapid gun      | 1      | $100       | Cheap starter — fast, low damage         |
 | 2 | Homing missile | 3      | $160       | Tracks targets; scales hard with upgrades |
-| 3 | Heavy cannon   | 2      | $280       | Long-range artillery, slow heavy hits    |
+| 3 | Heavy cannon   | 2      | $280       | Long range and heavy hits; cannot target enemies within its 1.5-tile blind spot |
 | 4 | Plane          | 2      | $600       | Flies over the map, dropping bombs along its path |
 
-Planes reach level 2 through a one-time $5000 upgrade (the button under the speed toggle) that applies to every plane launched after it.
+Planes reach level 2 through the one-time **$5000 UPG PLANES** upgrade. It applies globally,
+including to planes already flying. A plane makes one pass toward the right edge; its bombs
+deal splash damage when they land. Fired projectiles keep flying after their source is sold,
+destroyed or removed from the map.
 
 All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves.yaml` — tweak freely.
 
@@ -47,15 +79,24 @@ All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves
 | Action | Input |
 |---|---|
 | Pick a tower to buy | Click it in the bottom bar, or press 1–4 |
+| Inspect a tower / plane, or an enemy's HP | Left click it |
 | Hide / show the HUD | Tab (hotkeys still work; money and lives pop back briefly when they change) |
 | Place it | Left click a green tile |
 | Cancel placement / deselect | Right click |
+| Toggle continuous placement | Press Shift, or click the circular-arrows HUD button; stays on until toggled off |
 | Upgrade or sell a tower | Click the tower, then the arrow (upgrade) or money bag (sell) |
-| Start / pause the waves | Space, or the play button |
+| Start / pause the rounds | Space, or the play button |
+| Toggle auto-pause between rounds | Hourglass HUD button |
 | Game speed (x1 / x2 / x4) | Speed button |
 | Scroll the map | Move the mouse to a screen edge |
 | Zoom | Mouse wheel |
-| Back to the main menu (saves the run) | Esc, or the menu button |
+| Toggle fullscreen | F11 |
+| Open / close the pause menu | Esc, or the menu button to open it |
+| Save the run and return to the main menu | Main menu inside the pause menu |
+
+The pause menu also provides Settings and a music toggle. Settings includes window size/mode
+and separate master, music and SFX volume sliders. Leaving Settings returns to the menu it
+was opened from.
 
 ## Download
 
@@ -106,14 +147,46 @@ The result lands in `dist/chokepoint/` (`dist/Chokepoint.app` on macOS).
 
 ### Cutting a release
 
-Per-OS bundles for Windows, macOS, and Linux are built and published automatically by [`.github/workflows/release.yml`](.github/workflows/release.yml) when a version tag is pushed:
+Prepare a **Release x.y.z** PR with the version and changelog changes first. After required
+CI passes and the owner merges it through the merge queue, the owner creates and pushes the
+matching `vx.y.z` tag on that merged commit. Protected release tags cannot be moved or deleted.
+
+The tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
+on each OS, zips the bundle, attaches all three to a GitHub Release, and pushes each build to
+its [itch.io](https://umutcanekinci.itch.io/chokepoint) channel via
+[Butler](https://itch.io/docs/butler/). Use **Run workflow** to build without publishing.
+
+## Development and checks
+
+Run these commands from the `chokepoint` project folder:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+uv run --group dev pytest tests/ -q
+uv run python scripts/smoke_test.py
 ```
 
-The workflow builds on each OS, zips the bundle, attaches all three to a GitHub Release (with auto-generated notes), and pushes each build to its [itch.io](https://umutcanekinci.itch.io/chokepoint) channel via [Butler](https://itch.io/docs/butler/). Use the workflow's **Run workflow** button to test a build without publishing.
+The tests and smoke test redirect saves to temporary folders. Any custom script that creates
+a `Game()` must do the same: normal gameplay can overwrite a save, and losing a run deletes it.
+
+For a ready-made run **inside a separate worktree**, use:
+
+```bash
+uv run python scripts/make_playtest_save.py --out saves
+uv run python __main__.py
+```
+
+Press **Continue** for a paused round-10 run with $100,000, towers at every level and muted
+audio. The generator always refuses the main checkout's real saves. Replacing existing
+generated files in the worktree requires `--overwrite`.
+
+Refresh the README media from the current game with:
+
+```bash
+uv run --group build python scripts/capture_readme.py
+```
+
+This captures screenshots and a six-second GIF headlessly, using temporary saves and checking
+that the real save directories remain unchanged.
 
 ## Project layout
 
@@ -123,14 +196,17 @@ src/app/game.py        Game class — wires all subsystems
 src/domain/            Pure data (GameState, protocols)
 src/gameplay/          Battle simulation, combat, tilemap, menu demo
 src/gameplay/towers/   Tower hierarchy and factory
-src/ui/                HUD, HP bars
+src/ui/                HUD, info panels, pause menu, tooltips, feedback effects
 src/util/              Config loaders, constants
-src/pygamine/       Engine submodule (Application, Animator, PanelLoaderExt, ...)
+src/pygamine/          Pinned engine submodule (Application, Animator, PanelLoaderExt, ...)
 config/                YAML: assets, panels, towers, enemies, waves
 assets/                Images, sounds, fonts, Tiled map
+scripts/               Smoke checks, play-test saves, media and documentation generators
+docs/devlog/           Feature history and decisions with screenshots
+docs/decisions/        Architecture decision records
 ```
 
-See [CLAUDE.md](CLAUDE.md) for the full architecture overview.
+See [CLAUDE.md](CLAUDE.md) for the architecture overview and development conventions.
 
 ## Credits
 
@@ -188,8 +264,12 @@ git config blame.ignoreRevsFile .git-blame-ignore-revs
 1. Fork this repository.
 2. Clone your fork: `git clone --recurse-submodules https://github.com/<you>/chokepoint.git`
 3. Create a branch: `git checkout -b feature/<your-feature>`
-4. Commit + push: `git commit -am "<message>" && git push origin feature/<your-feature>`
-5. Open a pull request.
+4. Run the tests, smoke test and Ruff checks.
+5. Stage the intended file paths explicitly, commit, and push your branch.
+6. Open a pull request. Feature and design-decision PRs include a devlog entry;
+   architecture changes include an ADR.
+7. After lead review and the owner's playtest, the owner queues the PR with **Merge when ready**.
+   Required CI also runs on the merge group; do not push directly to protected `main`.
 
 ## Author
 

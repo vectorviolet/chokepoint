@@ -108,7 +108,7 @@ def test_on_level_changed_updates_level_text(tower_config):
 
     game_state.advance_level()
 
-    assert panel["level_text"].text == "Level 2"
+    assert panel["level_text"].text == "Round 2"
 
 
 def test_on_lives_changed_updates_live_text(tower_config):
@@ -131,7 +131,7 @@ def test_refresh_resyncs_from_directly_mutated_game_state(tower_config):
 
     assert panel["coin_text"].text == "42"
     assert panel["live_text"].text == "3"
-    assert panel["level_text"].text == "Level 5"
+    assert panel["level_text"].text == "Round 5"
 
 
 def test_rebind_panel_refetches_text_objects_and_reapplies_prices(tower_config):
