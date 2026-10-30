@@ -25,7 +25,7 @@ its own live battle running in the background.
 
 ### Screenshots
 
-Captured from the current source build at 1280×720. The gameplay images use a staged wave-15
+Captured from the current source build at 1920×1080. The gameplay images use a staged wave-15
 run with several tower types and levels; they are not a fresh $200 start.
 
 | Main menu with a live battle | Gameplay and kill feedback |

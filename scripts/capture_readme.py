@@ -23,8 +23,7 @@ from PIL import Image
 from make_playtest_save import add_tower, build_run, main_checkout, tower_specs
 from smoke_test import saves_redirected, snapshot
 
-SIZE = (1280, 720)
-GIF_SIZE = (960, 540)
+SIZE = (1920, 1080)
 FPS = 10
 SECONDS = 6
 
@@ -33,7 +32,9 @@ def save_image(game, name: str) -> None:
     game.draw()
     path = ROOT / "docs" / "screenshots" / name
     path.parent.mkdir(parents=True, exist_ok=True)
-    pygame.image.save(game.window, path)
+    Image.frombytes(
+        "RGB", game.window.get_size(), pygame.image.tobytes(game.window, "RGB")
+    ).save(path, optimize=True)
     print(f"Captured {path.relative_to(ROOT)}")
 
 
@@ -85,8 +86,8 @@ def capture_preview(game) -> None:
         frame = Image.frombytes(
             "RGB", game.window.get_size(), pygame.image.tobytes(game.window, "RGB")
         )
-        frames.append(frame.resize(GIF_SIZE, Image.Resampling.LANCZOS))
-    palette = frames[0].quantize(colors=128)
+        frames.append(frame)
+    palette = frames[0].quantize(colors=256)
     indexed = [
         frame.quantize(palette=palette, dither=Image.Dither.NONE) for frame in frames
     ]
