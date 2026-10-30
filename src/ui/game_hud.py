@@ -134,7 +134,7 @@ class GameHUD:
         self._check_purchasing_power(money)
 
     def _on_level_changed(self, level: int) -> None:
-        self.level_text.set_text("Level " + str(level))
+        self.level_text.set_text("Round " + str(level))
 
     def _on_lives_changed(self, lives: int) -> None:
         self.live_text.set_text(str(lives))

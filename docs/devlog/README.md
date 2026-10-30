@@ -30,6 +30,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-10-27 | [Shift keeps placing](2026-10-27-shift-placement.md) | Controls | #9, PR #48 |
 | 2026-10-28 | [Master volume](2026-10-28-master-volume.md) | Audio, UI | #45, PR #73 |
 | 2026-10-28 | [Keep-placing toggle and no picking unaffordable towers](2026-10-28-placement-toggle.md) | Controls, UI | #69 |
+| 2026-10-30 | [Round counter wording](2026-10-30-round-counter.md) | UI | PR #81 |
 <!-- index:end -->
 
 ## Adding an entry

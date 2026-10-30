@@ -2,7 +2,7 @@
 
 ![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vectorviolet/chokepoint/badges/coverage.json)
 
-Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 waves of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
+Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 rounds of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
 
 ![Current source-build gameplay with tower fire, enemy HP bars and kill rewards](docs/preview.gif)
 
@@ -13,24 +13,24 @@ lag behind these changes; see the [changelog](CHANGELOG.md) and [devlog](docs/de
 
 You start with **$200** and **10 lives**. Buy towers from the bar at the bottom of the screen,
 place them on the map, and upgrade them as you earn money from kills; selling a tower refunds
-70% of everything you spent on it. Survive all 25 waves to win — clearing wave 25 opens a
+70% of everything you spent on it. Survive all 25 rounds to win — clearing round 25 opens a
 victory screen where you can play again, return to the main menu, or continue in endless mode.
-Enemy HP and kill rewards scale by `1 + 0.25 × (wave − 1)` from their base values, rounded
+Enemy HP and kill rewards scale by `1 + 0.25 × (round − 1)` from their base values, rounded
 down to integers; this is linear growth, not a compounded 25% increase.
 
 Click a ground tower or flying plane to inspect its stats, kills, earnings and upgrade
 previews. Click an enemy to see its HP as numbers. The HUD includes toggles for continuous
-placement and auto-pause between waves, and Tab slides it out of the way. The main menu has
+placement and auto-pause between rounds, and Tab slides it out of the way. The main menu has
 its own live battle running in the background.
 
 ### Screenshots
 
-Captured from the current source build at 1920×1080. The gameplay images use a staged wave-15
+Captured from the current source build at 1920×1080. The gameplay images use a staged round-15
 run with several tower types and levels; they are not a fresh $200 start.
 
 | Main menu with a live battle | Gameplay and kill feedback |
 |---|---|
-| ![Main menu over an animated battle](docs/screenshots/01_menu.png) | ![Wave 15 with mixed towers, enemy HP bars and flying reward coins](docs/screenshots/02_gameplay.png) |
+| ![Main menu over an animated battle](docs/screenshots/01_menu.png) | ![Round 15 with mixed towers, enemy HP bars and flying reward coins](docs/screenshots/02_gameplay.png) |
 
 | Tower stats and upgrade previews | Pause menu |
 |---|---|
@@ -45,7 +45,7 @@ run with several tower types and levels; they are not a fresh $200 start.
 
 ### Enemies
 
-Base stats before wave scaling; Damage is the lives lost when an enemy escapes.
+Base stats before round scaling; Damage is the lives lost when an enemy escapes.
 
 | # | Role         | HP   | Speed | Reward | Damage |
 |---|--------------|------|-------|--------|--------|
@@ -85,8 +85,8 @@ All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves
 | Cancel placement / deselect | Right click |
 | Toggle continuous placement | Press Shift, or click the circular-arrows HUD button; stays on until toggled off |
 | Upgrade or sell a tower | Click the tower, then the arrow (upgrade) or money bag (sell) |
-| Start / pause the waves | Space, or the play button |
-| Toggle auto-pause between waves | Hourglass HUD button |
+| Start / pause the rounds | Space, or the play button |
+| Toggle auto-pause between rounds | Hourglass HUD button |
 | Game speed (x1 / x2 / x4) | Speed button |
 | Scroll the map | Move the mouse to a screen edge |
 | Zoom | Mouse wheel |
@@ -175,7 +175,7 @@ uv run python scripts/make_playtest_save.py --out saves
 uv run python __main__.py
 ```
 
-Press **Continue** for a paused wave-10 run with $100,000, towers at every level and muted
+Press **Continue** for a paused round-10 run with $100,000, towers at every level and muted
 audio. The generator always refuses the main checkout's real saves. Replacing existing
 generated files in the worktree requires `--overwrite`.
 
