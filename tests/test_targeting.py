@@ -317,15 +317,19 @@ def test_planes_alone_are_no_target():
 
 
 def _reference_work(self, enemies, is_started, enemy_grid=None, elapsed_ms=0.0):
-    index = None
-    if is_started and enemies:
-        index = reference_enemy(enemies, self.position, self.range, self.min_range)
-    if index is not None:
-        delta = enemies[index].position - self.position
-        if delta.length_squared() != 0:
-            self.aim_angle = angle_of_delta(delta)
-    self._turn_barrel(elapsed_ms)  # the drawn barrel (issue #83)
-    if index is not None and self._is_attack_ready():
+    """The old full-scan targeting. It sets the aim the way the old code
+    did, straight from the target's direction, and leaves the drawn barrel
+    alone: turning is cosmetic and is tested on its own in
+    test_turret_turning.py."""
+    if not is_started or not enemies:
+        return
+    index = reference_enemy(enemies, self.position, self.range, self.min_range)
+    if index is None:
+        return
+    delta = enemies[index].position - self.position
+    if delta.length_squared() != 0:
+        self.aim_angle = angle_of_delta(delta)
+    if self._is_attack_ready():
         self._shoot(enemies[index])
 
 
@@ -345,9 +349,11 @@ def _target_id(bullet):
 
 
 def _snapshot(demo):
-    """Everything targeting decides: who each tower and tank aims at (their
-    sprite's rotated size and aim angle, the tank's muzzle angle) and shoots at (their
-    bullets' targets), and what came of it (HP, kills, positions)."""
+    """Everything targeting decides: who each tower and tank aims at (a
+    ground tower's aim_angle, the tank's muzzle angle) and shoots at (their
+    bullets' targets), and what came of it (HP, kills, positions). Not the
+    towers' drawn barrels: turning is cosmetic, tested in
+    test_turret_turning.py."""
     return (
         demo.game_state.level,
         [
@@ -367,7 +373,7 @@ def _snapshot(demo):
                 t.col,
                 t.hp,
                 t.kills,
-                tuple(t.rect),
+                tuple(t.position),
                 getattr(t, "aim_angle", None),
                 [_target_id(b) for b in t.bullets],
             )

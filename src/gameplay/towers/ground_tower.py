@@ -4,11 +4,12 @@ import pygame
 from pygame.math import Vector2
 
 from pygamine import angle_of_delta
-from gameplay.rotatable_object import RotatableObject, quantise_angle, turn_toward
+from gameplay.rotatable_object import RotatableObject, turn_toward
 from domain.game_state import GameState, TowerConfig
 from gameplay.combat.projectile import MuzzleFlash, Projectile
 from gameplay.combat.targeting import EnemyGrid
 from gameplay.towers.base_tower import BaseTower
+from util.constants import TICK_MS
 
 BARREL_FORWARD = 26  # px from tower center to barrel tip along aim direction
 BARREL_SPREAD = 8  # px lateral offset from center for twin-barrel towers
@@ -45,12 +46,15 @@ class GroundTower(BaseTower):
         # faces its sprite's default way until it aims again.
         self.barrel_angle: float = float(self.sprite_orientation)
         self.aim_angle: float | None = None
-        self._drawn_step: int | None = None
 
     def update(
         self, game_state: GameState, enemies: list, enemy_grid: EnemyGrid | None = None
     ) -> None:
-        elapsed_ms = max(0.0, game_state.time_ms - self.now)
+        # At most one tick's worth of turning: a tower built mid-run starts
+        # with now = 0, and must not snap on its first update.
+        elapsed_ms = min(
+            max(0.0, game_state.time_ms - self.now), TICK_MS * game_state.speed
+        )
         self.now = game_state.time_ms
         self.work(enemies, game_state.is_started, enemy_grid, elapsed_ms)
 
@@ -103,12 +107,7 @@ class GroundTower(BaseTower):
             return
         max_step = TURN_RATE_DEG_PER_S * elapsed_ms / 1000
         self.barrel_angle = turn_toward(self.barrel_angle, self.aim_angle, max_step)
-        # Re-render only when the drawn step changes, or after load() (an
-        # upgrade) put back the unrotated image.
-        step = quantise_angle(self.barrel_angle)
-        if step != self._drawn_step or not self.is_rotated:
-            self.rotate_to_angle_cached(self.barrel_angle)
-            self._drawn_step = step
+        self.rotate_to_angle_cached(self.barrel_angle)  # no-op if the step is unchanged
 
     def _is_attack_ready(self) -> bool:
         return self.now - self.last_reload_time > self.speed

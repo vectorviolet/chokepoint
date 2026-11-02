@@ -7,10 +7,10 @@ from pygame.math import Vector2
 
 from domain.game_state import GameState
 from gameplay.combat.projectile import MuzzleFlash
+from gameplay import rotatable_object
 from gameplay.rotatable_object import (
-    ANGLE_STEP,
+    cached_rotation,
     quantise_angle,
-    rotated_on_canvas,
     turn_toward,
     wrap_angle,
 )
@@ -92,11 +92,40 @@ def test_turn_toward_stays_wrapped():
         assert -180 <= turn_toward(current, target, 1) < 180
 
 
-def test_wrap_and_quantise():
+def test_turn_toward_hand_computed_values():
+    # Worked by hand: the signed shortest difference, then one capped step.
+    assert turn_toward(-170, 170, 30) == pytest.approx(170)  # 20 apart: lands
+    assert turn_toward(-170, 170, 15) == pytest.approx(175)  # -185 wraps to 175
+    assert turn_toward(10, -10, 4) == pytest.approx(6)  # down through 0
+    # Exactly opposite: the difference wraps to -180, so it turns negative.
+    assert turn_toward(-90, 90, 45) == pytest.approx(-135)
+    assert turn_toward(135, -135, 100) == pytest.approx(-135)  # 90 apart: lands
+    assert turn_toward(0, 0, 0) == pytest.approx(0)
+
+
+def test_wrap_angle_hand_computed_values():
     assert wrap_angle(190) == pytest.approx(-170)
     assert wrap_angle(-190) == pytest.approx(170)
-    assert quantise_angle(ANGLE_STEP * 3 + 0.4) == ANGLE_STEP * 3
-    assert quantise_angle(179.9) == -180
+    assert wrap_angle(180) == pytest.approx(-180)
+    assert wrap_angle(540) == pytest.approx(-180)
+    assert wrap_angle(-180) == pytest.approx(-180)
+    assert wrap_angle(359) == pytest.approx(-1)
+
+
+def test_quantise_angle_hand_computed_values():
+    # 2 degree steps, halves rounding up, wrapped to [-180, 180).
+    assert quantise_angle(0.0) == 0
+    assert quantise_angle(0.9) == 0
+    assert quantise_angle(1.0) == 2
+    assert quantise_angle(3.0) == 4
+    assert quantise_angle(5.0) == 6
+    assert quantise_angle(6.4) == 6
+    assert quantise_angle(-0.9) == 0
+    assert quantise_angle(-1.1) == -2
+    assert quantise_angle(-3.0) == -2
+    assert quantise_angle(179.0) == -180
+    assert quantise_angle(-179.2) == -180
+    assert quantise_angle(270.0) == -90
 
 
 # ── the barrel in the game loop ──────────────────────────────────────────────
@@ -181,14 +210,12 @@ def test_a_tower_that_never_aimed_keeps_its_sprite(tower_config, assets):
     assert tower.is_rotated is False
 
 
-def test_the_drawn_sprite_keeps_one_size_and_its_centre(tower_config, assets):
+def test_the_drawn_sprite_keeps_its_centre(tower_config, assets):
     tower = make_tower(tower_config, assets)
-    sizes = set()
     for angle in range(-180, 180, 7):
         tower.rotate_to_angle_cached(angle)
-        sizes.add(tower.image.get_size())
         assert tower.rect.center == (int(tower.position.x), int(tower.position.y))
-    assert len(sizes) == 1
+        assert tower.rect.size == tower.image.get_size()
 
 
 def test_rotated_images_are_cached(tower_config, assets):
@@ -198,7 +225,52 @@ def test_rotated_images_are_cached(tower_config, assets):
     tower.rotate_to_angle_cached(32.4)  # same step
     assert tower.image is first
     source = tower.images[None]
-    assert rotated_on_canvas(source, 10) is rotated_on_canvas(source, 10)
+    assert cached_rotation(source, 10) is cached_rotation(source, 10)
+
+
+def test_an_unchanged_step_is_not_redrawn(tower_config, assets, monkeypatch):
+    tower = make_tower(tower_config, assets)
+    tower.rotate_to_angle_cached(40)
+    calls = []
+    monkeypatch.setattr(
+        rotatable_object,
+        "cached_rotation",
+        lambda source, rotation: calls.append(rotation) or source,
+    )
+    tower.rotate_to_angle_cached(40.3)  # same step: nothing to do
+    assert calls == []
+    tower.rotate_to_angle_cached(44)  # next step
+    assert calls == [-44]
+
+
+def test_the_rotation_cache_is_bounded(monkeypatch):
+    import pygame
+
+    monkeypatch.setattr(rotatable_object, "MAX_CACHED_ROTATIONS", 5)
+    monkeypatch.setattr(
+        rotatable_object, "_rotation_cache", type(rotatable_object._rotation_cache)()
+    )
+    source = pygame.Surface((8, 8), pygame.SRCALPHA)
+    others = [pygame.Surface((8, 8), pygame.SRCALPHA) for _ in range(20)]
+    kept = cached_rotation(source, 0)
+    for i, other in enumerate(others):
+        cached_rotation(other, 2 * i)
+        cached_rotation(source, 0)  # used every time: stays cached
+    assert len(rotatable_object._rotation_cache) == 5
+    assert cached_rotation(source, 0) is kept
+    assert (others[0], 0) not in rotatable_object._rotation_cache
+
+
+def test_a_tower_built_mid_run_turns_rather_than_snaps(tower_config, assets):
+    """A new tower's clock starts at 0; its first update must not count the
+    whole run so far as turning time."""
+    tower = make_tower(tower_config, assets)
+    enemy = FakeEnemy(tower.position + Vector2(0, 50))  # 90 degrees away
+    gs = make_state()
+    gs.time_ms = 400_000.0
+    tick(tower, gs, [enemy])
+    one_tick = TURN_RATE_DEG_PER_S * TICK_MS / 1000
+    assert tower.barrel_angle == pytest.approx(one_tick)
 
 
 def test_upgrade_keeps_the_barrel_angle(tower_config, assets):

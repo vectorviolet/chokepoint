@@ -1,4 +1,5 @@
 import math
+from collections import OrderedDict
 from typing import override
 
 import pygame
@@ -20,10 +21,15 @@ FACE_UP = -90
 # turrets' 26 px barrel length a step moves the tip under a pixel.
 ANGLE_STEP = 2
 
-# (source surface, quantised angle) -> the source rotated by that angle onto
-# a fixed-size square canvas. The sources are load_image()'s cached
-# surfaces, so this stays small: one entry per image and angle step.
-_rotation_cache: dict[tuple[pygame.Surface, int], pygame.Surface] = {}
+# Rotated images shared by every object, least recently used dropped first:
+# (source surface, rotation step) -> the source rotated by that much. The
+# bound keeps it small whatever the sources are (shared load_image()
+# surfaces, or a scaled copy per object): a 64 px sprite rotates to at most
+# 91x91 px (33 KB), so 512 entries hold at most about 17 MB. The turrets'
+# sprites need 8 x 180 steps in all; a step dropped is re-rotated (tens of
+# microseconds) the next time it is drawn.
+MAX_CACHED_ROTATIONS = 512
+_rotation_cache: OrderedDict[tuple[pygame.Surface, int], pygame.Surface] = OrderedDict()
 
 
 def wrap_angle(angle: float) -> float:
@@ -43,26 +49,24 @@ def turn_toward(current: float, target: float, max_step: float) -> float:
 
 
 def quantise_angle(angle: float) -> int:
-    """`angle` rounded to the nearest ANGLE_STEP, wrapped to [-180, 180)."""
-    return int(wrap_angle(round(angle / ANGLE_STEP) * ANGLE_STEP))
+    """`angle` rounded to the nearest ANGLE_STEP (halves round up), wrapped
+    to [-180, 180)."""
+    return int(wrap_angle(math.floor(angle / ANGLE_STEP + 0.5) * ANGLE_STEP))
 
 
-def rotated_on_canvas(source: pygame.Surface, rotation: int) -> pygame.Surface:
+def cached_rotation(source: pygame.Surface, rotation: int) -> pygame.Surface:
     """`source` rotated by `rotation` degrees (counter-clockwise, as
-    pygame.transform.rotate) and centred on a square canvas big enough for
-    any rotation of it, so every angle gives the same size and the sprite's
-    centre never shifts between frames. Cached."""
+    pygame.transform.rotate), from the shared LRU cache."""
     key = (source, rotation)
-    cached = _rotation_cache.get(key)
-    if cached is None:
-        w, h = source.get_size()
-        side = math.ceil(math.hypot(w, h))
-        side += side % 2  # even, like the 64 px sources: centres stay whole
+    rotated = _rotation_cache.get(key)
+    if rotated is None:
         rotated = pygame.transform.rotate(source, rotation)
-        cached = pygame.Surface((side, side), pygame.SRCALPHA)
-        cached.blit(rotated, rotated.get_rect(center=(side // 2, side // 2)))
-        _rotation_cache[key] = cached
-    return cached
+        _rotation_cache[key] = rotated
+        if len(_rotation_cache) > MAX_CACHED_ROTATIONS:
+            _rotation_cache.popitem(last=False)
+    else:
+        _rotation_cache.move_to_end(key)
+    return rotated
 
 
 class RotatableObject(StateObject):
@@ -80,6 +84,8 @@ class RotatableObject(StateObject):
         self.rotated_image: pygame.Surface | None = None
         self.is_rotated = False
         self.sprite_orientation = sprite_orientation
+        # The (source image, rotation step) rotate_to_angle_cached() drew.
+        self._rotation_key: tuple[pygame.Surface, int] | None = None
 
     def load(
         self, path: PathLike, size: tuple[int, int] = (0, 0), nine_slice: int = 0
@@ -106,14 +112,21 @@ class RotatableObject(StateObject):
         self.is_rotated = True
 
     def rotate_to_angle_cached(self, angle: float) -> None:
-        """Like rotate_to_angle(), for a sprite that turns smoothly every
-        tick: the angle is rounded to ANGLE_STEP and the rotated image comes
-        from a shared cache on a fixed-size canvas, so the sprite neither
-        wobbles nor re-rotates every tick."""
+        """Like rotate_to_angle(), for a sprite that turns smoothly and is
+        called every tick: the angle is rounded to ANGLE_STEP, nothing is
+        done while the (image, step) pair is unchanged, and rotated images
+        come from a shared bounded cache. The rect is re-centred on the
+        position, so the sprite keeps its centre at every angle."""
+        source = self.get_component(SpriteRenderer2D).image
         rotation = quantise_angle(self.sprite_orientation - angle)
-        self.rotated_image = rotated_on_canvas(
-            self.get_component(SpriteRenderer2D).image, rotation
-        )
+        if (
+            self.is_rotated
+            and self.rotated_image is not None
+            and self._rotation_key == (source, rotation)
+        ):
+            return
+        self._rotation_key = (source, rotation)
+        self.rotated_image = cached_rotation(source, rotation)
         self.rect.size = self.rotated_image.get_size()
         self.rect.center = self.position
         self.is_rotated = True
