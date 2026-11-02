@@ -138,7 +138,9 @@ def test_clicking_a_buy_button_enters_construct_mode(tower_config, assets):
     controller, panel, _ = make_controller(tower_config, assets)
     panel["buy_tower_1"].clicked = True
 
-    controller.handle_event(buy_button_event(), mouse_pos=(0, 0))
+    controller.handle_event(
+        buy_button_event(), mouse_pos=panel["buy_tower_1"].rect.center
+    )
 
     assert controller.buying_tower_type == 1
 
@@ -148,7 +150,9 @@ def test_clicking_the_same_buy_button_again_exits_construct_mode(tower_config, a
     controller.buying_tower_type = 1
     panel["buy_tower_1"].clicked = True
 
-    controller.handle_event(buy_button_event(), mouse_pos=(0, 0))
+    controller.handle_event(
+        buy_button_event(), mouse_pos=panel["buy_tower_1"].rect.center
+    )
 
     assert controller.buying_tower_type == 0
 
@@ -233,6 +237,47 @@ def test_purchase_places_a_tower_and_deducts_its_price(tower_config, assets):
     assert placed.tower_type == GROUND_TYPE
     assert gs.money == money_before - placed.buy_price
     assert controller.buying_tower_type == 0  # construct mode exits after a purchase
+
+
+def test_a_click_before_any_frame_places_on_the_clicked_tile(tower_config, assets):
+    """The tile comes from the click itself: no update_cursor() has run."""
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+
+    controller.handle_event(buy_button_event(), mouse_pos=_tile_pos(7, 4))
+
+    (placed,) = controller._towers
+    assert (placed.row, placed.col) == (4, 7)
+
+
+def test_a_plane_bought_before_any_frame_is_placed(tower_config, assets):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = PLANE_TYPE
+
+    controller.handle_event(buy_button_event(), mouse_pos=_tile_pos(3, 6))
+
+    (plane,) = controller._towers
+    assert plane.tower_type == PLANE_TYPE and plane.row == 6
+
+
+def test_a_click_after_the_camera_scrolled_places_on_the_tile_now_under_it(
+    tower_config, assets
+):
+    controller, panel, gs = make_controller(tower_config, assets)
+    controller.buying_tower_type = GROUND_TYPE
+    pos = _tile_pos(5, 5)
+    controller.update_cursor(pos)  # last frame: tile (5, 5) under the mouse
+    controller._camera.center_on((20 * TILE_SIZE, 15 * TILE_SIZE))  # then a scroll
+
+    controller.handle_event(buy_button_event(), mouse_pos=pos)
+
+    world = controller._camera.screen_to_world(pos)
+    (placed,) = controller._towers
+    assert (placed.row, placed.col) == (
+        int(world.y // TILE_SIZE),
+        int(world.x // TILE_SIZE),
+    )
+    assert (placed.row, placed.col) != (5, 5)
 
 
 def test_purchase_does_nothing_when_money_is_insufficient(tower_config, assets):
@@ -561,7 +606,9 @@ def test_an_unaffordable_tower_cannot_be_picked_by_its_button(tower_config, asse
     controller, panel, denied = _denying_controller(tower_config, assets, price - 1)
     panel["buy_tower_1"].clicked = True
 
-    controller.handle_event(buy_button_event(), mouse_pos=(0, 0))
+    controller.handle_event(
+        buy_button_event(), mouse_pos=panel["buy_tower_1"].rect.center
+    )
 
     assert controller.buying_tower_type == 0
     assert denied == [GROUND_TYPE]
@@ -584,7 +631,9 @@ def test_the_plane_follows_the_same_rule(tower_config, assets):
 
     _press(controller, pygame.K_4)
     panel["buy_tower_4"].clicked = True
-    controller.handle_event(buy_button_event(), mouse_pos=(0, 0))
+    controller.handle_event(
+        buy_button_event(), mouse_pos=panel["buy_tower_4"].rect.center
+    )
 
     assert controller.buying_tower_type == 0
     assert denied == [PLANE_TYPE, PLANE_TYPE]

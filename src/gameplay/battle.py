@@ -29,11 +29,21 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 import pygame
 
+from domain.protocols import ArmedEnemy
 from gameplay.combat.targeting import EnemyGrid, TowerGrid
 from ui import hp_bar
+
+if TYPE_CHECKING:
+    from domain.game_state import GameState
+    from gameplay.combat.enemy import Enemy
+    from gameplay.combat.wave_manager import WaveManager
+    from gameplay.tilemap import Tilemap
+    from gameplay.towers import BaseTower
+    from ui.bomb_impact_feedback import BombImpactFeedback
 
 
 class OrphanShot:
@@ -75,7 +85,14 @@ def _update_orphans(orphans, ctx, landed: set) -> None:
 
 
 class BattleSimulation:
-    bomb_impacts = None
+    # Provided by the subclass (see the module docstring); declared here for
+    # the type checker only.
+    towers: list[BaseTower]
+    enemies: list[Enemy]
+    game_state: GameState
+    wave_manager: WaveManager | None
+    tilemap: Tilemap
+    bomb_impacts: BombImpactFeedback | None = None
     # This tick's grid of the towers while enemies update, for tanks
     # (IGameContext is free to lack it); None the rest of the time.
     tower_grid: TowerGrid | None = None
@@ -110,7 +127,7 @@ class BattleSimulation:
 
     def enemy_killed(self, enemy) -> None:
         self._tank_removed(enemy)
-        self.increase_money(enemy.killMoney)
+        self.increase_money(enemy.kill_money)
         self._on_enemy_killed(enemy)
 
     def bomb_landed(self, position, radius: float) -> None:
@@ -156,7 +173,7 @@ class BattleSimulation:
     def _update_towers(self) -> None:
         if self._escaped_unopposed is not None:
             return  # waves_only(): the towers stand idle
-        kept = []
+        kept: list[BaseTower] = []
         for tower in self.towers:
             if tower.should_remove():
                 self._tower_removed(tower, kept[-1] if kept else None)
@@ -279,7 +296,7 @@ class BattleSimulation:
                 enemy.move(self.game_state.speed)
                 if self._escaped_unopposed is not None:
                     continue  # waves_only(): no fighting
-                if hasattr(enemy, "update_combat"):
+                if isinstance(enemy, ArmedEnemy):
                     enemy.update_combat(self)
                     for bullet in list(enemy.bullets):
                         bullet.update(self)
@@ -311,7 +328,7 @@ class BattleSimulation:
 
         for enemy in self.enemies:
             camera.draw(surface, enemy)
-            if hasattr(enemy, "draw_muzzle"):
+            if isinstance(enemy, ArmedEnemy):
                 enemy.draw_muzzle(surface, camera)
                 for bullet in enemy.bullets:
                     camera.draw(surface, bullet)
@@ -332,7 +349,7 @@ class BattleSimulation:
                 camera,
                 tower.position,
                 tower.hp,
-                tower.maxHP,
+                tower.max_hp,
                 force=tower is self.game_state.selected_tower,
             )
         for enemy in self.enemies:
@@ -341,7 +358,7 @@ class BattleSimulation:
                 camera,
                 enemy.position,
                 enemy.hp,
-                enemy.maxHP,
+                enemy.max_hp,
                 force=enemy is self.game_state.selected_enemy,
             )
 

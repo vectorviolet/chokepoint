@@ -45,7 +45,7 @@ class Tilemap(TiledMap):
 
     def _load_first_path(self) -> list[Vector2]:
         for obj in self.iter_objects(_PATHS_GROUP):
-            points = getattr(obj, "points", None)
+            points: list | None = getattr(obj, "points", None)
             if points:
                 return [Vector2(p.x, p.y) for p in points]
         return []

@@ -50,7 +50,7 @@ def reference_enemy(enemies, position, radius, min_radius=0):
 
 def reference_tower(towers, position):
     """Tank._nearest_tower's old result: (tower, squared distance)."""
-    candidates = [t for t in towers if t.maxHP is not None]
+    candidates = [t for t in towers if t.max_hp is not None]
     if not candidates:
         return (None, 0)
     best = None
@@ -68,9 +68,9 @@ def reference_tower(towers, position):
 class Thing:
     """An enemy or tower: only what targeting reads."""
 
-    def __init__(self, position, maxHP=100):
+    def __init__(self, position, max_hp=100):
         self.position = Vector2(position)
-        self.maxHP = maxHP
+        self.max_hp = max_hp
 
 
 def random_point(rng):
@@ -278,7 +278,7 @@ def test_no_blind_spot_still_targets_an_enemy_on_the_tower():
 def random_towers(rng, centre):
     towers = []
     for p in random_layout(rng, centre, rng.choice(RANGES), rng.randint(0, 120)):
-        towers.append(Thing(p, maxHP=None if rng.random() < 0.1 else 100))
+        towers.append(Thing(p, max_hp=None if rng.random() < 0.1 else 100))
     return towers
 
 
@@ -308,7 +308,7 @@ def test_the_tower_grid_follows_its_list():
 
 
 def test_planes_alone_are_no_target():
-    towers = [Thing((100, 100), maxHP=None)]
+    towers = [Thing((100, 100), max_hp=None)]
 
     assert TowerGrid(towers).nearest(Vector2(0, 0)) == (None, 0)
 

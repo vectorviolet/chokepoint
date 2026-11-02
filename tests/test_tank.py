@@ -11,11 +11,11 @@ WAYPOINTS = [Vector2(0, 0), Vector2(500, 0)]
 @dataclass
 class FakeTower:
     """Only what Tank._nearest_tower/_fire touch (see domain/protocols.py's
-    stub-friendly design): position and maxHP (None marks an untargetable
-    tower, e.g. a plane -- see BaseTower.maxHP)."""
+    stub-friendly design): position and max_hp (None marks an untargetable
+    tower, e.g. a plane -- see BaseTower.max_hp)."""
 
     position: Vector2
-    maxHP: int | None = 100
+    max_hp: int | None = 100
 
 
 def make_tank(assets, enemy_type=5, level=1) -> Tank:
@@ -29,10 +29,10 @@ def test_nearest_tower_is_none_with_no_towers(assets, ctx):
 
 
 def test_nearest_tower_skips_untargetable_towers(assets, ctx):
-    # maxHP=None marks a plane -- Tank._nearest_tower explicitly excludes
+    # max_hp=None marks a plane -- Tank._nearest_tower explicitly excludes
     # those (planes have no HP system, so they can't be shot at).
     tank = make_tank(assets)
-    ctx.towers.append(FakeTower(Vector2(10, 0), maxHP=None))
+    ctx.towers.append(FakeTower(Vector2(10, 0), max_hp=None))
 
     nearest, _ = tank._nearest_tower(ctx)
 
@@ -98,7 +98,7 @@ def test_update_combat_respects_the_fire_cooldown(assets, ctx):
 class HpTower:
     def __init__(self, position, hp=100):
         self.position = Vector2(position)
-        self.maxHP = hp
+        self.max_hp = hp
         self.hp = hp
 
     def decrease_hp(self, damage):

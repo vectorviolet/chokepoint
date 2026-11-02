@@ -5,7 +5,7 @@ from pygamine import PanelManager
 from pygamine import Camera
 from util.constants import TILE_SIZE, HALF_TILE
 from domain.game_state import GameState, TowerConfig
-from gameplay.towers import BaseTower, TowerFactory
+from gameplay.towers import BaseTower, PlaneTower, TowerFactory
 from ui.range_ring import draw_range_ring
 
 _TOWER_HOTKEYS = {
@@ -107,9 +107,12 @@ class TowerPlacementController:
 
     def update_cursor(self, mouse_pos: tuple) -> None:
         if self._game_area.collidepoint(mouse_pos):
-            world = self._camera.screen_to_world(mouse_pos)
-            self.cursor_col = int(world.x // TILE_SIZE)
-            self.cursor_row = int(world.y // TILE_SIZE)
+            self.cursor_row, self.cursor_col = self._tile_at(mouse_pos)
+
+    def _tile_at(self, mouse_pos: tuple) -> tuple[int, int]:
+        """The (row, col) of the map tile under `mouse_pos` (screen)."""
+        world = self._camera.screen_to_world(mouse_pos)
+        return int(world.y // TILE_SIZE), int(world.x // TILE_SIZE)
 
     def is_construct_mode(self) -> bool:
         return self.buying_tower_type != 0
@@ -148,7 +151,7 @@ class TowerPlacementController:
         point = (int(world.x), int(world.y))
         pad = ENEMY_CLICK_PADDING * 2
         for tower in reversed(self._towers):
-            if not tower.is_flying:
+            if not isinstance(tower, PlaneTower):
                 continue
             if tower.sprite_rect().inflate(pad, pad).collidepoint(point):
                 return tower
@@ -255,19 +258,21 @@ class TowerPlacementController:
         self._game_state.selected_tower = None if is_selected else clicked
 
     def _handle_tower_purchase(self, mouse_pos: tuple) -> None:
-        """Place the tower being bought on the cursor's tile. Placement mode
+        """Place the tower being bought on the clicked tile (worked out from
+        the click itself, not from the last frame's cursor). Placement mode
         then ends, unless the keep-placing toggle is on and another tower of
         the same type is still affordable (the toggle itself stays on)."""
         if not self._game_area.collidepoint(mouse_pos) or not self.buying_tower_type:
             return
-        if not self._is_placeable(self.cursor_row, self.cursor_col):
+        row, col = self._tile_at(mouse_pos)
+        if not self._is_placeable(row, col):
             return
         if not self._can_afford(self.buying_tower_type):
             return
         tower = TowerFactory.create(
             self.buying_tower_type,
-            self.cursor_row,
-            self.cursor_col,
+            row,
+            col,
             self._tower_config,
             self._assets,
             self._audio,
@@ -372,12 +377,11 @@ class TowerPlacementController:
             surface.set_clip(old_clip)
             return
 
-        tile_blocked = not self._is_placeable(self.cursor_row, self.cursor_col)
+        row, col = self._tile_at(mouse_pos)
+        tile_blocked = not self._is_placeable(row, col)
         images = self._blocked_tower_images if tile_blocked else self._tower_images
         scaled_tower = self._camera.scale_image(images[index])
-        cell_top_left = self._camera.world_to_screen(
-            (self.cursor_col * TILE_SIZE, self.cursor_row * TILE_SIZE)
-        )
+        cell_top_left = self._camera.world_to_screen((col * TILE_SIZE, row * TILE_SIZE))
         surface.blit(scaled_tower, cell_top_left)
 
         world_range = self._tower_config.ranges[self.buying_tower_type - 1][0]
@@ -391,8 +395,8 @@ class TowerPlacementController:
         scaled_min_range = int(world_min_range * self._camera.scale)
         center = self._camera.world_to_screen(
             (
-                self.cursor_col * TILE_SIZE + HALF_TILE,
-                self.cursor_row * TILE_SIZE + HALF_TILE,
+                col * TILE_SIZE + HALF_TILE,
+                row * TILE_SIZE + HALF_TILE,
             )
         )
         buy_price = self._tower_config.prices[self.buying_tower_type - 1][0]

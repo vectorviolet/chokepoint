@@ -36,10 +36,10 @@ def test_plane_has_no_max_hp_and_ground_tower_does(tower_config, assets):
     plane = make_tower(tower_config, assets, tower_type=PLANE_TYPE)
     ground = make_tower(tower_config, assets, tower_type=GROUND_TYPE)
 
-    assert plane.maxHP is None
+    assert plane.max_hp is None
     assert plane.hp is None
-    assert ground.maxHP == tower_config.hps[GROUND_TYPE - 1][0]
-    assert ground.hp == ground.maxHP
+    assert ground.max_hp == tower_config.hps[GROUND_TYPE - 1][0]
+    assert ground.hp == ground.max_hp
 
 
 def test_decrease_hp_on_ground_tower_reduces_hp(tower_config, assets):
@@ -61,13 +61,13 @@ def test_should_remove_once_hp_drops_to_zero_or_below(tower_config, assets):
     tower = make_tower(tower_config, assets)
     assert not tower.should_remove()
 
-    tower.decrease_hp(tower.maxHP)
+    tower.decrease_hp(tower.max_hp)
     assert tower.should_remove()
 
 
 def test_plane_never_should_remove_from_hp(tower_config, assets):
     # Planes are invulnerable to Tank fire -- see Tank._nearest_tower, which
-    # excludes maxHP=None towers from targeting entirely.
+    # excludes max_hp=None towers from targeting entirely.
     plane = make_tower(tower_config, assets, tower_type=PLANE_TYPE)
     plane.decrease_hp(9999)
     assert not plane.should_remove()
@@ -94,7 +94,7 @@ def test_upgrade_succeeds_on_a_hit_with_enough_money(tower_config, assets):
     assert tower.level == 2
     assert gs.money == 0
     assert gs.selected_tower is tower
-    assert tower.hp == tower.maxHP  # refilled on upgrade
+    assert tower.hp == tower.max_hp  # refilled on upgrade
 
 
 def test_upgrade_does_nothing_when_click_misses_the_button(tower_config, assets):

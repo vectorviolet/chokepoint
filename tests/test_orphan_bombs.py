@@ -67,7 +67,7 @@ def standing_enemy(battle, position, hp):
     enemy.position = Vector2(position)
     enemy.rect.center = enemy.position
     enemy.move = lambda game_speed: None
-    enemy.hp = enemy.maxHP = hp
+    enemy.hp = enemy.max_hp = hp
     battle.enemies.append(enemy)
     return enemy
 
@@ -115,9 +115,9 @@ def test_its_kill_and_money_are_credited_to_the_departed_plane(game, tower_confi
         game._tick()
 
     assert target not in game.enemies
-    assert game.game_state.money == money + target.killMoney
+    assert game.game_state.money == money + target.kill_money
     assert plane.kills == 1
-    assert plane.money_earned == target.killMoney
+    assert plane.money_earned == target.kill_money
 
 
 def test_an_orphan_bomb_lands_on_the_same_tick_as_with_its_plane(game, tower_config):

@@ -162,7 +162,7 @@ def scaled_enemy(enemy_type: int, wave: int) -> tuple[int, int]:
     """(max HP, kill money) of an enemy spawned in `wave`, by the game's code."""
     enemy = Enemy.__new__(Enemy)
     enemy._calculate_stats(enemy_type, wave)
-    return enemy.maxHP, enemy.killMoney
+    return enemy.max_hp, enemy.kill_money
 
 
 def all_waves(

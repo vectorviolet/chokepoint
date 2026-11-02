@@ -168,7 +168,7 @@ class LoadScenario:
         if tower_type in GROUND_TYPES and tower.max_level > 1:
             tower.level = tower.max_level
             tower.load(game.assets.image_path(f"tower_{tower_type}_lvl{tower.level}"))
-            tower.hp = tower.maxHP
+            tower.hp = tower.max_hp
         return tower
 
     def _plane(self, spread: bool):
@@ -192,8 +192,8 @@ class LoadScenario:
         enemy = cls(
             self._next_id, enemy_type, LEVEL, game.tilemap.waypoints, game.assets
         )
-        enemy.maxHP *= HP_SCALE
-        enemy.hp = enemy.maxHP
+        enemy.max_hp *= HP_SCALE
+        enemy.hp = enemy.max_hp
         # A seeded random point along the path (never its very end).
         distance = self.rng.uniform(0, 0.95 * self._path_length)
         for index, (a, b, length) in enumerate(self._segments):

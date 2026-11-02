@@ -20,6 +20,7 @@ links; a changed decision gets a new ADR that supersedes the old one.
 | [0005](0005-panel-content-independent-of-placement.md) | Panel content independent of its placement | Accepted | 2026-10-27 | #33 |
 | [0006](0006-playtest-save-from-game-code.md) | Play-test save built from game code | Accepted | 2026-10-27 | #63, PR #64 |
 | [0007](0007-headless-balance-simulator.md) | Headless balance simulator on the real game | Accepted | 2026-10-29 | #70, #10 |
+| [0008](0008-mypy-lenient-start.md) | Type checking with mypy, a lenient start | Accepted | 2026-11-02 | #37 |
 <!-- index:end -->
 
 ## Adding an ADR

@@ -23,9 +23,9 @@ def test_stats_scale_25_percent_per_level(assets, level, expected_scale):
     base = Enemy(1, 1, level=1, waypoints=WAYPOINTS, assets=assets)
     scaled = Enemy(1, 1, level=level, waypoints=WAYPOINTS, assets=assets)
 
-    assert scaled.maxHP == int(base.maxHP * expected_scale)
-    assert scaled.hp == scaled.maxHP
-    assert scaled.killMoney == max(1, int(base.killMoney * expected_scale))
+    assert scaled.max_hp == int(base.max_hp * expected_scale)
+    assert scaled.hp == scaled.max_hp
+    assert scaled.kill_money == max(1, int(base.kill_money * expected_scale))
     # Damage and speed are flat stats, not scaled by wave level.
     assert scaled.damage == base.damage
     assert scaled.mov_speed == base.mov_speed
@@ -68,20 +68,20 @@ def test_decrease_hp_removes_and_pays_out_on_death(assets, ctx):
     e = Enemy(1, 1, level=1, waypoints=WAYPOINTS, assets=assets)
     ctx.enemies.append(e)
 
-    e.decrease_hp(e.maxHP - 1, ctx)
+    e.decrease_hp(e.max_hp - 1, ctx)
     assert e in ctx.enemies
     assert ctx.money_earned == 0
 
     e.decrease_hp(1, ctx)
     assert e not in ctx.enemies
-    assert ctx.money_earned == e.killMoney
+    assert ctx.money_earned == e.kill_money
 
 
 def test_decrease_hp_on_already_dead_enemy_is_a_no_op(assets, ctx):
     e = Enemy(1, 1, level=1, waypoints=WAYPOINTS, assets=assets)
     # Not added to ctx.enemies -- simulates a stale reference (e.g. two
     # simultaneous hits resolving in the same frame).
-    e.decrease_hp(e.maxHP, ctx)
+    e.decrease_hp(e.max_hp, ctx)
     assert ctx.money_earned == 0
 
 
@@ -96,12 +96,12 @@ def test_decrease_hp_credits_the_source_with_the_hp_taken_not_overkill(
 
     e.decrease_hp(5, ctx, tower)
     assert tower.damage_dealt == 5
-    e.decrease_hp(e.maxHP, ctx, tower)  # the killing blow: only what was left
-    assert tower.damage_dealt == e.maxHP
-    assert (tower.kills, tower.money_earned) == (1, e.killMoney)
+    e.decrease_hp(e.max_hp, ctx, tower)  # the killing blow: only what was left
+    assert tower.damage_dealt == e.max_hp
+    assert (tower.kills, tower.money_earned) == (1, e.kill_money)
 
     e.decrease_hp(10, ctx, tower)  # already dead: nothing more
-    assert tower.damage_dealt == e.maxHP
+    assert tower.damage_dealt == e.max_hp
 
 
 def test_damage_counter_changes_nothing_else(assets, ctx, tower_config):

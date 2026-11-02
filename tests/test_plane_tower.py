@@ -85,7 +85,7 @@ def test_never_blocks_a_build_tile_and_is_untargetable(tower_config, assets):
     plane = make_plane(tower_config, assets)
 
     assert plane.get_blocking_position() is None
-    assert plane.maxHP is None and plane.hp is None
+    assert plane.max_hp is None and plane.hp is None
 
 
 def test_draw_renders_shadow_plane_and_range_when_selected(tower_config, assets):
