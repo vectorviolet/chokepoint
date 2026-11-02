@@ -296,9 +296,11 @@ class GameEventsMixin:
         button = panel["speed_toggle_button"]
         if not self._activate(button, event):
             return
-        next_speed, next_state = {1: (2, "x2_active"), 2: (4, "x4_active")}.get(
-            self.game_state.speed, (1, None)
-        )
+        speeds: dict[int, tuple[int, str | None]] = {
+            1: (2, "x2_active"),
+            2: (4, "x4_active"),
+        }
+        next_speed, next_state = speeds.get(self.game_state.speed, (1, None))
         self.game_state.speed = next_speed
         button.set_state(next_state)
 

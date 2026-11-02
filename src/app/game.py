@@ -134,7 +134,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
         # Pause the run as each wave is cleared (the HUD's hourglass toggle).
         # A global setting: old settings files without it load as off.
-        self.auto_pause = bool(
+        self.auto_pause: bool = bool(
             saved_settings.get("auto_pause_between_waves", self._default_auto_pause)
         )
 
@@ -204,7 +204,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.assets.sound_path("tower_sold"),
             rng=rng(),
         )
-        self.bomb_impacts = BombImpactFeedback(
+        self.bomb_impacts: BombImpactFeedback = BombImpactFeedback(
             self.assets, self.audio.play_sfx, self.assets.sound_path("bomb_impact")
         )
         self.tower_controller = TowerPlacementController(
@@ -419,7 +419,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def _on_enemy_killed(self, enemy) -> None:
         self.kill_feedback.add_kill(
             enemy.position,
-            enemy.killMoney,
+            enemy.kill_money,
             self.camera.world_to_screen(enemy.position),
             self.game_state.time_ms,
         )
@@ -596,44 +596,52 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     # ── render pipeline ───────────────────────────────────────────────────────
 
+    @property
+    def _canvas(self) -> pygame.Surface:
+        """The window to draw on, which Application sets up before any frame."""
+        assert self.window is not None
+        return self.window
+
     @override
     def draw(self):
-        self.window.fill((0, 0, 0))
+        self._canvas.fill((0, 0, 0))
         if self.panel_manager.current_panel == "game":
             self._draw_game()
         else:
-            self.menu_demo.draw(self.window)
-            self.window.blit(self.menu_overlay, (0, 0))
+            self.menu_demo.draw(self._canvas)
+            self._canvas.blit(self.menu_overlay, (0, 0))
         if self.panel_manager.current_panel == "game":
             with self.hud_slide.shifted():
-                self.panel_manager.draw(self.window)
+                self.panel_manager.draw(self._canvas)
                 if not self.pause_panel.is_open:  # not over the menu's overlay
-                    self.tower_controller.draw_shortcuts(self.window)
-                    self.tower_info.draw_hp_fill(self.window)
+                    self.tower_controller.draw_shortcuts(self._canvas)
+                    self.tower_info.draw_hp_fill(self._canvas)
             self._draw_kill_coins()
         else:
-            self.panel_manager.draw(self.window)
+            self.panel_manager.draw(self._canvas)
 
     def _draw_game(self) -> None:
-        old_clip = self.window.get_clip()
-        self.window.set_clip(self.game_area)
-        self._draw_battle(self.window, self.camera)
-        self.place_sell_feedback.draw(self.window, self.camera)
-        self.kill_feedback.draw_texts(self.window, self.camera, self.game_state.time_ms)
-        self.tower_controller.draw(self.window, self.mouse.position)
+        old_clip = self._canvas.get_clip()
+        self._canvas.set_clip(self.game_area)
+        self._draw_battle(self._canvas, self.camera)
+        self.place_sell_feedback.draw(self._canvas, self.camera)
+        self.kill_feedback.draw_texts(
+            self._canvas, self.camera, self.game_state.time_ms
+        )
+        self.tower_controller.draw(self._canvas, self.mouse.position)
         self._draw_selected_tower_ui()
-        self.enemy_hp_label.draw(self.window, self.camera, self._selected_enemy())
-        self.life_lost_feedback.draw(self.window)  # under the HUD
-        self.window.set_clip(old_clip)
+        self.enemy_hp_label.draw(self._canvas, self.camera, self._selected_enemy())
+        self.life_lost_feedback.draw(self._canvas)  # under the HUD
+        self._canvas.set_clip(old_clip)
 
     def _draw_kill_coins(self) -> None:
         """Coins fly to the money counter's resting place -- where it shows
         even while the HUD is hidden, since a kill brings it back -- and the
         counter, wherever it's drawn now, pops as they land."""
         panel = self.panel_manager["game"]
-        self.kill_feedback.draw_coins(self.window, panel["coin_image"].rect.center)
+        self.kill_feedback.draw_coins(self._canvas, panel["coin_image"].rect.center)
         counter = panel["coin_text"].rect.move(self.hud_slide.offset("money"))
-        self.kill_feedback.draw_pop(self.window, counter)
+        self.kill_feedback.draw_pop(self._canvas, counter)
 
     def _selected_tower(self) -> BaseTower | None:
         """The selected tower or plane, if it's still there (a tower may have
@@ -649,7 +657,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     def _draw_selected_tower_ui(self) -> None:
         if selected := self._selected_tower():
-            selected.draw_selected_ui(self.window, self.game_state, self.camera)
+            selected.draw_selected_ui(self._canvas, self.game_state, self.camera)
 
     # ── debug ─────────────────────────────────────────────────────────────────
 

@@ -122,7 +122,7 @@ profiler overhead roughly doubles the times):
 | `GroundTower.work` | 6.1 s | 10.6 s | 27k | 70% of the whole tick |
 | `Vector2.length` | 2.2 s | 2.2 s | 16.5M | called from `work`: one per tower-enemy pair per tick |
 | `Tank._nearest_tower` | 1.8 s | 2.8 s | 12k | |
-| `BaseTower.maxHP` | 0.7 s | 0.7 s | 3.6M | property, called from `_nearest_tower` |
+| `BaseTower.max_hp` | 0.7 s | 0.7 s | 3.6M | property, called from `_nearest_tower` |
 | `SoundManager.play_sound` | 1.1 s | 1.1 s | 675 | **1.7 ms per call** |
 | `pygame.transform.rotate` | 0.8 s | 0.8 s | 44k | towers re-rotate every tick |
 | `scale_by` / `transform.scale` | 1.1 s | 1.1 s | 182k | every sprite, every frame, when zoom is not 1 |
@@ -136,7 +136,7 @@ profiler overhead roughly doubles the times):
    and decodes the file each time a tower fires (about 1.7 ms per shot). This
    causes the tick spikes even at real-game sizes, and the cost multiplies at
    x4. It lives in the **pygamine submodule**.
-3. **Tank targeting is O(tanks x towers)**, and it reads the `maxHP` property,
+3. **Tank targeting is O(tanks x towers)**, and it reads the `max_hp` property,
    which indexes the config, for every tower and every tank on every tick.
 4. **Rotation and zoom scaling are recomputed every frame.**
    `rotate_to_delta()` calls `pygame.transform.rotate` on every tick, even when
@@ -176,7 +176,7 @@ In priority order:
    key=distance_squared_to)` without the grid gained only about 20%, because
    the cost is the Python loop over every pair.
 3. **Tank targeting** (done in #40, with a grid of the towers): skip planes with a cheap check (`hp is None` or the
-   tower type) instead of the `maxHP` property, and use `distance_squared_to`.
+   tower type) instead of the `max_hp` property, and use `distance_squared_to`.
    This is a small additional gain, included in the "+ sound, grid, tank" column.
 4. **Skip re-rotating** when the whole-degree angle hasn't changed (in
    `RotatableObject.rotate_to_angle`), and **cache scaled images per zoom
@@ -213,7 +213,7 @@ Ground towers and tanks now find their targets through per-tick spatial grids
   tick are removed from the list, and the grid rebuilds when it sees the list
   shrink, so they're never picked.
 - **Tanks -> towers.** `_update_enemies` builds a `TowerGrid` of the targetable
-  towers (planes left out once per tick, instead of reading the `maxHP`
+  towers (planes left out once per tick, instead of reading the `max_hp`
   property per tank per tower). A tank searches rings of cells outward from
   its own until no unsearched cell can hold a closer tower. It still returns
   the nearest tower at any distance (it aims at it even when out of range),

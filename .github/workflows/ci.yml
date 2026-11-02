@@ -52,6 +52,26 @@ jobs:
       - name: Format (ruff, Black-compatible)
         run: uv run --group dev ruff format --check .
 
+  typecheck:
+    # Not (yet) a required check in the ruleset. A lenient start (issue #37):
+    # see [tool.mypy] in pyproject.toml.
+    name: Type check (mypy)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with pygamine submodule)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up uv + Python
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Type check (mypy)
+        run: uv run --group dev mypy
+
   engine-tests:
     name: pygamine test suite
     runs-on: ubuntu-latest

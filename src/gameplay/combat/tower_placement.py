@@ -5,7 +5,7 @@ from pygamine import PanelManager
 from pygamine import Camera
 from util.constants import TILE_SIZE, HALF_TILE
 from domain.game_state import GameState, TowerConfig
-from gameplay.towers import BaseTower, TowerFactory
+from gameplay.towers import BaseTower, PlaneTower, TowerFactory
 from ui.range_ring import draw_range_ring
 
 _TOWER_HOTKEYS = {
@@ -150,6 +150,7 @@ class TowerPlacementController:
         for tower in reversed(self._towers):
             if not tower.is_flying:
                 continue
+            assert isinstance(tower, PlaneTower)  # the only flying tower
             if tower.sprite_rect().inflate(pad, pad).collidepoint(point):
                 return tower
         return None
@@ -260,6 +261,8 @@ class TowerPlacementController:
         the same type is still affordable (the toggle itself stays on)."""
         if not self._game_area.collidepoint(mouse_pos) or not self.buying_tower_type:
             return
+        if self.cursor_row is None or self.cursor_col is None:
+            return  # the cursor hasn't been over the map yet
         if not self._is_placeable(self.cursor_row, self.cursor_col):
             return
         if not self._can_afford(self.buying_tower_type):
@@ -365,7 +368,11 @@ class TowerPlacementController:
             else self.buying_tower_type - 1
         )
         mx, my = mouse_pos
-        if not self._game_area.collidepoint(mouse_pos):
+        if (
+            not self._game_area.collidepoint(mouse_pos)
+            or self.cursor_row is None
+            or self.cursor_col is None  # the cursor hasn't been over the map yet
+        ):
             old_clip = surface.get_clip()
             surface.set_clip(None)
             surface.blit(self._tower_images[index], (mx - HALF_TILE, my - HALF_TILE))

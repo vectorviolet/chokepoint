@@ -180,7 +180,7 @@ class TowerInfoPanel:
         self.tower = tower
         if tower is None:
             return
-        self._hp_bar.active = tower.maxHP is not None  # planes have no HP
+        self._hp_bar.active = tower.max_hp is not None  # planes have no HP
         texts = stat_texts(tower)
         self._title.set_text(texts["title"])
         for key, obj in self._values.items():
@@ -192,9 +192,9 @@ class TowerInfoPanel:
         """The HP bar's fill, over its background object (drawn with the
         panel, so call this after the panel has been drawn)."""
         tower = self.tower
-        if tower is None or tower.hp is None or not tower.maxHP:
+        if tower is None or tower.hp is None or not tower.max_hp:
             return
-        ratio = max(0.0, min(1.0, tower.hp / tower.maxHP))
+        ratio = max(0.0, min(1.0, tower.hp / tower.max_hp))
         bar = self._hp_bar.rect
         fill = (bar.x, bar.y, round(bar.width * ratio), bar.height)
         pygame.draw.rect(surface, hp_bar.health_color(ratio), fill)

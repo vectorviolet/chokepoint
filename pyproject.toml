@@ -16,7 +16,14 @@ build = [
     "pyinstaller>=6.0",
     "pillow",
 ]
-dev = ["pytest>=8", "pytest-cov>=5", "coverage-badge>=1.1", "ruff==0.17.2", "pillow"]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "coverage-badge>=1.1",
+    "ruff==0.17.2",
+    "pillow",
+    "mypy==2.4.1",
+]
 
 [tool.ruff]
 # ruff's own default, written out: both `ruff check` and `ruff format` use it.
@@ -32,6 +39,30 @@ quote-style = "double"
 # Deliberately narrow, like pygamine's: F (pyflakes -- real bugs such as
 # unused imports or undefined names), not pycodestyle's style rules.
 select = ["F"]
+
+[tool.mypy]
+# A lenient start (issue #37): the app's own code under src/, default
+# (non-strict) checks, untyped functions skipped. Tighten later, e.g. with
+# check_untyped_defs or per-module strict overrides.
+python_version = "3.12"
+files = ["src"]
+# src/pygamine first, so `pygamine` is the engine package, not its repo folder.
+mypy_path = ["src/pygamine", "src"]
+explicit_package_bases = true
+ignore_missing_imports = true
+# The pygamine submodule has its own CI; its types are used, its errors not reported.
+exclude = ["^src/pygamine/"]
+
+[[tool.mypy.overrides]]
+module = ["pygamine", "pygamine.*"]
+follow_imports = "silent"
+
+[[tool.mypy.overrides]]
+# Game's mixins use attributes and methods that Game itself defines, which
+# mypy can't see from the mixin (attr-defined), nor the types of those it
+# assigns (has-type). Typing them (a Protocol for `self`) is left for later.
+module = ["app.game_events", "app.game_save"]
+disable_error_code = ["attr-defined", "has-type"]
 
 [tool.uv.sources]
 pygamine = { path = "src/pygamine", editable = true }

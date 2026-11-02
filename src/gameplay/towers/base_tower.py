@@ -28,7 +28,7 @@ class BaseTower(RotatableObject):
     ) -> None:
         super().__init__(
             assets.image_path(f"tower_{tower_type}_lvl1"),
-            (col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE),
+            Vector2(col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE),
         )
         self.assets = assets
         self.audio = audio
@@ -38,10 +38,10 @@ class BaseTower(RotatableObject):
         self.col = col
         self.level = 1
         self._config = config
-        self.last_reload_time = 0
+        self.last_reload_time: float = 0
         self.bullets: list = []
-        self.now: int = 0
-        self.hp: int | None = self.maxHP
+        self.now: float = 0
+        self.hp: int | None = self.max_hp
         # Lifetime record shown in the tower info panel (and saved): enemies
         # this tower dealt the killing blow to, and the kill money they paid.
         self.kills: int = 0
@@ -92,7 +92,7 @@ class BaseTower(RotatableObject):
         return self._config.shoot_sounds[self.tower_type - 1]
 
     @property
-    def maxHP(self) -> int | None:
+    def max_hp(self) -> int | None:
         hps = self._config.hps[self.tower_type - 1]
         if hps is None:
             return None
@@ -166,7 +166,7 @@ class BaseTower(RotatableObject):
         price = self.upgrade_price
         self.level += 1
         self.load(self.assets.image_path(f"tower_{self.tower_type}_lvl{self.level}"))
-        self.hp = self.maxHP  # refill on upgrade
+        self.hp = self.max_hp  # refill on upgrade
         game_state.decrease_money(price)
         game_state.selected_tower = self
 
@@ -197,7 +197,7 @@ class BaseTower(RotatableObject):
         sell_btn = StateObject(
             None, screen + SELL_BTN_OFFSET, BTN_SIZE, self.assets.image_path("btn_sell")
         )
-        sell_text = self._price_font.render(f"{self.sell_price} $", 2, "white")
+        sell_text = self._price_font.render(f"{self.sell_price} $", True, "white")
 
         if self.is_max_level():
             StateObject(
@@ -231,12 +231,14 @@ class BaseTower(RotatableObject):
     def get_blocking_position(self) -> tuple | None:
         return self.row, self.col
 
-    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:  # type: ignore[override]
         """One tick. `enemy_grid` is the tick's gameplay.combat.targeting
         .EnemyGrid of `enemies` (or None), for towers that look for targets."""
         raise NotImplementedError
 
-    def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
+    # Draws through the camera, unlike GameObject.draw() (mypy: override).
+    def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:  # type: ignore[override]
         raise NotImplementedError
 
     def work(self, enemies: list, is_started: bool, enemy_grid=None) -> None:

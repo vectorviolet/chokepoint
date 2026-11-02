@@ -55,7 +55,7 @@ def stand(enemy, battle, position, hp):
     enemy.position = Vector2(position)
     enemy.rect.center = enemy.position
     enemy.move = lambda game_speed: None
-    enemy.hp = enemy.maxHP = hp
+    enemy.hp = enemy.max_hp = hp
     battle.enemies.append(enemy)
     return enemy
 
@@ -111,7 +111,7 @@ def test_a_tanks_shell_hits_its_tower_after_the_tank_dies(game, tower_config):
     game.draw()  # a flying orphan shell is drawn
 
     tick_until_landed(game)
-    assert tower.hp == tower.maxHP - tank.bullet_damage
+    assert tower.hp == tower.max_hp - tank.bullet_damage
     assert not any(isinstance(b, TankBullet) for b in tank.bullets)
 
 
@@ -128,7 +128,7 @@ def test_a_tanks_shell_hits_its_tower_after_the_tank_escapes(game, tower_config)
     assert orphans(game) == [shell]
 
     tick_until_landed(game)
-    assert tower.hp == tower.maxHP - tank.bullet_damage
+    assert tower.hp == tower.max_hp - tank.bullet_damage
 
 
 def test_an_orphan_shell_lands_on_the_same_tick_as_with_its_tank(game, tower_config):
@@ -144,7 +144,7 @@ def test_an_orphan_shell_lands_on_the_same_tick_as_with_its_tank(game, tower_con
             tank.decrease_hp(tank.hp, game)
         for tick in range(ENOUGH_TICKS):
             game._tick()
-            if tower.hp < tower.maxHP:
+            if tower.hp < tower.max_hp:
                 return tick
         raise AssertionError("the shell never landed")
 
@@ -176,7 +176,7 @@ def test_an_orphan_shell_waits_while_the_game_is_paused(game, tower_config):
 
     assert orphans(game) == [shell]
     assert shell.position == position
-    assert tower.hp == tower.maxHP
+    assert tower.hp == tower.max_hp
 
 
 def test_the_last_tanks_shell_moves_on_the_tick_auto_pause_stops_the_run(
@@ -213,7 +213,7 @@ def test_the_last_tanks_shell_moves_on_the_tick_auto_pause_stops_the_run(
     game.game_state.is_started = True
     game.wave_manager = None
     tick_until_landed(game)
-    assert tower.hp == tower.maxHP - tank.bullet_damage
+    assert tower.hp == tower.max_hp - tank.bullet_damage
 
 
 # ── tower missiles ────────────────────────────────────────────────────────────
@@ -240,8 +240,8 @@ def test_a_sold_towers_missile_hits_and_is_credited_to_it(game, tower_config):
     tick_until_landed(game)
     assert enemy not in game.enemies
     assert tower.kills == 1
-    assert tower.money_earned == enemy.killMoney
-    assert game.game_state.money == money + tower.sell_price + enemy.killMoney
+    assert tower.money_earned == enemy.kill_money
+    assert game.game_state.money == money + tower.sell_price + enemy.kill_money
     assert tower.bullets == []
 
 
@@ -270,7 +270,7 @@ def test_an_orphan_missile_lands_on_the_same_tick_as_with_its_tower(game, tower_
             sell(game, tower)
         for tick in range(ENOUGH_TICKS):
             game._tick()
-            if enemy.hp < enemy.maxHP:
+            if enemy.hp < enemy.max_hp:
                 return tick
         raise AssertionError("the missile never landed")
 
@@ -284,7 +284,7 @@ def test_an_orphan_missile_whose_target_died_lands_harmlessly(game, tower_config
     game.enemies.remove(enemy)  # its target is gone, as when it dies
 
     tick_until_landed(game)
-    assert enemy.hp == enemy.maxHP
+    assert enemy.hp == enemy.max_hp
     assert tower.bullets == []
 
 
@@ -406,7 +406,7 @@ def test_the_menu_demos_orphan_shots_land_too(assets, tower_config):
     assert demo.orphan_shots
     demo.draw(pygame.Surface((1280, 720)))
     tick_until_landed(demo)
-    assert tower.hp == tower.maxHP - tank.bullet_damage
+    assert tower.hp == tower.max_hp - tank.bullet_damage
 
     demo._start_run()
     assert not demo.orphan_shots

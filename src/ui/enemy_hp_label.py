@@ -18,7 +18,7 @@ GAP = 4  # screen px between the bar's right end and the text
 
 def hp_text(enemy) -> str:
     """ "current / max", both whole numbers, current never below 0."""
-    return f"{max(0, int(enemy.hp))} / {int(enemy.maxHP)}"
+    return f"{max(0, int(enemy.hp))} / {int(enemy.max_hp)}"
 
 
 class EnemyHpLabel:
@@ -40,6 +40,7 @@ class EnemyHpLabel:
         if text != self._text:
             self._text = text
             self._label = _outlined(self._font, text)
+        assert self._label is not None  # rendered on the first call (text was None)
         return self._label
 
 

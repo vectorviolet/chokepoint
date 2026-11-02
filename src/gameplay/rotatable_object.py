@@ -103,10 +103,9 @@ class RotatableObject(StateObject):
         self.rotate_to_angle(angle_of_delta(delta))
 
     def rotate_to_angle(self, angle: float) -> None:
+        source = self._sprite_image()
         rotation = self.sprite_orientation - angle
-        self.rotated_image = pygame.transform.rotate(
-            self.get_component(SpriteRenderer2D).image, rotation
-        )
+        self.rotated_image = pygame.transform.rotate(source, rotation)
         self.rect.size = self.rotated_image.get_size()
         self.rect.center = self.position
         self.is_rotated = True
@@ -117,7 +116,7 @@ class RotatableObject(StateObject):
         done while the (image, step) pair is unchanged, and rotated images
         come from a shared bounded cache. The rect is re-centred on the
         position, so the sprite keeps its centre at every angle."""
-        source = self.get_component(SpriteRenderer2D).image
+        source = self._sprite_image()
         rotation = quantise_angle(self.sprite_orientation - angle)
         if (
             self.is_rotated
@@ -131,6 +130,13 @@ class RotatableObject(StateObject):
         self.rect.center = self.position
         self.is_rotated = True
 
+    def _sprite_image(self) -> pygame.Surface:
+        """The unrotated sprite: every RotatableObject is built with one."""
+        renderer = self.get_component(SpriteRenderer2D)
+        assert renderer is not None
+        assert renderer.image is not None
+        return renderer.image
+
     @override
     def draw(self, surface: pygame.Surface) -> None:
         if self.is_rotated and self.rotated_image is not None:
@@ -138,7 +144,9 @@ class RotatableObject(StateObject):
         else:
             super().draw(surface)
 
-    @property
+    # Read-only on purpose: the sprite changes through load() and the
+    # renderer, never by assigning `image` (which pygamine's setter allows).
+    @property  # type: ignore[misc]
     @override
     def image(self) -> pygame.Surface | None:
         # Drawable.image (see pygamine's camera.py): camera.draw() reads

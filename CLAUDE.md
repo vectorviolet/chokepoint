@@ -32,6 +32,13 @@ lint is pyflakes-only (`[tool.ruff.lint]`). CI fails on `ruff format --check .` 
 errors. Keep pure reformatting out of feature commits; a repo-wide reformat goes in its own
 commit, with its hash added to `.git-blame-ignore-revs`.
 
+**Type checking:** run `uv run --group dev mypy` too (CI's "Type check (mypy)" job). It checks
+`src/` (not the pygamine submodule, whose types it still uses) with mypy's default, non-strict
+checks; the config is `[tool.mypy]` in `pyproject.toml`. Where mypy can't see that a value is
+set, use `assert x is not None` rather than a silent `if not x: return`; handle None for real only
+where it can happen. A `# type: ignore[code]` names its error code and says why on the line
+above. Game's mixins (`app.game_events`, `app.game_save`) skip `attr-defined`/`has-type` for now.
+
 **Always run simulations and tests in a temporary folder, never against the real `saves/`.**
 A `Game()` saves and deletes its save exactly like the real game does: losing a run deletes
 `saves/save.json`, and one headless balance simulation once deleted the player's real save

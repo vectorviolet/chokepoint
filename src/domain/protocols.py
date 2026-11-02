@@ -10,10 +10,20 @@ class IGameContext(Protocol):
 
     enemies: list
     towers: list
-    speed: int
-    time_ms: float
-    map_width: int
-    map_height: int
+
+    # Read-only: a context may compute them (BattleSimulation does) or
+    # store them as plain attributes (test stubs do).
+    @property
+    def speed(self) -> int: ...
+
+    @property
+    def time_ms(self) -> float: ...
+
+    @property
+    def map_width(self) -> int: ...
+
+    @property
+    def map_height(self) -> int: ...
 
     def enemy_killed(self, enemy) -> None:
         """Pays out a kill (the enemy is already removed)."""

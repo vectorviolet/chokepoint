@@ -53,7 +53,7 @@ def stage(battle, tower_config, assets):
     tower = TowerFactory.create(
         GROUND_TYPE, 10, 10, tower_config, assets, None, map_width=3008
     )
-    tower.hp = tower.maxHP - 1  # so its HP bar shows
+    tower.hp = tower.max_hp - 1  # so its HP bar shows
     plane = TowerFactory.create(
         PLANE_TYPE, 0, 0, tower_config, assets, None, map_width=3008
     )
@@ -63,7 +63,7 @@ def stage(battle, tower_config, assets):
     bomb = Bomb(plane, Vector2(0, 0))
     plane.bullets.append(bomb)
     enemy = Enemy(1, 1, level=1, waypoints=[Vector2(700, 700)], assets=assets)
-    enemy.hp = enemy.maxHP - 1
+    enemy.hp = enemy.max_hp - 1
     battle.towers.extend([tower, plane])
     battle.enemies.append(enemy)
     battle.bomb_impacts.bomb_landed((700, 700), 96)

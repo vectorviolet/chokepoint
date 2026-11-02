@@ -20,13 +20,20 @@ class Enemy(RotatableObject):
     """
 
     def __init__(
-        self, id: int, enemy_type: int, level: int, waypoints: list[Vector2], assets
+        self,
+        enemy_id: int,
+        enemy_type: int,
+        level: int,
+        waypoints: list[Vector2],
+        assets,
     ) -> None:
         if not waypoints:
             raise ValueError("Enemy requires at least one waypoint")
         spawn = waypoints[0]
-        super().__init__(assets.image_path(f"enemy_{enemy_type}"), (spawn.x, spawn.y))
-        self.id = id
+        super().__init__(
+            assets.image_path(f"enemy_{enemy_type}"), Vector2(spawn.x, spawn.y)
+        )
+        self.id = enemy_id
         self.enemy_type = enemy_type
         self.is_walking = True
         self.waypoints = waypoints
@@ -38,9 +45,9 @@ class Enemy(RotatableObject):
     def _calculate_stats(self, enemy_type: int, level: int) -> None:
         stats = _BASE_STATS[enemy_type]
         scale = 1.0 + (level - 1) * 0.25
-        self.maxHP = int(stats.hp * scale)
-        self.hp = self.maxHP
-        self.killMoney = max(1, int(stats.kill_money * scale))
+        self.max_hp = int(stats.hp * scale)
+        self.hp = self.max_hp
+        self.kill_money = max(1, int(stats.kill_money * scale))
         self.damage = stats.damage
         self.mov_speed = stats.speed
 
@@ -61,7 +68,7 @@ class Enemy(RotatableObject):
             self.destroy(ctx)
             ctx.enemy_killed(self)
             if source is not None:
-                source.record_kill(self.killMoney)
+                source.record_kill(self.kill_money)
 
     def reached_end(self) -> bool:
         return self.waypoint_index >= len(self.waypoints)

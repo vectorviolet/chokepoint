@@ -32,7 +32,8 @@ class Projectile(RotatableObject):
 
     def _attach_trail_flame(self, tower) -> None:
         renderer = self.get_component(SpriteRenderer2D)
-        missile = renderer.image
+        assert renderer is not None
+        missile = self._sprite_image()
         flame_key = f"muzzle_flash_3_lvl{min(tower.level, 2)}"
         flame_src = tower.assets.get_image(flame_key)
         flame_w = max(1, int(missile.get_width() * self.FLAME_SCALE))
@@ -62,7 +63,8 @@ class Projectile(RotatableObject):
         self.rect.size = composite.get_size()
         self.rect.center = self.position
 
-    def update(self, ctx: "IGameContext") -> None:
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(self, ctx: "IGameContext") -> None:  # type: ignore[override]
         if self._is_out_of_bounds(ctx):
             self._remove()
             return
@@ -142,7 +144,8 @@ class MuzzleFlash(RotatableObject):
             angle = angle_between_points(pos, target.position)
         self.rotate_to_angle(angle)
 
-    def update(self, ctx: "IGameContext") -> None:
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(self, ctx: "IGameContext") -> None:  # type: ignore[override]
         if not self._damage_dealt:
             for enemy in ctx.enemies:
                 if enemy.id == self.target.id:
@@ -189,7 +192,8 @@ class Bomb(RotatableObject):
 
     def _scale_sprite(self) -> None:
         renderer = self.get_component(SpriteRenderer2D)
-        src = renderer.image
+        assert renderer is not None
+        src = self._sprite_image()
         scaled_size = (
             max(1, int(src.get_width() * self.SPRITE_SCALE)),
             max(1, int(src.get_height() * self.SPRITE_SCALE)),
@@ -198,7 +202,8 @@ class Bomb(RotatableObject):
         self.rect.size = scaled_size
         self.rect.center = self.position
 
-    def update(self, ctx: "IGameContext") -> None:
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(self, ctx: "IGameContext") -> None:  # type: ignore[override]
         elapsed = ctx.time_ms - self._created_at
         if elapsed >= self.FALL_DURATION_MS:
             self._detonate(ctx)

@@ -46,9 +46,14 @@ class Tank(Enemy):
     MUZZLE_TIP_FORWARD = 55  # px from tank center to muzzle tip along aim direction
 
     def __init__(
-        self, id: int, enemy_type: int, level: int, waypoints: list[Vector2], assets
+        self,
+        enemy_id: int,
+        enemy_type: int,
+        level: int,
+        waypoints: list[Vector2],
+        assets,
     ) -> None:
-        super().__init__(id, enemy_type, level, waypoints, assets)
+        super().__init__(enemy_id, enemy_type, level, waypoints, assets)
         self.assets = assets
 
         stats = _BASE_STATS[enemy_type]
@@ -95,7 +100,7 @@ class Tank(Enemy):
         first in ctx.towers on a tie), at any distance; (None, 0) if none.
         Planes have no HP system, so they're skipped. Uses the context's
         per-tick `tower_grid` if it has one for ctx.towers."""
-        grid = getattr(ctx, "tower_grid", None)
+        grid: TowerGrid | None = getattr(ctx, "tower_grid", None)
         if grid is None or grid.towers is not ctx.towers:
             grid = TowerGrid(ctx.towers)
         return grid.nearest(self.position)
@@ -136,7 +141,8 @@ class TankBullet(RotatableObject):
         self.damage = tank.bullet_damage
         self.rotate_to_angle(angle_between_points(self.position, target_tower.position))
 
-    def update(self, ctx: "IGameContext") -> None:
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(self, ctx: "IGameContext") -> None:  # type: ignore[override]
         if self.target_tower not in ctx.towers:
             self._remove()
             return
@@ -180,7 +186,8 @@ class TankMuzzleFlash(RotatableObject):
         self.rotate_to_angle(angle)
         self._created_at = tank.now
 
-    def update(self, ctx: "IGameContext") -> None:
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(self, ctx: "IGameContext") -> None:  # type: ignore[override]
         if ctx.time_ms - self._created_at > self.FLASH_DURATION_MS:
             if self in self.tank.bullets:
                 self.tank.bullets.remove(self)
