@@ -48,13 +48,14 @@ def played(game, monkeypatch):
 
 
 def plane_at_the_edge(battle, tower_config, assets, audio=None):
-    """A plane whose next tick drops a bomb right at the map's right edge,
-    the last moment it is still on the map; the tick after takes it off."""
+    """A plane whose next tick drops a bomb with its centre right at the
+    map's right edge, the last bomb it drops; its sprite then slides off the
+    map and the plane is removed (issue #59)."""
     width = battle.tilemap.map_width
     plane = TowerFactory.create(
         PLANE_TYPE, 10, 40, tower_config, assets, audio, map_width=width
     )
-    plane.position = Vector2(width + plane.rect.width / 2 - plane.speed, 700)
+    plane.position = Vector2(width - plane.speed, 700)
     plane.rect.center = plane.position
     plane._last_bomb_drop_at = battle.game_state.time_ms - BOMB_DROP_INTERVAL_MS
     battle.towers.append(plane)
@@ -78,9 +79,12 @@ def drop_and_leave(battle):
     plane = battle.towers[-1]
     battle._tick()  # drops the bomb at the edge
     (bomb,) = plane.bullets
-    battle._tick()  # flies off the map
-    battle._tick()  # removed
+    for _ in range(200):  # its sprite slides off the map, then it's removed
+        if plane not in battle.towers:
+            break
+        battle._tick()
     assert plane not in battle.towers
+    assert any(o.shot is bomb for o in battle.orphan_shots)  # still falling
     return bomb
 
 

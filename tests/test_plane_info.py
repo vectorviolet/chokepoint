@@ -351,6 +351,28 @@ def test_the_plane_panel_stays_open_while_it_flies(game, plane):
     assert game.tower_info.tower is plane
 
 
+def test_the_panel_stays_open_until_the_whole_plane_has_left(game, plane):
+    # Issue #59: its centre past the edge, part of its sprite still on the map.
+    click(game, screen_pos(game, plane))
+    game.game_state.is_started = True
+    plane.position.x = MAP_WIDTH + 1
+    plane.rect.center = plane.position
+
+    game._tick()
+    frame(game)
+    assert plane in game.towers
+    assert game.tower_info.tower is plane
+
+    for _ in range(200):
+        if plane not in game.towers:
+            break
+        game._tick()
+    frame(game)
+    assert plane not in game.towers
+    assert plane.sprite_rect().left >= MAP_WIDTH
+    assert not game.tower_info.is_open
+
+
 def test_the_plane_panel_hides_with_the_hud(game, plane):
     click(game, screen_pos(game, plane))
 
