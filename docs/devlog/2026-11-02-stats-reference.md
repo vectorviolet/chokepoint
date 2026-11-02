@@ -30,19 +30,21 @@ How it is built:
   `Enemy._calculate_stats`, the endless waves after wave 30 from `WaveManager._wave_for`, the win
   wave, sell refund and bomb interval from their constants, the starting money and lives from
   `config/settings.yaml`. Enemy names are the README's roles (the config only has them as comments).
-- `--check` exits 1 when a page differs; `tests/test_stats_docs.py` runs it in CI, like
+- `--check` exits 1 when a page differs or `docs/stats/` holds a page no longer generated; `tests/test_stats_docs.py` runs it in CI, like
   `scripts/gen_devlog_index.py`. The test also checks that the scaling rule written on the enemies
   page matches the code for waves 1 to 60.
-- `.github/workflows/wiki.yml` runs on a push to `main` that changes `docs/stats/`, and by hand. It
-  writes the pages as `Stats`, `Stats-Towers`, `Stats-Enemies` and `Stats-Waves` (`--wiki` renames
-  them and rewrites their links) and leaves every other wiki page alone, `Home` included. It never
-  runs on pull requests or merge-queue groups, so it isn't a required check. It pushes with
+- `.github/workflows/wiki.yml` runs on a push to `main` that changes `docs/stats/` or
+  `scripts/gen_stats.py`, and by hand from `main` only. It writes the pages as `Stats`,
+  `Stats-Towers`, `Stats-Enemies` and `Stats-Waves` (`--wiki` renames them and rewrites their
+  links), deletes `Stats*` pages that are no longer generated, and leaves every other wiki page
+  alone, `Home` included. It never runs on pull requests or merge-queue groups, so it isn't a
+  required check. It pushes with
   `GITHUB_TOKEN` (`contents: write`) and uses no third-party action beyond the ones CI already uses.
 
 What the owner has to do once: enable the wiki (Settings > General > Features > Wikis), create its
 first page in the web UI (a GitHub wiki has no git repository until then), and run the **Wiki**
 workflow by hand once (Actions > Wiki > Run workflow). Until the wiki exists the job ends with a
-"Wiki not set up" warning instead of failing.
+"Wiki not set up" warning instead of failing; any other error reaching the wiki fails it.
 
 ## Rejected alternatives
 

@@ -1,9 +1,7 @@
 from functools import partial
-from pathlib import Path
 from typing import override
 
 import pygame
-import yaml
 from pygame import Rect
 
 from app.game_events import GameEventsMixin
@@ -23,9 +21,14 @@ from pygamine import (
     make_slider_factory,
     make_scrolling_panel_factory,
 )
-from util.config_loader import load_tower_config, load_tower_tooltips
+from util.config_loader import (
+    gameplay_settings,
+    load_settings,
+    load_tower_config,
+    load_tower_tooltips,
+)
 from pygamine import Camera
-from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS
+from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS, WIN_WAVE
 from pygamine import Debug
 from pygamine import SplashScreen, standard_splash_media
 from pygamine import SaveStore
@@ -55,10 +58,6 @@ WINDOW_MODE_LABELS = {
     "borderless": "BORDERLESS",
     "windowed": "WINDOWED",
 }
-
-# Clearing this wave triggers the victory popup once per run (config/waves.yaml
-# keeps generating waves past it -- "Continue" just keeps playing those).
-WIN_WAVE = 25
 
 # Toggled together via _set_victory_popup_active() -- the panel/GuiObject
 # system has no group-visibility concept, so each object's .active is set
@@ -106,9 +105,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         # rest of this constructor has finished building them.
         self._construction_complete = False
 
-        self.settings = yaml.safe_load(Path("config/settings.yaml").read_text())
+        self.settings = load_settings()
         window = self.settings["window"]
-        gameplay = self.settings["gameplay"]
+        gameplay = gameplay_settings(self.settings)
         camera = self.settings["camera"]
         audio = self.settings["audio"]
         self._default_audio_settings = dict(audio)  # kept for "reset to defaults"

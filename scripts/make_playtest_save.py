@@ -293,7 +293,7 @@ def fill_wave(game, level: int) -> int:
 
 
 def _win_wave() -> int:
-    from app.game import WIN_WAVE
+    from util.constants import WIN_WAVE
 
     return WIN_WAVE
 

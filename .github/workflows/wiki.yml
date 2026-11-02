@@ -5,18 +5,21 @@ name: Wiki
 # Stats-Enemies and Stats-Waves. Only those pages are written; every other
 # wiki page (Home, ...) is left alone.
 #
-# Runs on pushes to main that change docs/stats/, and by hand (Run workflow).
+# Runs on pushes to main that change docs/stats/ or the generator (which
+# alone decides the wiki page names, links and mirror note), and by hand (Run
+# workflow; only from main, so unreviewed numbers never reach the wiki).
 # Never on pull requests or merge-queue groups, so it is not and can't become
-# a required check.
+# a required check. Pages no longer generated are deleted from the wiki.
 #
 # The wiki must be enabled (Settings > General > Features > Wikis) and have
 # its first page, created once in the web UI: until then the wiki has no git
-# repository, and this job skips with a warning. After creating it, run this
+# repository, and this job skips with a warning. Any other error reaching the
+# wiki fails the job. After creating it, run this
 # workflow once by hand to publish the current pages.
 on:
   push:
     branches: [main]
-    paths: ["docs/stats/**"]
+    paths: ["docs/stats/**", "scripts/gen_stats.py"]
   workflow_dispatch:
 
 permissions:
@@ -30,6 +33,7 @@ concurrency:
 jobs:
   publish:
     name: Publish the stats reference to the wiki
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       # The generator imports the game's code, which needs the pygamine submodule.
@@ -62,13 +66,25 @@ jobs:
         run: |
           set -euo pipefail
           url="https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git"
-          if ! git ls-remote "$url" > /dev/null 2>&1; then
-            echo "::warning title=Wiki not set up::No wiki repository for ${GITHUB_REPOSITORY}. Enable the wiki, create its first page, then run this workflow by hand."
-            exit 0
+          # Only "Repository not found" means the wiki isn't set up yet; any
+          # other failure (permissions, network, server) fails the job.
+          if ! err=$(git ls-remote "$url" 2>&1 > /dev/null); then
+            if grep -q "Repository not found" <<< "$err"; then
+              echo "::warning title=Wiki not set up::No wiki repository for ${GITHUB_REPOSITORY}. Enable the wiki, create its first page, then run this workflow by hand."
+              exit 0
+            fi
+            echo "$err" >&2
+            exit 1
           fi
           git clone --depth=1 "$url" "$RUNNER_TEMP/wiki"
-          cp "$RUNNER_TEMP"/wiki-pages/*.md "$RUNNER_TEMP/wiki/"
           cd "$RUNNER_TEMP/wiki"
+          # Drop the Stats pages the generator no longer makes, then copy in
+          # the current ones.
+          for page in Stats*.md; do
+            [ -e "$page" ] || continue
+            [ -e "$RUNNER_TEMP/wiki-pages/$page" ] || git rm -q -- "$page"
+          done
+          cp "$RUNNER_TEMP"/wiki-pages/*.md .
           git add -- Stats*.md
           if git diff --cached --quiet; then
             echo "Wiki pages unchanged; nothing to publish."
