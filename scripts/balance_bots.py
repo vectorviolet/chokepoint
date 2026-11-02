@@ -14,13 +14,14 @@ The steps:
                      that covers the most path (see rank_tiles()): "front"
                      is the row of tiles right beside the path, "back" the
                      row behind it. With the ring full, any free tile.
-    Upgrade(t)       the lowest-level tower of type t below its max level
-                     (the oldest first) goes up one level.
+    Upgrade(t)       the lowest-level standing tower of type t below its
+                     max level (the first bought on a tie) goes up a level.
     LaunchPlane()    a plane at the left end of the path's longest
                      straight (see plane_tile()), flying right along it,
-                     only while an enemy is on that straight (within the
-                     bomb radius of the row); otherwise it waits, or with
-                     wait=False skips.
+                     only while an enemy is on that straight ahead of the
+                     plane (between its start and the straight's right
+                     end, within the bomb radius of the row); otherwise
+                     it waits, or with wait=False skips.
     UpgradePlanes()  the one-time UPG PLANES upgrade.
 
 Every purchase goes through the game's own rules and money (see
@@ -285,13 +286,10 @@ def rank_tiles(tilemap, tower_config, rng: random.Random) -> dict:
     return ranked
 
 
-def plane_tile(tilemap) -> tuple[int, int]:
-    """Where a plane is placed: the left end of the path's longest
-    horizontal straight (consecutive horizontal segments at the same height
-    count as one; the first on a tie), so it flies right along the whole
-    straight at once."""
-    from util.constants import TILE_SIZE
-
+def longest_straight(tilemap) -> tuple[float, float, float]:
+    """(y, left x, right x) of the path's longest horizontal straight.
+    Consecutive horizontal segments at the same height count as one; the
+    first straight wins a tie."""
     straights = []  # [y, min x, max x] of each run of horizontal segments
     path = tilemap.waypoints
     for a, b in zip(path, path[1:]):
@@ -302,5 +300,14 @@ def plane_tile(tilemap) -> tuple[int, int]:
             run[1], run[2] = min(run[1], a.x, b.x), max(run[2], a.x, b.x)
         else:
             straights.append([a.y, min(a.x, b.x), max(a.x, b.x)])
-    y, left, _ = max(straights, key=lambda run: run[2] - run[1])
+    y, left, right = max(straights, key=lambda run: run[2] - run[1])
+    return y, left, right
+
+
+def plane_tile(tilemap) -> tuple[int, int]:
+    """Where a plane is placed: the left end of the path's longest
+    horizontal straight, so it flies right along the whole straight."""
+    from util.constants import TILE_SIZE
+
+    y, left, _ = longest_straight(tilemap)
     return int(y // TILE_SIZE), int(left // TILE_SIZE)

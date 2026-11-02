@@ -16,9 +16,10 @@ uv run python scripts/balance_sim.py --strategy gun_cannon --waves 10  # one str
 
 Options: `--strategy` (one of the six below; default all), `--waves` (40), `--seed` (70),
 `--game-speed` (4, the game's x4; 1 or 2 also work) and `--out` (`docs/balance`, overwritten).
-The default run takes about **8 minutes** on the machine below (gun_spam 144 s, gun_cannon 133 s,
-mixed 106 s, missile 86 s, plane_spam 20 s, minimal 4 s): late waves with hundreds of towers are
-the slow part. `tests/test_balance_sim.py` runs 3 waves of one strategy in CI.
+The default run takes **8 to 11 minutes** on the machine below, depending on what else it is
+doing: 492 s on a quiet machine, 678 s for the run recorded here (gun_cannon 244 s, gun_spam
+157 s, missile 131 s, mixed 102 s, plane_spam 43 s, minimal 3 s). Late waves with hundreds of
+towers are the slow part. `tests/test_balance_sim.py` runs 3 waves of one strategy in CI.
 
 Like the smoke test, the script sends every save to a temporary folder and fails if the real
 `saves/` changed (a lost run deletes its save, as in the real game).
@@ -29,21 +30,24 @@ Like the smoke test, the script sends every save to a temporary folder and fails
   enemy stats and scaling, targeting, tank fire, money, lives and game over. Nothing is drawn; the
   fixed tick (`_tick()`) runs as fast as the CPU allows. The game speed is x4 by default, as a
   player who fast-forwards would play; a plane_spam run at x1 gave the same result (died in wave
-  29; plane ROI 0.08 at both speeds).
+  29; plane ROI 0.09 at both speeds).
 - **Start:** 200 money, 10 lives (`config/settings.yaml`). The victory popup after wave 25 is
   answered with Continue. A run ends after `--waves` waves or when lives reach 0.
 - **Bots** (`scripts/balance_bots.py`) look at their money every 0.5 s of game time. Each is an
   opener, then a cycle of steps, played strictly in order: a bot waits (saves up) when it can't
   afford the next step. Purchases go through the game's rules: placement through
   `TowerPlacementController` (only free build tiles, only with the money), upgrades through the
-  tower's own upgrade button, UPG PLANES as the HUD does it.
+  tower's own upgrade button, UPG PLANES through the HUD button's own rule
+  (`_buy_plane_upgrade()`). An upgrade goes to the lowest-level tower of its type that is still
+  standing, the first bought on a tie. Auto-pause between waves is off.
 - **Where to build:** each tower goes on the free build tile that covers the most path within its
   range (outside the cannon's blind spot). "Front" tiles are those right beside the path (tile
   centre 0.5 to 1.6 tiles from it), "back" the row behind (1.6 to 3 tiles); when a ring is full,
   any free tile. Destroyed towers free their tile, so the bot rebuilds there.
 - **Planes** are placed at the left end of the path's longest horizontal straight (y = 576, x 1408
   to 2624, near the entrance) and fly right along it, against the walking enemies. A plane is
-  launched only while an enemy is on that straight.
+  launched only while an enemy is on that straight ahead of it (between the plane's start and
+  the straight's right end), so the plane can reach it.
 - **Seed:** the game has no randomness, so results are deterministic; the seed only breaks ties
   between equally good build tiles. Same seed and options, same files byte for byte (tested).
 - **Damage** is enemy HP taken, overkill not counted, credited to the tower whose shot or bomb hit
@@ -80,15 +84,15 @@ that loses may only mean the plan is poor.
 | Commit | `origin/main` at 6e6463a plus this branch |
 | Options | `--waves 40 --seed 70 --game-speed 4` |
 
-## Results (2026-10-29)
+## Results (2026-11-02)
 
 | strategy | result | lives left | lives lost 1-10 | lost 11-25 | lost 26+ | spent | earned | money left | towers lost | ROI gun | ROI missile | ROI cannon | ROI plane |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | gun_spam | died in wave 32 | 0 | 4 | 0 | 6 | 85100 | 135068 | 50168 | 409 | 1.59 |  |  |  |
 | gun_cannon | cleared 40 of 40 | 6 | 4 | 0 | 0 | 492120 | 514954 | 23034 | 579 | 0.6 |  | 1.13 |  |
 | missile | cleared 40 of 40 | 3 | 7 | 0 | 0 | 510460 | 514711 | 4451 | 148 | 2.71 | 1.01 |  |  |
-| plane_spam | died in wave 29 | 0 | 4 | 0 | 6 | 66460 | 69564 | 3304 | 42 | 4.36 |  | 4.25 | 0.08 |
-| mixed | cleared 40 of 40 | 6 | 4 | 0 | 0 | 510400 | 514954 | 4754 | 341 | 0.58 | 1.49 | 0.92 | 0.09 |
+| plane_spam | died in wave 29 | 0 | 4 | 0 | 6 | 65260 | 69564 | 4504 | 42 | 4.32 |  | 4.25 | 0.09 |
+| mixed | cleared 40 of 40 | 6 | 4 | 0 | 0 | 510760 | 514954 | 4394 | 348 | 0.65 | 1.46 | 0.94 | 0.03 |
 | minimal | died in wave 12 | 0 | 9 | 1 | 0 | 1700 | 3052 | 1552 | 0 | 1.8 |  |  |  |
 
 Every run that kills everything earns the same total (514,954 by wave 40), since all income is
@@ -120,7 +124,7 @@ minimal, which buys nothing after wave 9 unless it leaks, holds waves 10 and 11 
 
 Tanks (wave 25 on; their HP is 5,600 to 16,000 by then) destroy towers every wave, and more each
 wave: gun_cannon loses 7 towers in wave 27, 42 in wave 30 and 35 to 63 a wave from wave 32 on;
-mixed 13 in wave 30 and 36 to 48 a wave from wave 36. Guns alone can't answer them: tanks
+mixed 15 in wave 30 and 36 to 45 a wave from wave 36. Guns alone can't answer them: tanks
 outrange them (tank range 280 and 320, gun 160), so gun_spam loses 13 to 135 guns a wave from
 wave 27 and dies in wave 32 with **50,168 money unspent**, because the map is full (442 tiles).
 Planes alone (plane_spam) die in wave 29.
@@ -134,14 +138,15 @@ higher than here.
 
 ### 4. Planes pay for themselves: refuted in these runs
 
-Planes earned 8% (plane_spam) and 9% (mixed) of what was spent on them: plane_spam spent 51,200
-on planes and UPG PLANES for 4,308 of kill money; mixed 79,200 for 7,427. They do land damage
-(19% of all damage in plane_spam's waves 26 to 29, 3% in mixed's late waves), but a bomb does 100
+Planes earned 9% (plane_spam) and 3% (mixed) of what was spent on them: plane_spam spent 50,000
+on planes and UPG PLANES for 4,443 of kill money; mixed 74,400 for 2,345. They do land damage
+(18% of all damage in plane_spam's waves 26 to 29, 3% in mixed's late waves), but a bomb does 100
 or 200 damage against enemies with hundreds to thousands of HP, so the towers further down the
 path take the killing blow and the money. Planes alone don't hold: plane_spam switched to planes
 at wave 20 and died in wave 29, while every ground build with cannons or missiles cleared 40.
 
-Caveat: the bot launches planes at one place (the longest straight) whenever enemies are on it.
+Caveat: the bot launches planes at one place (the longest straight) whenever an enemy is on it
+ahead of the plane.
 A player who times planes on dense groups, or whose towers are weaker so bombs land the last hit
 more often, may see more money per plane. The info panel's money earned for a plane shows this
 in a playtest.

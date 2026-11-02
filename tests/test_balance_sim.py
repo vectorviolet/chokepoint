@@ -58,15 +58,21 @@ def test_money_spent_and_earned_add_up(sim):
         )
 
 
-def test_bot_waits_for_money_and_uses_the_placement_rules(sim):
-    from app.game import Game
-
+def _new_sim(sim):
     import random
+
+    from app.game import Game
 
     bots = sys.modules["balance_bots"]
     game = Game()
     game._start_new_game()
-    s = sim.Sim(game, random.Random(0))
+    tiles = bots.rank_tiles(game.tilemap, game.tower_config, random.Random(0))
+    return game, sim.Sim(game, tiles)
+
+
+def test_bot_waits_for_money_and_uses_the_placement_rules(sim):
+    bots = sys.modules["balance_bots"]
+    game, s = _new_sim(sim)
     game.game_state.money = 150
     assert s.apply(bots.Place(bots.GUN)) == bots.DONE
     assert s.apply(bots.Place(bots.GUN)) == bots.WAIT  # 50 left: saves up
@@ -121,3 +127,76 @@ def test_bot_plays_its_opener_then_switches_cycle_at_the_phase_wave(sim):
     bot.act(late)
     # The plane phase starts from its own first step.
     assert late.played == [bots.LaunchPlane()] * 5 + [bots.UpgradePlanes()]
+
+
+def test_upgrade_picks_the_first_bought_standing_tower(sim):
+    bots = sys.modules["balance_bots"]
+    game, s = _new_sim(sim)
+    game.game_state.money = 10_000
+    for _ in range(3):
+        assert s.apply(bots.Place(bots.MISSILE)) == bots.DONE
+    first, second, third = s.bought
+    assert game.towers[0] is third  # the controller lists them newest first
+    # The first one bought was destroyed this tick (not removed yet).
+    first.hp = 0
+    assert s.apply(bots.Upgrade(bots.MISSILE)) == bots.DONE
+    assert (first.level, first.hp, second.level, third.level) == (1, 0, 2, 1)
+    assert s.apply(bots.Upgrade(bots.MISSILE)) == bots.DONE
+    assert third.level == 2  # the lowest level goes first
+    # All destroyed: nothing left to upgrade.
+    first.hp, second.hp, third.hp = 0, 0, 0
+    assert s.apply(bots.Upgrade(bots.MISSILE)) == bots.SKIP
+    assert s.totals()["lost"] == 3
+
+
+def test_plane_launches_only_for_an_enemy_ahead_on_the_straight(sim):
+    from pygame.math import Vector2
+
+    from gameplay.combat.enemy import Enemy
+    from util.constants import HALF_TILE, TILE_SIZE
+
+    bots = sys.modules["balance_bots"]
+    game, s = _new_sim(sim)
+    game.game_state.money = 10_000
+    row, col = s.plane_tile
+    y = row * TILE_SIZE + HALF_TILE
+    start_x = col * TILE_SIZE + HALF_TILE
+    enemy = Enemy(1, 1, 1, game.tilemap.waypoints, game.assets)
+    game.enemies.append(enemy)
+    for x in (start_x - 40, s.straight_right + 40):  # behind it, past the end
+        enemy.position = Vector2(x, y)
+        assert s.apply(bots.LaunchPlane()) == bots.WAIT
+        assert s.apply(bots.LaunchPlane(wait=False)) == bots.SKIP
+    enemy.position = Vector2(start_x + 200, y)
+    assert s.apply(bots.LaunchPlane()) == bots.DONE
+    assert game.towers[-1] is s.bought[-1]
+    assert game.towers[-1].tower_type == bots.PLANE
+
+
+def test_plane_upgrade_goes_through_the_games_rule(sim, monkeypatch):
+    bots = sys.modules["balance_bots"]
+    game, s = _new_sim(sim)
+    calls = []
+    real = game._buy_plane_upgrade
+    monkeypatch.setattr(game, "_buy_plane_upgrade", lambda: calls.append(1) or real())
+    game.game_state.money = 4_999
+    assert s.apply(bots.UpgradePlanes()) == bots.WAIT
+    game.game_state.money = 5_000
+    assert s.apply(bots.UpgradePlanes()) == bots.DONE
+    assert (game.game_state.plane_level, game.game_state.money) == (2, 0)
+    assert s.spent_by_type[bots.PLANE] == 5_000
+    assert s.apply(bots.UpgradePlanes()) == bots.SKIP
+    assert len(calls) == 2
+
+
+def test_a_stuck_wave_raises_instead_of_spinning(sim, monkeypatch):
+    import pytest
+
+    from app.game import Game
+
+    monkeypatch.setattr(sim, "MAX_WAVE_TICKS", 50)
+    # A game that never starts: its clock stands still, like a pause the
+    # simulator doesn't undo.
+    monkeypatch.setattr(Game, "_set_started", lambda self, started: None)
+    with pytest.raises(RuntimeError, match="hasn't ended after 50 ticks"):
+        sim.run_strategy("gun_spam", waves=1)

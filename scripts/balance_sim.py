@@ -52,6 +52,7 @@ from balance_bots import (  # noqa: E402
     Place,
     Upgrade,
     UpgradePlanes,
+    longest_straight,
     plane_tile,
     rank_tiles,
 )
@@ -61,8 +62,9 @@ DEFAULT_SEED = 70
 DEFAULT_GAME_SPEED = 4  # the game's top speed (the HUD's x4)
 DECISION_MS = 500  # game time between a bot's looks at its money
 TYPES = (1, 2, 3, 4)
-# A wave that hasn't ended after this much game time is a stuck run.
-MAX_WAVE_MS = 30 * 60 * 1000
+# A wave that hasn't ended after this many ticks is a stuck run (the
+# longest wave of the reference run takes under 10,000 at x4).
+MAX_WAVE_TICKS = 300_000
 
 
 # ── the game under simulation ────────────────────────────────────────────────
@@ -92,12 +94,15 @@ class Sim:
     """A bot's hands: applies its steps to the game with the game's own
     rules. Every purchase goes through here, so spending is tracked."""
 
-    def __init__(self, game, rng: random.Random) -> None:
+    def __init__(self, game, tiles: dict) -> None:
+        """`tiles`: rank_tiles() for this game's map and towers."""
         self.game = game
         self.gs = game.game_state
-        self.tiles = rank_tiles(game.tilemap, game.tower_config, rng)
+        self.tiles = tiles
         self.plane_tile = plane_tile(game.tilemap)
+        self.straight_right = longest_straight(game.tilemap)[2]
         self.bought: list = []  # every tower ever bought, alive or not
+        self._bought_at: dict[int, int] = {}  # id(tower) -> purchase order
         self.spent_by_type = dict.fromkeys(TYPES, 0)
 
     def apply(self, step) -> str:
@@ -119,20 +124,18 @@ class Sim:
         tile in placement mode would: its own placeability and money
         checks, and it takes the money."""
         controller = self.game.tower_controller
-        before = len(self.game.towers)
+        towers = self.game.towers
+        before = len(towers)
         controller.buying_tower_type = tower_type
         controller.cursor_row, controller.cursor_col = row, col
         controller._handle_tower_purchase(self.game.game_area.center)
         controller.buying_tower_type = 0
-        if len(self.game.towers) == before:
+        if len(towers) == before:
             return False
-        tower = next(
-            t
-            for t in self.game.towers
-            if t.tower_type == tower_type
-            and (t.row, t.col) == (row, col)
-            and t not in self.bought
-        )
+        # The controller puts a ground tower first and a plane last.
+        tower = towers[-1] if tower_type == PLANE else towers[0]
+        assert tower.tower_type == tower_type and (tower.row, tower.col) == (row, col)
+        self._bought_at[id(tower)] = len(self.bought)
         self.bought.append(tower)
         self.spent_by_type[tower_type] += tower.buy_price
         return True
@@ -151,11 +154,15 @@ class Sim:
         candidates = [
             t
             for t in self.game.towers
-            if t.tower_type == step.tower_type and not t.is_max_level()
+            if t.tower_type == step.tower_type
+            and not t.is_max_level()
+            # Destroyed this tick but not removed yet: the next tick does.
+            and not t.should_remove()
         ]
         if not candidates:
             return SKIP
-        tower = min(candidates, key=lambda t: t.level)  # oldest on a tie
+        # The lowest level, the first bought on a tie.
+        tower = min(candidates, key=lambda t: (t.level, self._bought_at[id(t)]))
         price = tower.upgrade_price
         if self.gs.money < price:
             return WAIT
@@ -170,29 +177,35 @@ class Sim:
         return DONE
 
     def _launch_plane(self, step: LaunchPlane) -> str:
-        if not self._enemies_on_plane_row():
+        if not self._enemy_ahead_on_straight():
             return WAIT if step.wait else SKIP
         if self.gs.money < self._price(PLANE):
             return WAIT
         return DONE if self._buy(PLANE, *self.plane_tile) else WAIT
 
-    def _enemies_on_plane_row(self) -> bool:
+    def _enemy_ahead_on_straight(self) -> bool:
+        """Whether an enemy is on the plane's straight ahead of it: between
+        where the plane starts and the straight's right end, within the
+        bomb radius of its row, so the plane flying right can reach it."""
         from util.constants import HALF_TILE, TILE_SIZE
 
-        y = self.plane_tile[0] * TILE_SIZE + HALF_TILE
+        row, col = self.plane_tile
+        y = row * TILE_SIZE + HALF_TILE
+        start_x = col * TILE_SIZE + HALF_TILE
         radius = self.game.tower_config.ranges[PLANE - 1][self.gs.plane_level - 1]
-        return any(abs(e.position.y - y) <= radius for e in self.game.enemies)
+        return any(
+            abs(e.position.y - y) <= radius
+            and start_x <= e.position.x <= self.straight_right
+            for e in self.game.enemies
+        )
 
     def _upgrade_planes(self) -> str:
         if self.gs.plane_level != 1:
             return SKIP
         price = self._price(PLANE, 2)
-        if self.gs.money < price:
+        # The HUD button's own rule (GameEventsMixin._buy_plane_upgrade).
+        if not self.game._buy_plane_upgrade():
             return WAIT
-        # What the HUD's UPG PLANES button does (GameEventsMixin
-        # ._handle_upgrade_plane_button) once its click is accepted.
-        self.gs.plane_level = 2
-        self.gs.decrease_money(price)
         self.spent_by_type[PLANE] += price
         return DONE
 
@@ -208,7 +221,7 @@ class Sim:
         for tower in self.bought:
             out["damage"][tower.tower_type] += tower.damage_dealt
             out["earned"][tower.tower_type] += tower.money_earned
-            if tower.hp is not None and tower.hp <= 0:
+            if not tower.is_flying and tower.should_remove():
                 out["lost"] += 1
         return out
 
@@ -223,6 +236,7 @@ class RunResult:
     died_at: int | None = None  # the wave the run was lost in
     ticks: int = 0
     seconds: float = 0.0
+    tiles: dict | None = None  # the rank_tiles() it used
 
     @property
     def waves_cleared(self) -> int:
@@ -234,19 +248,32 @@ def run_strategy(
     waves: int = DEFAULT_WAVES,
     seed: int = DEFAULT_SEED,
     game_speed: int = DEFAULT_GAME_SPEED,
+    tiles: dict | None = None,
 ) -> RunResult:
     """Plays one run of strategy `name`. The caller has redirected saves
-    and set the cwd to the repo root."""
+    and set the cwd to the repo root. `tiles`: rank_tiles() for `seed`,
+    shared between runs (computed here if None)."""
     started = time.perf_counter()
     game = _sim_game_class()()
+    # The run never stops between waves. (A player's setting; with saves
+    # redirected, nothing here reaches their settings file.)
+    game.auto_pause = False
     game._start_new_game()
     gs = game.game_state
     gs.speed = game_speed
-    sim = Sim(game, random.Random(seed))
+    if tiles is None:
+        tiles = rank_tiles(game.tilemap, game.tower_config, random.Random(seed))
+    sim = Sim(game, tiles)
     bot = STRATEGIES[name]()
-    result = RunResult(name)
+    result = RunResult(name, tiles=tiles)
 
-    wave_start = {"money": gs.money, "lives": gs.lives, "spent": 0, "time": 0.0}
+    wave_start = {
+        "money": gs.money,
+        "lives": gs.lives,
+        "spent": 0,
+        "time": 0.0,
+        "tick": 0,
+    }
     previous = sim.totals()
 
     def spent_total() -> int:
@@ -267,7 +294,10 @@ def run_strategy(
             "spent": spent,
             "killed": game.killed,
             "escaped": game.escaped,
-            "towers": sum(1 for t in game.towers if not t.is_flying),
+            # Towers destroyed this tick are still listed until the next.
+            "towers": sum(
+                1 for t in game.towers if not t.is_flying and not t.should_remove()
+            ),
             "towers_lost": now["lost"] - previous["lost"],
             "wave_s": round((gs.time_ms - wave_start["time"]) / 1000, 1),
         }
@@ -287,7 +317,11 @@ def run_strategy(
         previous = now
         game.killed = game.escaped = 0
         wave_start.update(
-            money=gs.money, lives=gs.lives, spent=spent_total(), time=gs.time_ms
+            money=gs.money,
+            lives=gs.lives,
+            spent=spent_total(),
+            time=gs.time_ms,
+            tick=result.ticks,
         )
 
     gs.add_level_listener(lambda level: record(level - 1, cleared=True))
@@ -308,8 +342,12 @@ def run_strategy(
         if gs.time_ms >= next_decision:
             bot.act(sim)
             next_decision = gs.time_ms + DECISION_MS
-        if gs.time_ms - wave_start["time"] > MAX_WAVE_MS:
-            raise RuntimeError(f"{name}: wave {gs.level} never ended")
+        if result.ticks - wave_start["tick"] > MAX_WAVE_TICKS:
+            state = "running" if gs.is_started else "paused"
+            raise RuntimeError(
+                f"{name}: wave {gs.level} hasn't ended after {MAX_WAVE_TICKS} "
+                f"ticks (game {state}, {len(game.enemies)} enemies on the path)"
+            )
     result.seconds = time.perf_counter() - started
     return result
 
@@ -495,8 +533,10 @@ def run(
         real_saves = ROOT / REAL_SAVES
         before = snapshot(real_saves)
         with saves_redirected():
+            tiles = None  # the same for every strategy: same map and seed
             for name in strategies:
-                result = run_strategy(name, waves, seed, game_speed)
+                result = run_strategy(name, waves, seed, game_speed, tiles)
+                tiles = result.tiles
                 results.append(result)
                 report(
                     f"{name}: {_reached(result, waves)}, "

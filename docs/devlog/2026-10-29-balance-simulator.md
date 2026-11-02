@@ -53,22 +53,28 @@ each tower's hits took, overkill not counted), not saved and not shown.
 
 ## Result
 
-There is nothing visual to show: the result is tables. Headline numbers (seed 70, 40 waves, about
-8 minutes for all six strategies):
+There is nothing visual to show: the result is tables. Headline numbers (seed 70, 40 waves, 8 to
+11 minutes for all six strategies):
 
 | strategy | result | lives lost 1-10 | lost 11-25 | lost 26+ | ROI plane |
 |---|---|---:|---:|---:|---:|
 | gun_spam | died in wave 32 (map full, 50,168 unspent) | 4 | 0 | 6 | |
 | gun_cannon | cleared 40 | 4 | 0 | 0 | |
 | missile | cleared 40 | 7 | 0 | 0 | |
-| plane_spam | died in wave 29 | 4 | 0 | 6 | 0.08 |
-| mixed | cleared 40 | 4 | 0 | 0 | 0.09 |
+| plane_spam | died in wave 29 | 4 | 0 | 6 | 0.09 |
+| mixed | cleared 40 | 4 | 0 | 0 | 0.03 |
 | minimal | died in wave 12 | 9 | 1 | 0 | |
 
 Observations 1 (early lives) and 2 (easy mid-game) are confirmed; 3 (tank wall) in part: tanks
 destroy dozens of towers a wave and kill gun-only builds, but builds with cannons or missiles hold
 to 40 by rebuilding everything; 4 (planes pay for themselves) is refuted in these runs, planes
-earning about 8% of their cost. Full tables in [docs/balance/report.md](../balance/report.md).
+earning 3 to 9% of their cost.
+
+The code review on the PR found that bots could upgrade a tower destroyed in the same tick
+(bringing it back), counted such towers as standing, upgraded the newest tower on a tie, and
+launched planes for enemies they couldn't reach; the stall watchdog counted game time, which
+stands still while paused. All fixed before merge. Rerun after the fixes, only plane_spam and
+mixed changed (plane ROI 0.08 to 0.09 and 0.09 to 0.03); none of the four findings changed. Full tables in [docs/balance/report.md](../balance/report.md).
 
 ```bash
 uv run python scripts/balance_sim.py                                   # all strategies, 40 waves
