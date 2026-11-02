@@ -1,7 +1,7 @@
 # Smooth turret turning
-<!-- index | refs: #83 -->
+<!-- index | refs: #83, PR #89 -->
 
-**Date:** 2026-11-02 · **Area:** Feel, rendering · **Issue:** [#83](https://github.com/vectorviolet/chokepoint/issues/83)
+**Date:** 2026-11-02 · **Area:** Feel, rendering · **Issue:** [#83](https://github.com/vectorviolet/chokepoint/issues/83) · **PR:** [#89](https://github.com/vectorviolet/chokepoint/pull/89)
 
 ## Context
 
