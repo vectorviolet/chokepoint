@@ -74,7 +74,9 @@ tips. Details chosen by Claude, for review in the PR:
 
 A seeded headless battle (wave 6 at x1, 4,000 ticks, and x4, 4,000 ticks) records money, lives,
 every enemy's id and HP, and every tower's kills, money earned and reload time on every tick; the
-record is byte-for-byte the same before and after. `tests/test_turret_turning.py` covers the
+record is byte-for-byte the same before and after. The balance simulator
+(`scripts/balance_sim.py`, all six strategies over 10 waves) gives byte-identical numbers on main
+and on this branch. `tests/test_turret_turning.py` covers the
 stepping (rate, wrap-around, pause, x4, a tower built mid-run), hand-computed values for the
 angle helpers, the fixed centre, the bounded cache, upgrades, the flash
 position, and that a tower fires the same shots for the same damage whichever way its barrel starts.
