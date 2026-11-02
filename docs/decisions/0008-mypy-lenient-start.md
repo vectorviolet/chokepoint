@@ -19,16 +19,18 @@ mypy runs on `src/` in CI ("Type check (mypy)", a separate job; not a required c
 owner makes it one) and locally with `uv run --group dev mypy`. The config is `[tool.mypy]` in
 `pyproject.toml`:
 
-- Default (non-strict) checks: unannotated functions aren't checked, missing third-party stubs
-  are ignored.
+- Default (non-strict) checks: unannotated functions aren't checked. An import mypy can't
+  resolve is an error, except for third-party modules without stubs (only `pytmx` for now, an
+  override per module); PyYAML's stubs come from `types-pyyaml` in the dev group.
 - The pygamine submodule is not checked here (it has its own CI), but its types are used
   (`follow_imports = "silent"`).
 - Game's mixins (`app.game_events`, `app.game_save`) skip `attr-defined` and `has-type`: they use
   attributes that `Game` defines, which mypy can't see from the mixin.
 
 Where mypy can't see that a value is set, the code says so with `assert x is not None` (or an
-`isinstance` assert), so a broken invariant fails loudly. None is handled for real only where it
-can really happen (for example the placement cursor before the mouse has been over the map).
+`isinstance` check), so a broken invariant fails loudly. None is handled for real only where it
+can really happen; where a None came from stale state, the state goes instead (placement takes
+its tile from the click, not from the last frame's cursor).
 A `# type: ignore[code]` always names the error code and has its reason on the line above.
 Game objects' `update()`/`draw()` take the battle's state, unlike pygamine's `GameObject`, so
 they carry `ignore[override]`.

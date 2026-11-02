@@ -130,12 +130,17 @@ class RotatableObject(StateObject):
         self.rect.center = self.position
         self.is_rotated = True
 
-    def _sprite_image(self) -> pygame.Surface:
-        """The unrotated sprite: every RotatableObject is built with one."""
+    def _sprite_renderer(self) -> SpriteRenderer2D:
+        """The sprite renderer every RotatableObject is built with."""
         renderer = self.get_component(SpriteRenderer2D)
         assert renderer is not None
-        assert renderer.image is not None
-        return renderer.image
+        return renderer
+
+    def _sprite_image(self) -> pygame.Surface:
+        """The unrotated sprite: every RotatableObject is built with one."""
+        image = self._sprite_renderer().image
+        assert image is not None
+        return image
 
     @override
     def draw(self, surface: pygame.Surface) -> None:

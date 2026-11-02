@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING
 
 import pygame
 
-from gameplay.combat.tank import Tank
+from domain.protocols import ArmedEnemy
 from gameplay.combat.targeting import EnemyGrid, TowerGrid
 from ui import hp_bar
 
@@ -296,7 +296,7 @@ class BattleSimulation:
                 enemy.move(self.game_state.speed)
                 if self._escaped_unopposed is not None:
                     continue  # waves_only(): no fighting
-                if isinstance(enemy, Tank):
+                if isinstance(enemy, ArmedEnemy):
                     enemy.update_combat(self)
                     for bullet in list(enemy.bullets):
                         bullet.update(self)
@@ -328,7 +328,7 @@ class BattleSimulation:
 
         for enemy in self.enemies:
             camera.draw(surface, enemy)
-            if isinstance(enemy, Tank):
+            if isinstance(enemy, ArmedEnemy):
                 enemy.draw_muzzle(surface, camera)
                 for bullet in enemy.bullets:
                     camera.draw(surface, bullet)

@@ -70,9 +70,10 @@ def place_defence(game, types=(1, 1, 2)):
     game.camera.center_on(a)  # purchases only land on tiles in view
     for tower_type, (r, c) in zip(types, tiles):
         controller.buying_tower_type = tower_type
-        controller.cursor_row, controller.cursor_col = r, c
         controller._handle_tower_purchase(
-            game.camera.world_to_screen((c * TILE_SIZE, r * TILE_SIZE))
+            game.camera.world_to_screen(
+                (c * TILE_SIZE + HALF_TILE, r * TILE_SIZE + HALF_TILE)
+            )
         )
     assert len(game.towers) == len(types)
 

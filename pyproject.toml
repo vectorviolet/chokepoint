@@ -23,6 +23,7 @@ dev = [
     "ruff==0.17.2",
     "pillow",
     "mypy==2.4.1",
+    "types-pyyaml>=6.0.12.20261030",
 ]
 
 [tool.ruff]
@@ -42,16 +43,21 @@ select = ["F"]
 
 [tool.mypy]
 # A lenient start (issue #37): the app's own code under src/, default
-# (non-strict) checks, untyped functions skipped. Tighten later, e.g. with
+# (non-strict) checks, untyped functions skipped. Missing imports are
+# errors, except for the stub-less third-party modules listed below. Tighten later, e.g. with
 # check_untyped_defs or per-module strict overrides.
 python_version = "3.12"
 files = ["src"]
 # src/pygamine first, so `pygamine` is the engine package, not its repo folder.
 mypy_path = ["src/pygamine", "src"]
 explicit_package_bases = true
-ignore_missing_imports = true
 # The pygamine submodule has its own CI; its types are used, its errors not reported.
 exclude = ["^src/pygamine/"]
+
+[[tool.mypy.overrides]]
+# Third-party modules without type stubs or a py.typed marker.
+module = ["pytmx", "pytmx.*"]
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["pygamine", "pygamine.*"]

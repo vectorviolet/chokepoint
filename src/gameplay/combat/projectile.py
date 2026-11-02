@@ -4,7 +4,6 @@ import pygame
 from pygame.math import Vector2
 
 from gameplay.rotatable_object import RotatableObject
-from pygamine import SpriteRenderer2D
 from pygamine import angle_between_points
 
 if TYPE_CHECKING:
@@ -31,9 +30,9 @@ class Projectile(RotatableObject):
             self._attach_trail_flame(tower)
 
     def _attach_trail_flame(self, tower) -> None:
-        renderer = self.get_component(SpriteRenderer2D)
-        assert renderer is not None
-        missile = self._sprite_image()
+        renderer = self._sprite_renderer()
+        missile = renderer.image
+        assert missile is not None
         flame_key = f"muzzle_flash_3_lvl{min(tower.level, 2)}"
         flame_src = tower.assets.get_image(flame_key)
         flame_w = max(1, int(missile.get_width() * self.FLAME_SCALE))
@@ -191,9 +190,9 @@ class Bomb(RotatableObject):
             self.rotate_to_delta(self._velocity)
 
     def _scale_sprite(self) -> None:
-        renderer = self.get_component(SpriteRenderer2D)
-        assert renderer is not None
-        src = self._sprite_image()
+        renderer = self._sprite_renderer()
+        src = renderer.image
+        assert src is not None
         scaled_size = (
             max(1, int(src.get_width() * self.SPRITE_SCALE)),
             max(1, int(src.get_height() * self.SPRITE_SCALE)),

@@ -604,44 +604,45 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     @override
     def draw(self):
-        self._canvas.fill((0, 0, 0))
+        canvas = self._canvas
+        canvas.fill((0, 0, 0))
         if self.panel_manager.current_panel == "game":
             self._draw_game()
         else:
-            self.menu_demo.draw(self._canvas)
-            self._canvas.blit(self.menu_overlay, (0, 0))
+            self.menu_demo.draw(canvas)
+            canvas.blit(self.menu_overlay, (0, 0))
         if self.panel_manager.current_panel == "game":
             with self.hud_slide.shifted():
-                self.panel_manager.draw(self._canvas)
+                self.panel_manager.draw(canvas)
                 if not self.pause_panel.is_open:  # not over the menu's overlay
-                    self.tower_controller.draw_shortcuts(self._canvas)
-                    self.tower_info.draw_hp_fill(self._canvas)
+                    self.tower_controller.draw_shortcuts(canvas)
+                    self.tower_info.draw_hp_fill(canvas)
             self._draw_kill_coins()
         else:
-            self.panel_manager.draw(self._canvas)
+            self.panel_manager.draw(canvas)
 
     def _draw_game(self) -> None:
-        old_clip = self._canvas.get_clip()
-        self._canvas.set_clip(self.game_area)
-        self._draw_battle(self._canvas, self.camera)
-        self.place_sell_feedback.draw(self._canvas, self.camera)
-        self.kill_feedback.draw_texts(
-            self._canvas, self.camera, self.game_state.time_ms
-        )
-        self.tower_controller.draw(self._canvas, self.mouse.position)
+        canvas = self._canvas
+        old_clip = canvas.get_clip()
+        canvas.set_clip(self.game_area)
+        self._draw_battle(canvas, self.camera)
+        self.place_sell_feedback.draw(canvas, self.camera)
+        self.kill_feedback.draw_texts(canvas, self.camera, self.game_state.time_ms)
+        self.tower_controller.draw(canvas, self.mouse.position)
         self._draw_selected_tower_ui()
-        self.enemy_hp_label.draw(self._canvas, self.camera, self._selected_enemy())
-        self.life_lost_feedback.draw(self._canvas)  # under the HUD
-        self._canvas.set_clip(old_clip)
+        self.enemy_hp_label.draw(canvas, self.camera, self._selected_enemy())
+        self.life_lost_feedback.draw(canvas)  # under the HUD
+        canvas.set_clip(old_clip)
 
     def _draw_kill_coins(self) -> None:
         """Coins fly to the money counter's resting place -- where it shows
         even while the HUD is hidden, since a kill brings it back -- and the
         counter, wherever it's drawn now, pops as they land."""
+        canvas = self._canvas
         panel = self.panel_manager["game"]
-        self.kill_feedback.draw_coins(self._canvas, panel["coin_image"].rect.center)
+        self.kill_feedback.draw_coins(canvas, panel["coin_image"].rect.center)
         counter = panel["coin_text"].rect.move(self.hud_slide.offset("money"))
-        self.kill_feedback.draw_pop(self._canvas, counter)
+        self.kill_feedback.draw_pop(canvas, counter)
 
     def _selected_tower(self) -> BaseTower | None:
         """The selected tower or plane, if it's still there (a tower may have
@@ -671,7 +672,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.camera.info(),
             self.panel_manager["main_menu"]["play"].info(),
         ]
-        Debug.draw(self.window, pygame.font.SysFont("Consolas", 20), debug_info)
+        Debug.draw(self._canvas, pygame.font.SysFont("Consolas", 20), debug_info)
 
     # ── exit ──────────────────────────────────────────────────────────────────
 

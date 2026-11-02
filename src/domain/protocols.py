@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 
 class IGameContext(Protocol):
@@ -33,3 +33,15 @@ class IGameContext(Protocol):
         """A bomb landed at `position` (its splash damage already dealt);
         shows its explosion and plays its sound."""
         ...
+
+
+@runtime_checkable
+class ArmedEnemy(Protocol):
+    """An enemy that fights back (a tank): the battle updates its combat and
+    shots, and draws its turret. Checked by what it has, not by its class."""
+
+    bullets: list
+
+    def update_combat(self, ctx: IGameContext) -> None: ...
+
+    def draw_muzzle(self, surface, camera) -> None: ...
