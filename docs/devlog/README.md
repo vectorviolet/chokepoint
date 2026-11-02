@@ -32,6 +32,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-10-28 | [Keep-placing toggle and no picking unaffordable towers](2026-10-28-placement-toggle.md) | Controls, UI | #69 |
 | 2026-10-29 | [Balance simulator](2026-10-29-balance-simulator.md) | Tooling, balance | #70, #10 |
 | 2026-10-30 | [Round counter wording](2026-10-30-round-counter.md) | UI | PR #81 |
+| 2026-11-02 | [Smooth turret turning](2026-11-02-smooth-turret-turning.md) | Feel, rendering | #83, PR #89 |
 | 2026-11-02 | [Generated stats reference and wiki mirror](2026-11-02-stats-reference.md) | Docs, tooling | #82, PR #86 |
 <!-- index:end -->
 

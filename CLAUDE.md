@@ -139,7 +139,8 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 `BaseTower` (abstract) → `GroundTower` (types 1–3) or `PlaneTower` (type 4). `TowerFactory.create()` returns the right subclass. Stats come from `config/towers.yaml` via `TowerConfig` (indexed `[type-1][level-1]`).
 
-- Types 1 & 3: instant-hit `MuzzleFlash` at barrel tips (twin barrels for type 1 and type 3 lvl 2)
+- Ground towers' barrels turn smoothly (cosmetic): `aim_angle` is the target's direction, set each tick; the drawn `barrel_angle` turns toward it at `TURN_RATE_DEG_PER_S` of game time, the shortest way, at most one tick's worth per update (so a tower built mid-run doesn't snap). Firing never waits for it. `RotatableObject.rotate_to_angle_cached` draws 2° steps, redraws only when the (image, step) pair changes, and takes rotated images from a shared LRU cache (`MAX_CACHED_ROTATIONS`), re-centred on the position. The missile still spawns at the tower's centre: moving it to the barrel tip would change damage timing
+- Types 1 & 3: instant-hit `MuzzleFlash` at the drawn barrel tips (twin barrels for type 1 and type 3 lvl 2); damage goes to the target whichever way the barrel points
 - Type 2: homing `Projectile`
 - Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on and land as usual (credited to the departed plane)
 

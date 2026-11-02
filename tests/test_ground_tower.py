@@ -58,13 +58,14 @@ def test_work_ignores_enemies_out_of_range(tower_config, assets):
     assert tower.bullets == []
 
 
-def test_work_rotates_toward_the_nearest_in_range_enemy(tower_config, assets):
+def test_work_aims_at_the_nearest_in_range_enemy(tower_config, assets):
     tower = make_tower(tower_config, assets)
-    near = FakeEnemy(tower.position + Vector2(20, 0))
+    near = FakeEnemy(tower.position + Vector2(0, 20))
     far = FakeEnemy(tower.position + Vector2(tower.range - 5, 0))
 
     tower.work([far, near], is_started=True)
 
+    assert tower.aim_angle == pytest.approx(90)
     assert tower.is_rotated is True
 
 
@@ -161,9 +162,9 @@ def test_shoot_with_no_shoot_sound_configured_plays_nothing(tower_config, assets
 
 def test_muzzle_positions_are_offset_forward_and_split_laterally(tower_config, assets):
     tower = make_tower(tower_config, assets, tower_type=1)
-    target = FakeEnemy(tower.position + Vector2(100, 0))  # straight along +x
+    tower.barrel_angle = 0.0  # drawn straight along +x
 
-    (p1, deals1), (p2, deals2) = tower._muzzle_positions(target)
+    (p1, deals1), (p2, deals2) = tower._muzzle_positions()
 
     assert p1.x == pytest.approx(tower.position.x + BARREL_FORWARD)
     assert p2.x == pytest.approx(tower.position.x + BARREL_FORWARD)
@@ -175,9 +176,9 @@ def test_muzzle_positions_are_offset_forward_and_split_laterally(tower_config, a
 
 def test_muzzle_positions_single_barrel_for_a_non_twin_tower(tower_config, assets):
     tower = make_tower(tower_config, assets, tower_type=3)  # level 1 -- not twin
-    target = FakeEnemy(tower.position + Vector2(100, 0))
+    tower.barrel_angle = 0.0
 
-    positions = tower._muzzle_positions(target)
+    positions = tower._muzzle_positions()
 
     assert len(positions) == 1
     (pos, deals) = positions[0]
