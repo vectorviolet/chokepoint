@@ -49,10 +49,13 @@ class Enemy(RotatableObject):
             ctx.enemies.remove(self)
 
     def decrease_hp(self, damage: int, ctx: "IGameContext", source=None) -> None:
-        """`source` is the tower whose shot/bomb dealt the damage; if this
-        hit kills, that tower is credited with the kill and its money."""
+        """`source` is the tower whose shot/bomb dealt the damage; it is
+        credited with the HP this hit took (overkill not counted) and, if
+        this hit kills, with the kill and its money."""
         if self not in ctx.enemies:
             return
+        if source is not None:
+            source.record_damage(min(damage, max(0, self.hp)))
         self.hp -= damage
         if self.hp <= 0:
             self.destroy(ctx)
