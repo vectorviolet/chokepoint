@@ -16,7 +16,7 @@ squared distances without a grid gained only about 20%, because the cost was the
 every pair.
 
 Real games are much smaller (the largest authored wave has 33 enemies), so the fix had to be free of
-behaviour changes and cheap at small sizes.
+behavior changes and cheap at small sizes.
 
 ## Decision
 

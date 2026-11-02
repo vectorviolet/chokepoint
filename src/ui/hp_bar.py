@@ -1,7 +1,7 @@
 """Tiny HP bar drawn above an entity in world space.
 
 Only renders when hp is below max — entities at full health show nothing.
-The bar scales with camera zoom and uses a 3-stop colour ramp
+The bar scales with camera zoom and uses a 3-stop color ramp
 (green -> yellow -> red) to make low health read at a glance.
 """
 

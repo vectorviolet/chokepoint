@@ -16,7 +16,7 @@ the whole code at once would mean hundreds of changes in one PR.
 ## Decision
 
 mypy runs on `src/` in CI ("Type check (mypy)", a separate job; not a required check until the
-owner makes it one) and locally with `uv run --group dev mypy`. The config is `[tool.mypy]` in
+owner makes it one, which the owner did on 2026-11-03) and locally with `uv run --group dev mypy`. The config is `[tool.mypy]` in
 `pyproject.toml`:
 
 - Default (non-strict) checks: unannotated functions aren't checked. An import mypy can't

@@ -210,7 +210,7 @@ def test_a_tower_that_never_aimed_keeps_its_sprite(tower_config, assets):
     assert tower.is_rotated is False
 
 
-def test_the_drawn_sprite_keeps_its_centre(tower_config, assets):
+def test_the_drawn_sprite_keeps_its_center(tower_config, assets):
     tower = make_tower(tower_config, assets)
     for angle in range(-180, 180, 7):
         tower.rotate_to_angle_cached(angle)

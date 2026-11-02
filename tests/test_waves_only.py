@@ -5,7 +5,7 @@ from app.game import Game
 from gameplay.towers import TowerFactory
 
 
-def test_waves_only_runs_the_waves_without_defence_or_lives():
+def test_waves_only_runs_the_waves_without_defense_or_lives():
     game = Game()
     game._start_new_game()
     tower = TowerFactory.create(

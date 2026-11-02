@@ -29,7 +29,7 @@ PR #58 implemented clicking a flying plane, with one panel per plane in the exis
 panel, and the owner approved it in chat on 2026-10-27 and merged it. (The issue asked the owner to
 decide first; the owner was away and had asked for sensible defaults, so the PR chose them.) Other choices from the PR:
 
-- **Rows relabelled** instead of new rows: Range → **Splash** (blast radius), Blind spot → **Speed**
+- **Rows relabeled** instead of new rows: Range → **Splash** (blast radius), Blind spot → **Speed**
   (flight speed in tiles/s), Fire rate → **Bombs** (per second). "Bomb rate" ran into its value at
   1024x768, so the label is "Bombs".
 - **Speed is shown** because UPG PLANES halves the flight speed rather than raising the bomb rate,
@@ -48,6 +48,6 @@ decide first; the owner was away and had asked for sensible defaults, so the PR 
 
 ## Result
 
-Merged in PR #58. The PR also noted that a plane is removed when its centre, not its whole sprite,
+Merged in PR #58. The PR also noted that a plane is removed when its center, not its whole sprite,
 crosses the right edge; that is tracked in
 [#59](https://github.com/vectorviolet/chokepoint/issues/59).

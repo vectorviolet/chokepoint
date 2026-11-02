@@ -128,7 +128,7 @@ class Sim:
         towers = self.game.towers
         before = len(towers)
         controller.buying_tower_type = tower_type
-        # A click on the tile's centre, with the camera brought over it.
+        # A click on the tile's center, with the camera brought over it.
         camera = self.game.camera
         center = (col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
         camera.center_on(center)

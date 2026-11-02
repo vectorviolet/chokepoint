@@ -26,7 +26,7 @@ def distance_to_path(point: Vector2, path: list[Vector2]) -> float:
 
 
 def tiles_near_path(tilemap, near: float, far: float) -> list[tuple[int, int]]:
-    """Build tiles (row, col), row by row, whose centre is `near` to `far`
+    """Build tiles (row, col), row by row, whose center is `near` to `far`
     world px from the enemy path."""
     path = tilemap.waypoints
     tiles = []
@@ -34,7 +34,7 @@ def tiles_near_path(tilemap, near: float, far: float) -> list[tuple[int, int]]:
         for col, buildable in enumerate(cells):
             if not buildable:
                 continue
-            centre = Vector2(col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
-            if near <= distance_to_path(centre, path) <= far:
+            center = Vector2(col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
+            if near <= distance_to_path(center, path) <= far:
                 tiles.append((row, col))
     return tiles

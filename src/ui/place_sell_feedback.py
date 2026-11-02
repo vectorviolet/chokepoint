@@ -33,7 +33,7 @@ DUST_COLOR = (150, 128, 96)  # added onto the dark smoke sprites: a dry brown
 DUST_ALPHA = 170  # at birth, fading to nothing
 DUST_START_SIZE = 22  # world px
 DUST_END_SIZE = 46
-DUST_SPREAD = (18, 30)  # world px each puff drifts out from the tile centre
+DUST_SPREAD = (18, 30)  # world px each puff drifts out from the tile center
 DUST_SPRITE_SIZE = 64  # the smoke sprites are downscaled once to this
 
 # ── coins (selling) ───────────────────────────────────────────────────────────
@@ -51,9 +51,9 @@ MAX_EFFECTS = 48  # dust puffs + coins alive at once
 
 @dataclass
 class _Dust:
-    origin: Vector2  # world: the tile centre
+    origin: Vector2  # world: the tile center
     direction: Vector2  # unit
-    spread: float  # world px travelled over the life
+    spread: float  # world px traveled over the life
     sprite: int
     born_ms: float  # on the feedback's own real-time clock
 
@@ -121,7 +121,7 @@ class PlaceSellFeedback:
     # ── events ────────────────────────────────────────────────────────────────
 
     def tower_placed(self, world_pos) -> None:
-        """A tower was built with its centre at `world_pos`."""
+        """A tower was built with its center at `world_pos`."""
         self._play_sfx(self._place_sound)
         origin = Vector2(world_pos)
         offset = self._rng.uniform(0, 2 * math.pi)
@@ -138,7 +138,7 @@ class PlaceSellFeedback:
             )
 
     def tower_sold(self, world_pos) -> None:
-        """A tower with its centre at `world_pos` was sold."""
+        """A tower with its center at `world_pos` was sold."""
         self._play_sfx(self._sell_sound)
         origin = Vector2(world_pos)
         for _ in range(min(self._room(), COINS_PER_SALE)):

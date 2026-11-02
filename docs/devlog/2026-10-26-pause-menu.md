@@ -32,7 +32,7 @@ Details chosen by Claude in PR #42 and approved by the owner at merge:
 - The Music label is text ("MUSIC: ON" / "MUSIC: OFF"), one switch shared with the menus' music
   toggle, saved the moment it is toggled.
 - The menu is modal: Space, Tab, hotkeys, map clicks and edge-scrolling wait while it is open.
-- Victory and game-over popups keep their own Esc behaviour.
+- Victory and game-over popups keep their own Esc behavior.
 - The window's close button (X) goes to the same pygamine hook as Esc, so in a run it opens the
   pause menu. Telling X from Esc would need overriding a private pygamine method, so this was left.
 - Styled like the victory/game-over popups (overlay plus nine-slice panel, Anton buttons), no new

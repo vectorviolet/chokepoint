@@ -3,7 +3,7 @@ stats (range, minimum range, damage, fire rate, HP), each stat that an upgrade c
 shown as "current → next" until the tower is at its max level.
 
 A selected plane (a flying tower) uses the same panel with some rows
-relabelled: "Splash" (its bombs' blast radius) for Range, "Speed" (its
+relabeled: "Splash" (its bombs' blast radius) for Range, "Speed" (its
 flight speed) for Blind spot, "Bombs" (bombs per second) for Fire rate,
 and HP "-" with no bar, since planes have no HP. Its previews are for the
 global plane upgrade (UPG PLANES), which every plane follows.
@@ -11,7 +11,7 @@ global plane upgrade (UPG PLANES), which every plane follows.
 The panel's objects are declared in config/panels.yaml (`tower_info_*` on
 the game panel), so they scale with the rest of the HUD; this module fills
 in their text, toggles them on and off with the selection, and draws the
-HP bar's fill (a ratio of the `tower_info_hp_bar` object's rect, coloured
+HP bar's fill (a ratio of the `tower_info_hp_bar` object's rect, colored
 like the in-world HP bars).
 """
 

@@ -14,7 +14,7 @@ on or off, the button's icon and position, and whether the setting is global or 
 
 <table>
 <tr>
-<td><img src="img/34-auto-pause-off.png" width="400"><br>Off: the hourglass button is grey.</td>
+<td><img src="img/34-auto-pause-off.png" width="400"><br>Off: the hourglass button is gray.</td>
 <td><img src="img/34-auto-pause-on.png" width="400"><br>On: yellow, the same highlight as x2 and a bought UPG PLANES.</td>
 </tr>
 </table>

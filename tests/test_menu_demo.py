@@ -72,8 +72,8 @@ def test_towers_stand_on_free_build_tiles_within_reach_of_the_path(make_demo, ti
     assert len({(t.row, t.col) for t in ground}) == len(ground)
     for t in ground:
         assert tilemap.buildable_grid[t.row][t.col]
-        centre = Vector2(t.col * TILE_SIZE + HALF_TILE, t.row * TILE_SIZE + HALF_TILE)
-        assert near <= distance_to_path(centre, tilemap.waypoints) <= far
+        center = Vector2(t.col * TILE_SIZE + HALF_TILE, t.row * TILE_SIZE + HALF_TILE)
+        assert near <= distance_to_path(center, tilemap.waypoints) <= far
 
 
 def test_planes_fly_bombing_runs(make_demo):
@@ -141,7 +141,7 @@ def test_after_its_last_wave_it_fades_out_and_starts_a_new_run(make_demo):
     assert demo.enemies and demo.towers
 
 
-def test_a_worn_down_defence_starts_a_new_run(make_demo):
+def test_a_worn_down_defense_starts_a_new_run(make_demo):
     demo = make_demo()
     old_state = demo.game_state
     ground = [t for t in demo.towers if t.tower_type in GROUND_TOWER_TYPES]
@@ -203,12 +203,12 @@ def test_resize_keeps_the_view_on_the_same_spot(make_demo):
     # Mid-map, so the map edges clamp neither view.
     demo._camera_pos = Vector2(demo.map_width / 2, demo.map_height / 2)
     demo.camera.center_on(demo._camera_pos)
-    centre = demo.camera.screen_to_world(demo.view.center)
+    center = demo.camera.screen_to_world(demo.view.center)
 
     demo.resize((1920, 1080))
 
     assert demo.view.size == (1920, 1080)
-    assert demo.camera.screen_to_world(demo.view.center).distance_to(centre) < 1
+    assert demo.camera.screen_to_world(demo.view.center).distance_to(center) < 1
 
 
 # ── nothing reaches the player ───────────────────────────────────────────────

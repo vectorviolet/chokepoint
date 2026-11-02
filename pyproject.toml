@@ -24,6 +24,8 @@ dev = [
     "pillow",
     "mypy==2.4.1",
     "types-pyyaml>=6.0.12.20261030",
+    # Same version as `uvx codespell@...` in ci.yml's spelling job.
+    "codespell==2.4.3",
 ]
 
 [tool.ruff]
@@ -40,6 +42,27 @@ quote-style = "double"
 # Deliberately narrow, like pygamine's: F (pyflakes -- real bugs such as
 # unused imports or undefined names), not pycodestyle's style rules.
 select = ["F"]
+
+[tool.codespell]
+# Typos plus British -> American spelling (issue #90: American English
+# everywhere). Run: uv run --group dev codespell
+builtin = "clear,rare,en-GB_to_en-US"
+# .codespell-en-us.txt adds the British doubled-l forms the built-ins miss
+# (traveled, relabeled, leveled, ... spelled with -ll-); "-" keeps the
+# built-ins. "-" goes last: first, it would read as a command-line flag.
+dictionary = "./.codespell-en-us.txt,-"
+# .github too (hidden folders are skipped by default); .git and .venv aren't ours.
+check-hidden = true
+# Not ours or not text: the pygamine submodule (its own repo), third-party
+# license texts, assets and binaries, the lock file, and local files
+# (virtualenv, tool caches, saves, builds). Also the project dictionary
+# itself (it lists British forms) and the devlog entry on this decision,
+# which shows the old British spellings as examples.
+skip = "./.codespell-en-us.txt,./docs/devlog/2026-11-03-american-english.md,./.git,./.venv,.*_cache,__pycache__,./saves,./dist,./build,./htmlcov,./src/pygamine,./licenses,./assets,./uv.lock,./docs/devlog/img,*.png,*.gif,*.ico,*.ogg,*.mp3,*.wav,*.ttf,*.tmx,*.tsx,*.tiled-project"
+# Real words codespell flags, one per line with why:
+#   datas: PyInstaller's Analysis(datas=...) argument (chokepoint.spec, util/paths.py)
+#   retuned: "re-tuned" (docs/decisions/0004-grid-targeting.md), not "returned"
+ignore-words-list = "datas,retuned"
 
 [tool.mypy]
 # A lenient start (issue #37): the app's own code under src/, default

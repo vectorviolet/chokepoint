@@ -95,7 +95,7 @@ def test_continuing_after_the_last_spawn_ends_the_wave_once_it_is_cleared(
     assert before.enemies  # the wave's enemies are still on the path
 
     game = continue_in_a_new_game(new_game, fake_ticks, before)
-    game.enemies.clear()  # the defence finishes them off
+    game.enemies.clear()  # the defense finishes them off
     play(game, fake_ticks, NEXT_WAVE_MS)
 
     assert game.game_state.level == 2

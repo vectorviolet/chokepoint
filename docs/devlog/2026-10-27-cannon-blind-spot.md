@@ -23,7 +23,7 @@ The choices listed for review in PR #56:
   `min_ranges: [96, 96]` in `config/towers.yaml`. The key is optional; other towers have none.
 - **Edge rule:** an enemy exactly at the minimum range is in the blind spot (exclusive edge); the
   outer range stays inclusive.
-- **Ring style:** a transparent hole plus a 2 px inner ring in the outline colour (green, or red
+- **Ring style:** a transparent hole plus a 2 px inner ring in the outline color (green, or red
   when the tile can't be built on).
 - **Info panel label:** "Blind spot", because "Min range" (111 px) didn't fit the 110 px label
   column. Other towers show "-".

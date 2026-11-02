@@ -27,7 +27,7 @@ TURN_RATE_DEG_PER_S = 540
 class GroundTower(BaseTower):
     """Stationary tower that aims at the nearest enemy and fires projectiles.
 
-    Covers tower types 1, 2, and 3 — all share the same behavioural contract so
+    Covers tower types 1, 2, and 3 — all share the same behavioral contract so
     Liskov substitution holds: a GroundTower can replace any other GroundTower
     without callers noticing.
     """

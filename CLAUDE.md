@@ -32,11 +32,19 @@ lint is pyflakes-only (`[tool.ruff.lint]`). CI fails on `ruff format --check .` 
 errors. Keep pure reformatting out of feature commits; a repo-wide reformat goes in its own
 commit, with its hash added to `.git-blame-ignore-revs`.
 
-**Type checking:** run `uv run --group dev mypy` too (CI's "Type check (mypy)" job). It checks
-`src/` (not the pygamine submodule, whose types it still uses) with mypy's default, non-strict
-checks; the config is `[tool.mypy]` in `pyproject.toml`. Where mypy can't see that a value is
-set, use `assert x is not None` rather than a silent `if not x: return`; handle None for real only
-where it can happen. A `# type: ignore[code]` names its error code and says why on the line
+**Spelling:** American English everywhere (code, comments, docs, devlog, player-visible text):
+color, center, gray, behavior, defense, -ize. Run `uv run --group dev codespell` before
+committing; CI runs it in the "Spelling (codespell)" job, a required check in the "Protect main"
+ruleset. Config, skip list and ignored words are in `[tool.codespell]` in `pyproject.toml`;
+`.codespell-en-us.txt` adds British forms the built-in dictionaries miss. Asset file names and
+save/config keys read from disk keep their spelling (e.g. Kenney's `button_grey`). Add a real
+false positive to `ignore-words-list` with a comment saying why.
+
+**Type checking:** run `uv run --group dev mypy` too (CI's "Type check (mypy)" job, a required
+check). It checks `src/` (not the pygamine submodule, whose types it still uses) with
+mypy's default, non-strict checks; the config is `[tool.mypy]` in `pyproject.toml`. Where
+mypy can't see that a value is set, use `assert x is not None` rather than a silent `if not x: return`;
+handle None for real only where it can happen. A `# type: ignore[code]` names its error code and says why on the line
 above. Game's mixins (`app.game_events`, `app.game_save`) skip `attr-defined`/`has-type` for now.
 
 **Always run simulations and tests in a temporary folder, never against the real `saves/`.**
@@ -117,7 +125,7 @@ hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what a
 | `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "credits", "game"); switching is `panel_manager.current_panel = "name"` |
 | `tilemap` | `Tilemap` | 47×34 tile grid loaded from a Tiled `.tmx`; pre-rendered once after splash |
 | `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears. `on_wave_cleared` fires once per wave as its last enemy goes; `Game` uses it for auto-pause between waves (the HUD's hourglass toggle, the global `auto_pause_between_waves` setting), which pauses the run there until start is pressed |
-| `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners. Greys out the buy buttons of towers you can't afford (`refresh_buy_buttons()`, also the plane's level-2 look) and flashes the money counter red on a refused pick (`flash_money()`, real time via `update()`). Once bought, UPG PLANES shows as maxed (`refresh_plane_upgrade()`: greyed, "MAX" on hover, clicks ignored) |
+| `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners. Grays out the buy buttons of towers you can't afford (`refresh_buy_buttons()`, also the plane's level-2 look) and flashes the money counter red on a refused pick (`flash_money()`, real time via `update()`). Once bought, UPG PLANES shows as maxed (`refresh_plane_upgrade()`: grayed, "MAX" on hover, clicks ignored) |
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference. A tower you can't afford can't be picked (button or number key): `on_denied` is told instead (`Game._deny_purchase`: a denied sound and the money flash). `keep_placing` (the HUD's toggle, flipped by a Shift press; the global `keep_placing` setting, `Game.keep_placing`) keeps placement mode on after a placement while the type is still affordable. Over a tile that can't be built on, the preview is tinted red |
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
 | `hud_slide` | `HudSlide` | Tab slides the in-game HUD (counters, control buttons, tower bar) off the screen edges and back, drawn-only and on real time; money/lives counters peek back for 1.5 s when they change. `toggle()` is the entry point for a future on-screen button |
@@ -146,7 +154,7 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 `BaseTower` (abstract) → `GroundTower` (types 1–3) or `PlaneTower` (type 4). `TowerFactory.create()` returns the right subclass. Stats come from `config/towers.yaml` via `TowerConfig` (indexed `[type-1][level-1]`).
 
-- Ground towers' barrels turn smoothly (cosmetic): `aim_angle` is the target's direction, set each tick; the drawn `barrel_angle` turns toward it at `TURN_RATE_DEG_PER_S` of game time, the shortest way, at most one tick's worth per update (so a tower built mid-run doesn't snap). Firing never waits for it. `RotatableObject.rotate_to_angle_cached` draws 2° steps, redraws only when the (image, step) pair changes, and takes rotated images from a shared LRU cache (`MAX_CACHED_ROTATIONS`), re-centred on the position. The missile still spawns at the tower's centre: moving it to the barrel tip would change damage timing
+- Ground towers' barrels turn smoothly (cosmetic): `aim_angle` is the target's direction, set each tick; the drawn `barrel_angle` turns toward it at `TURN_RATE_DEG_PER_S` of game time, the shortest way, at most one tick's worth per update (so a tower built mid-run doesn't snap). Firing never waits for it. `RotatableObject.rotate_to_angle_cached` draws 2° steps, redraws only when the (image, step) pair changes, and takes rotated images from a shared LRU cache (`MAX_CACHED_ROTATIONS`), re-centered on the position. The missile still spawns at the tower's center: moving it to the barrel tip would change damage timing
 - Types 1 & 3: instant-hit `MuzzleFlash` at the drawn barrel tips (twin barrels for type 1 and type 3 lvl 2); damage goes to the target whichever way the barrel points
 - Type 2: homing `Projectile`
 - Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path. Bombs still falling when the plane leaves the map and is removed carry on and land as usual (credited to the departed plane)
@@ -182,7 +190,7 @@ in CI. `.github/workflows/wiki.yml` mirrors the pages to the GitHub wiki on a pu
 
 ### Coordinate system
 
-Tile size is 64 px. Map is 47×34 tiles = 3008×2176 px world space. The camera viewport is the whole canvas (whatever window size is in use); the map is larger than it, so the `Camera` edge-scrolls and zooms over it, opening on the path entrance. The HUD floats over the map: counters top-left, buttons top-right, tower bar bottom-centre. All entity positions are world-space center points stored as `pygame.math.Vector2`.
+Tile size is 64 px. Map is 47×34 tiles = 3008×2176 px world space. The camera viewport is the whole canvas (whatever window size is in use); the map is larger than it, so the `Camera` edge-scrolls and zooms over it, opening on the path entrance. The HUD floats over the map: counters top-left, buttons top-right, tower bar bottom-center. All entity positions are world-space center points stored as `pygame.math.Vector2`.
 
 ### Battle simulation and the menu demo
 
@@ -198,7 +206,7 @@ inherits it too, as a separate world shown behind the menus:
   starts at a mid-game wave, pre-warmed while the screen is black, and its waves
   are denser than the real game's. Planes fly bombing runs. The camera eases
   between groups of enemies.
-- After a few waves, or when the defence is worn down, it fades out and a new run starts.
+- After a few waves, or when the defense is worn down, it fades out and a new run starts.
 
 Hooks: `_on_enemy_killed()` runs after a kill is paid (`Game` adds the reward
 feedback). `_on_enemy_escaped()` handles lives (`Game` adds game over and deletes the
@@ -217,7 +225,7 @@ Gameplay runs on a fixed tick, independent of the frame rate: `Game.update()` me
 ### Adding a new tower type
 
 1. Add stats to `config/towers.yaml`
-2. Subclass `BaseTower` (or reuse `GroundTower` if behaviour matches)
+2. Subclass `BaseTower` (or reuse `GroundTower` if behavior matches)
 3. Register in `TowerFactory.create()`
 4. Add assets to `config/assets.yaml`: sprites in `assets/images/towers/`, the buy button in `assets/images/hud/tower_bar/`
 5. Add buy button to `config/panels.yaml` and price display to `GameHUD`

@@ -75,7 +75,7 @@ class Thing:
 
 def random_point(rng):
     """Mostly anywhere on (and a bit off) the map, sometimes on whole
-    pixels, cell borders or tile centres, where exact ties happen."""
+    pixels, cell borders or tile centers, where exact ties happen."""
     kind = rng.random()
     if kind < 0.4:
         return (rng.uniform(-200, 3200), rng.uniform(-200, 2400))
@@ -89,27 +89,27 @@ def random_point(rng):
     return (rng.randint(0, 46) * 64 + 32, rng.randint(0, 33) * 64 + 32)
 
 
-def mirrored(rng, centre, radius):
-    """Points at the same distance from `centre` (exact ties), some right
+def mirrored(rng, center, radius):
+    """Points at the same distance from `center` (exact ties), some right
     on the range boundary, some a hair inside or outside it."""
     r = rng.choice((radius, radius - 1e-9, radius + 1e-9, rng.uniform(0, radius)))
     dx, dy = (r, 0) if rng.random() < 0.5 else (r * 0.6, r * 0.8)
     signs = [(1, 1), (-1, 1), (1, -1), (-1, -1)]
     rng.shuffle(signs)
-    return [(centre.x + sx * dx, centre.y + sy * dy) for sx, sy in signs]
+    return [(center.x + sx * dx, center.y + sy * dy) for sx, sy in signs]
 
 
-def random_layout(rng, centre, radius, count):
+def random_layout(rng, center, radius, count):
     points = [random_point(rng) for _ in range(count)]
     for _ in range(rng.randint(0, 3)):
-        points += mirrored(rng, centre, radius)
+        points += mirrored(rng, center, radius)
     if points and rng.random() < 0.3:  # duplicates of one position
         points += [rng.choice(points)] * rng.randint(1, 3)
     rng.shuffle(points)
     return points
 
 
-def random_centre(rng):
+def random_center(rng):
     return Vector2(random_point(rng))
 
 
@@ -122,21 +122,21 @@ def test_enemy_choice_matches_the_full_scan(seed):
     enemies = []
     grid = EnemyGrid(enemies)
     for _ in range(60):
-        centre = random_centre(rng)
+        center = random_center(rng)
         radius = rng.choice(RANGES)
         enemies[:] = [
-            Thing(p) for p in random_layout(rng, centre, radius, rng.randint(0, 400))
+            Thing(p) for p in random_layout(rng, center, radius, rng.randint(0, 400))
         ]
         grid = EnemyGrid(enemies)  # a new tick: positions changed
 
-        expected = reference_enemy(enemies, centre, radius)
-        enemy, delta = grid.nearest_in_range(centre, radius)
+        expected = reference_enemy(enemies, center, radius)
+        enemy, delta = grid.nearest_in_range(center, radius)
 
         if expected is None:
             assert enemy is None and delta is None
         else:
             assert enemy is enemies[expected]
-            assert delta == enemies[expected].position - centre
+            assert delta == enemies[expected].position - center
 
 
 @pytest.mark.parametrize("seed", range(20))
@@ -144,17 +144,17 @@ def test_one_grid_per_tick_follows_kills(seed):
     """Towers share a tick's grid while kills remove enemies from the list
     between them: each tower still picks what the full scan would."""
     rng = random.Random(1000 + seed)
-    centre = Vector2(1500, 1000)
+    center = Vector2(1500, 1000)
     enemies = [
-        Thing(p) for p in random_layout(rng, centre, 256, 300)
+        Thing(p) for p in random_layout(rng, center, 256, 300)
     ]  # enemies spread around a crowded spot
     enemies += [
-        Thing((centre.x + rng.uniform(-300, 300), centre.y + rng.uniform(-300, 300)))
+        Thing((center.x + rng.uniform(-300, 300), center.y + rng.uniform(-300, 300)))
         for _ in range(150)
     ]
     grid = EnemyGrid(enemies)
     for _ in range(80):
-        position = centre + Vector2(rng.uniform(-400, 400), rng.uniform(-400, 400))
+        position = center + Vector2(rng.uniform(-400, 400), rng.uniform(-400, 400))
         radius = rng.choice(RANGES)
         expected = reference_enemy(enemies, position, radius)
         enemy, _ = grid.nearest_in_range(position, radius)
@@ -165,29 +165,29 @@ def test_one_grid_per_tick_follows_kills(seed):
 
 
 def test_equal_distances_pick_the_first_enemy_in_the_list():
-    centre = Vector2(640, 640)
-    enemies = [Thing(centre + offset) for offset in ((0, 100), (100, 0), (0, -100))]
+    center = Vector2(640, 640)
+    enemies = [Thing(center + offset) for offset in ((0, 100), (100, 0), (0, -100))]
 
-    enemy, _ = EnemyGrid(enemies).nearest_in_range(centre, 160)
+    enemy, _ = EnemyGrid(enemies).nearest_in_range(center, 160)
 
     assert enemy is enemies[0]
 
 
 def test_an_enemy_exactly_at_range_is_in_range():
-    centre = Vector2(640, 640)
-    enemies = [Thing(centre + Vector2(160, 0))]
+    center = Vector2(640, 640)
+    enemies = [Thing(center + Vector2(160, 0))]
 
-    enemy, delta = EnemyGrid(enemies).nearest_in_range(centre, 160)
+    enemy, delta = EnemyGrid(enemies).nearest_in_range(center, 160)
 
     assert enemy is enemies[0]
     assert delta == Vector2(160, 0)
 
 
 def test_the_nearest_enemy_out_of_range_means_no_target():
-    centre = Vector2(640, 640)
-    enemies = [Thing(centre + Vector2(161, 0))]
+    center = Vector2(640, 640)
+    enemies = [Thing(center + Vector2(161, 0))]
 
-    assert EnemyGrid(enemies).nearest_in_range(centre, 160) == (None, None)
+    assert EnemyGrid(enemies).nearest_in_range(center, 160) == (None, None)
 
 
 # ── the heavy cannon's blind spot (issue #11) ────────────────────────────────
@@ -199,23 +199,23 @@ MIN_RANGE = 96  # the heavy cannon's, in towers.yaml
 def test_enemy_choice_with_a_blind_spot_matches_the_full_scan(seed):
     rng = random.Random(5000 + seed)
     for _ in range(60):
-        centre = random_centre(rng)
+        center = random_center(rng)
         radius = rng.choice((256, 288))
         min_radius = rng.choice((MIN_RANGE, rng.uniform(1, radius - 1)))
-        points = random_layout(rng, centre, radius, rng.randint(0, 400))
+        points = random_layout(rng, center, radius, rng.randint(0, 400))
         for _ in range(rng.randint(0, 3)):  # ties on the blind spot's edge
-            points += mirrored(rng, centre, min_radius)
+            points += mirrored(rng, center, min_radius)
         rng.shuffle(points)
         enemies = [Thing(p) for p in points]
 
-        expected = reference_enemy(enemies, centre, radius, min_radius)
-        enemy, delta = EnemyGrid(enemies).nearest_in_range(centre, radius, min_radius)
+        expected = reference_enemy(enemies, center, radius, min_radius)
+        enemy, delta = EnemyGrid(enemies).nearest_in_range(center, radius, min_radius)
 
         if expected is None:
             assert enemy is None and delta is None
         else:
             assert enemy is enemies[expected]
-            assert delta == enemies[expected].position - centre
+            assert delta == enemies[expected].position - center
 
 
 @pytest.mark.parametrize(
@@ -231,43 +231,43 @@ def test_enemy_choice_with_a_blind_spot_matches_the_full_scan(seed):
     ],
 )
 def test_the_blind_spot_edges(distance, targetable):
-    centre = Vector2(640, 640)
-    enemies = [Thing(centre + Vector2(distance, 0))]
+    center = Vector2(640, 640)
+    enemies = [Thing(center + Vector2(distance, 0))]
 
-    enemy, _ = EnemyGrid(enemies).nearest_in_range(centre, 256, MIN_RANGE)
+    enemy, _ = EnemyGrid(enemies).nearest_in_range(center, 256, MIN_RANGE)
 
     assert (enemy is enemies[0]) is targetable
 
 
 def test_the_nearest_enemy_outside_the_blind_spot_is_picked():
-    centre = Vector2(640, 640)
+    center = Vector2(640, 640)
     enemies = [
-        Thing(centre + Vector2(0, 50)),  # nearest, but in the blind spot
-        Thing(centre + Vector2(200, 0)),
-        Thing(centre + Vector2(0, -120)),
+        Thing(center + Vector2(0, 50)),  # nearest, but in the blind spot
+        Thing(center + Vector2(200, 0)),
+        Thing(center + Vector2(0, -120)),
     ]
 
-    enemy, delta = EnemyGrid(enemies).nearest_in_range(centre, 256, MIN_RANGE)
+    enemy, delta = EnemyGrid(enemies).nearest_in_range(center, 256, MIN_RANGE)
 
     assert enemy is enemies[2]
     assert delta == Vector2(0, -120)
 
 
 def test_only_enemies_in_the_blind_spot_means_no_target():
-    centre = Vector2(640, 640)
-    enemies = [Thing(centre), Thing(centre + Vector2(MIN_RANGE, 0))]
+    center = Vector2(640, 640)
+    enemies = [Thing(center), Thing(center + Vector2(MIN_RANGE, 0))]
 
-    assert EnemyGrid(enemies).nearest_in_range(centre, 256, MIN_RANGE) == (
+    assert EnemyGrid(enemies).nearest_in_range(center, 256, MIN_RANGE) == (
         None,
         None,
     )
 
 
 def test_no_blind_spot_still_targets_an_enemy_on_the_tower():
-    centre = Vector2(640, 640)
-    enemies = [Thing(centre)]
+    center = Vector2(640, 640)
+    enemies = [Thing(center)]
 
-    enemy, _ = EnemyGrid(enemies).nearest_in_range(centre, 160)
+    enemy, _ = EnemyGrid(enemies).nearest_in_range(center, 160)
 
     assert enemy is enemies[0]
 
@@ -275,9 +275,9 @@ def test_no_blind_spot_still_targets_an_enemy_on_the_tower():
 # ── towers, for tanks ─────────────────────────────────────────────────────────
 
 
-def random_towers(rng, centre):
+def random_towers(rng, center):
     towers = []
-    for p in random_layout(rng, centre, rng.choice(RANGES), rng.randint(0, 120)):
+    for p in random_layout(rng, center, rng.choice(RANGES), rng.randint(0, 120)):
         towers.append(Thing(p, max_hp=None if rng.random() < 0.1 else 100))
     return towers
 
@@ -286,11 +286,11 @@ def random_towers(rng, centre):
 def test_tower_choice_matches_the_full_scan(seed):
     rng = random.Random(2000 + seed)
     for _ in range(60):
-        centre = random_centre(rng)
-        towers = random_towers(rng, centre)
+        center = random_center(rng)
+        towers = random_towers(rng, center)
 
-        expected = reference_tower(towers, centre)
-        result = TowerGrid(towers).nearest(centre)
+        expected = reference_tower(towers, center)
+        result = TowerGrid(towers).nearest(center)
 
         assert result[0] is expected[0]
         assert result[1] == expected[1]

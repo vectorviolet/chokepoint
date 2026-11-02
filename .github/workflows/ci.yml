@@ -22,7 +22,7 @@ on:
 # Keyed on the event too, so a run for one event never cancels another's.
 # A new commit on a PR cancels that PR's older run (and a newer queue group
 # its older one), but never a run of another event.
-# Runs on main are never cancelled: each merged commit needs its own CI
+# Runs on main are never canceled: each merged commit needs its own CI
 # status and badge publish, even when the queue merges PRs back to back.
 concurrency:
   group: ci-${{ github.event_name }}-${{ github.ref }}
@@ -57,8 +57,31 @@ jobs:
       - name: Format (ruff, Black-compatible)
         run: uv run --group dev ruff format --check .
 
+  spelling:
+    # Typos and British spellings (American English everywhere, issue #90).
+    # Config, skip list, project dictionary and ignored words: [tool.codespell]
+    # in pyproject.toml. A required check in the "Protect main" ruleset.
+    name: Spelling (codespell)
+    runs-on: ubuntu-latest
+    steps:
+      # No submodule and no project environment: codespell is pure Python
+      # and skips src/pygamine.
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up uv + Python
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      # Keep this version in sync with the codespell pin in pyproject.toml's
+      # dev group (used locally: uv run --group dev codespell).
+      - name: Spelling (codespell)
+        run: uvx codespell@2.4.3
+
   typecheck:
-    # Not (yet) a required check in the ruleset. A lenient start (issue #37):
+    # A required check in the "Protect main" ruleset. A lenient start (issue #37):
     # see [tool.mypy] in pyproject.toml.
     name: Type check (mypy)
     runs-on: ubuntu-latest

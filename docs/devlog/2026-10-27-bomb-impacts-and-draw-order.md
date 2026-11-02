@@ -67,7 +67,7 @@ explosions → planes → HP bars → (game only) the selected enemy's HP number
 
 ## Rejected alternatives
 
-- Explosions on game time (the old behaviour): they froze when paused and ran faster at x4.
+- Explosions on game time (the old behavior): they froze when paused and ran faster at x4.
 - The low-frequency explosion sounds: 11 to 13 dB quieter than the chosen one.
 - Planes covering HP bars: bars would be hidden while a plane passes.
 

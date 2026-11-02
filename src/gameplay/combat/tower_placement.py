@@ -35,7 +35,7 @@ BLOCKED_TINT = (255, 70, 70)
 
 
 def _tinted(image: pygame.Surface, tint: tuple[int, int, int]) -> pygame.Surface:
-    """A copy of `image` with its colours multiplied by `tint` (alpha kept)."""
+    """A copy of `image` with its colors multiplied by `tint` (alpha kept)."""
     tinted = image.copy()
     tinted.fill(tint, special_flags=pygame.BLEND_RGB_MULT)
     return tinted

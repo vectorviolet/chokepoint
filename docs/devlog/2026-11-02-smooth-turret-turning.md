@@ -45,16 +45,16 @@ tips. Details chosen by Claude, for review in the PR:
   appears at the drawn tips and points along the barrel; the damage goes to the target as before
   (muzzle flashes are instant hits, so their position never mattered for damage).
 - **No wobble:** the drawn angle is rounded to 2° steps (the tip of a 26 px barrel moves under a
-  pixel per step). The sprite is re-centred on the tower at every step, and it is only redrawn
+  pixel per step). The sprite is re-centered on the tower at every step, and it is only redrawn
   when its (image, step) pair changes, not every tick. Rotated images come from a shared cache
   with a least-recently-used bound of 512 entries: at most about 17 MB, since a 64 px sprite
   rotates to at most 91x91 px. A first version drew each angle onto a fixed 92 px canvas; the
   code review found it held up to about 50 MB with no bound, and measuring showed it didn't
-  steady the sprite any better than re-centring the plain rotated image.
+  steady the sprite any better than re-centering the plain rotated image.
 - **First update:** each tick turns the barrel by at most one tick's worth (`TICK_MS` × speed),
   so a tower built mid-run (whose clock starts at 0) turns toward its first target rather than
   snapping to it.
-- **Missiles:** the missile tower's projectile still leaves from the tower's centre, whichever way
+- **Missiles:** the missile tower's projectile still leaves from the tower's center, whichever way
   the barrel is drawn. Spawning it at the drawn barrel tip would change its flight time, and so
   when its damage lands, which is gameplay. During a retarget a missile can be seen leaving
   sideways from a barrel that is still turning. Left for the owner to judge.
@@ -78,7 +78,7 @@ record is byte-for-byte the same before and after. The balance simulator
 (`scripts/balance_sim.py`, all six strategies over 10 waves) gives byte-identical numbers on main
 and on this branch. `tests/test_turret_turning.py` covers the
 stepping (rate, wrap-around, pause, x4, a tower built mid-run), hand-computed values for the
-angle helpers, the fixed centre, the bounded cache, upgrades, the flash
+angle helpers, the fixed center, the bounded cache, upgrades, the flash
 position, and that a tower fires the same shots for the same damage whichever way its barrel starts.
 
 ## Revisit if

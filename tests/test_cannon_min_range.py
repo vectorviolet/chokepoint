@@ -166,7 +166,7 @@ def test_the_ring_cuts_out_the_blind_spot():
     assert _alpha(surface, (200 + 170, 200)) == 0  # past the range
 
 
-def test_a_ring_without_a_blind_spot_is_shaded_to_the_centre():
+def test_a_ring_without_a_blind_spot_is_shaded_to_the_center():
     surface = pygame.Surface((400, 400), pygame.SRCALPHA)
     draw_range_ring(surface, (200, 200), 150, (0, 200, 0, 120), 2)
 
@@ -183,9 +183,9 @@ def test_the_selected_cannon_shows_its_blind_spot(tower_config, assets):
     camera = Camera(pygame.Rect(0, 0, 800, 600), 3008, 2176)
     cannon = make_tower(tower_config, assets)
     gun = make_tower(tower_config, assets, tower_type=1)
-    centre = camera.world_to_screen(cannon.position)
-    near = centre + Vector2(MIN_RANGE * camera.scale / 2, 0)
-    covered = centre + Vector2(MIN_RANGE * camera.scale + 20, 0)
+    center = camera.world_to_screen(cannon.position)
+    near = center + Vector2(MIN_RANGE * camera.scale / 2, 0)
+    covered = center + Vector2(MIN_RANGE * camera.scale + 20, 0)
 
     assert _alpha(_drawn_range(cannon, camera), near) == 0
     assert _alpha(_drawn_range(cannon, camera), covered) > 0
@@ -206,13 +206,13 @@ def test_the_placement_preview_shows_the_blind_spot(game):
     game.game_state.money = 10_000
     ctrl.buying_tower_type = CANNON
     surface = pygame.Surface(game.window.get_size(), pygame.SRCALPHA)
-    centre = game.camera.world_to_screen((5 * 64 + 32, 5 * 64 + 32))
+    center = game.camera.world_to_screen((5 * 64 + 32, 5 * 64 + 32))
 
-    ctrl._draw_cursor_preview(surface, (int(centre.x), int(centre.y)))
+    ctrl._draw_cursor_preview(surface, (int(center.x), int(center.y)))
 
     ring = int(MIN_RANGE * game.camera.scale)
-    assert _alpha(surface, centre + Vector2(0, ring + 20)) > 0  # shaded
-    assert _alpha(surface, centre + Vector2(0, ring - 8)) == 0  # blind spot
+    assert _alpha(surface, center + Vector2(0, ring + 20)) > 0  # shaded
+    assert _alpha(surface, center + Vector2(0, ring - 8)) == 0  # blind spot
 
 
 # ── tower info panel and tooltip ─────────────────────────────────────────────
