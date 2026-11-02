@@ -28,6 +28,11 @@ concurrency:
   group: ci-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+# Read-only token by default; a job that needs more asks for it itself
+# (app-tests pushes the coverage badge).
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint and format (ruff)
