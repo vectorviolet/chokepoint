@@ -70,7 +70,7 @@ class _Group:
         """How far the group moves when fully hidden, measured from the
         objects' resting rects as they are now: text objects re-lay
         themselves out (wider or narrower) whenever their text changes,
-        e.g. "Level 9" -> "Level 10", so a distance measured once would
+        e.g. "Round 9" -> "Round 10", so a distance measured once would
         leave a sliver on screen."""
         dx, dy = self.direction
         if dy > 0:

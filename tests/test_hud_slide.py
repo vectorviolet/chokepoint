@@ -286,7 +286,7 @@ def widen_counters(game):
     panel = game.panel_manager["game"]
     before = {n: panel[n].rect.right for n in ("level_text", "live_text", "coin_text")}
     gs = game.game_state
-    for _ in range(11):  # "Level 1" -> "Level 12", as in issue #43
+    for _ in range(11):  # "Round 1" -> "Round 12", as in issue #43
         gs.advance_level()
     gs.increase_money(1_000_000)
     gs.lives = 100_000

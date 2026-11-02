@@ -113,12 +113,20 @@ class MuzzleFlash(RotatableObject):
 
     Positioned at the barrel tip (pos). Deals damage on the first update tick
     if deals_damage=True (set False for the second barrel of a twin-gun tower).
-    Removes itself after FLASH_DURATION_MS.
+    Removes itself after FLASH_DURATION_MS. `angle` is the barrel's drawn
+    angle to point the flash along; None points it at the target.
     """
 
     FLASH_DURATION_MS = 120
 
-    def __init__(self, target, tower, pos: Vector2, deals_damage: bool = True) -> None:
+    def __init__(
+        self,
+        target,
+        tower,
+        pos: Vector2,
+        deals_damage: bool = True,
+        angle: float | None = None,
+    ) -> None:
         super().__init__(
             tower.assets.image_path(
                 f"muzzle_flash_{tower.tower_type}_lvl{tower.level}"
@@ -130,7 +138,9 @@ class MuzzleFlash(RotatableObject):
         self.damage = tower.damage
         self._created_at = tower.now
         self._damage_dealt = not deals_damage
-        self.rotate_to_angle(angle_between_points(pos, target.position))
+        if angle is None:
+            angle = angle_between_points(pos, target.position)
+        self.rotate_to_angle(angle)
 
     def update(self, ctx: "IGameContext") -> None:
         if not self._damage_dealt:

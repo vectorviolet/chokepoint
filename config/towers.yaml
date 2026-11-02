@@ -58,7 +58,8 @@ towers:
       weakness: Slow to fire, expensive, can't hit enemies up close
 
   - type: 4  # Plane — drops bombs along flight path; ranges = explosion radius
-    # prices[1] is the one-time global upgrade making every later plane level 2.
+    # prices[1] is the one-time global upgrade to level 2: every plane, including
+    # those already flying, is level 2 from then on.
     prices:    [600, 5000]
     max_level: 2
     ranges:    [96, 128]

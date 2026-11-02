@@ -46,6 +46,9 @@ class BaseTower(RotatableObject):
         # this tower dealt the killing blow to, and the kill money they paid.
         self.kills: int = 0
         self.money_earned: int = 0
+        # Enemy HP this tower's shots/bombs took (overkill not counted).
+        # Statistics only (the balance simulator reads it); not saved.
+        self.damage_dealt: int = 0
 
     # ── config-derived stats ──────────────────────────────────────────────────
 
@@ -116,6 +119,10 @@ class BaseTower(RotatableObject):
         """This tower's shot/bomb killed an enemy that paid `money`."""
         self.kills += 1
         self.money_earned += money
+
+    def record_damage(self, amount: int) -> None:
+        """This tower's shot/bomb took `amount` HP off an enemy."""
+        self.damage_dealt += amount
 
     def decrease_hp(self, damage: int) -> None:
         if self.hp is None:

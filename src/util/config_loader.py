@@ -21,6 +21,18 @@ class EnemyStats:
     bullet_damage: int | None = None  # tanks only
 
 
+def load_settings() -> dict:
+    """config/settings.yaml as parsed YAML (window, gameplay, camera, audio)."""
+    with open(_CONFIG_DIR / "settings.yaml", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def gameplay_settings(settings: dict | None = None) -> dict:
+    """The `gameplay` section of settings.yaml (starting money and lives,
+    the default toggles), read from `settings` or loaded when not given."""
+    return (load_settings() if settings is None else settings)["gameplay"]
+
+
 def load_tower_config() -> TowerConfig:
     with open(_CONFIG_DIR / "towers.yaml") as f:
         data = yaml.safe_load(f)
