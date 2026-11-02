@@ -91,7 +91,8 @@ All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves
 | Scroll the map | Move the mouse to a screen edge |
 | Zoom | Mouse wheel |
 | Toggle fullscreen | F11 |
-| Open / close the pause menu | Esc, or the menu button to open it |
+| Open / close the pause menu | Esc or the window's close button, or the menu button to open it |
+| Leave the victory / game-over popup | Esc or the window's close button: back to the main menu (a won run is saved; a lost one isn't) |
 | Save the run and return to the main menu | Main menu inside the pause menu |
 
 The pause menu also provides Settings and a music toggle. Settings includes window size/mode
