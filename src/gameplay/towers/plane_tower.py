@@ -126,7 +126,7 @@ class PlaneTower(BaseTower):
         return None  # Planes fly over the map and never block a build tile
 
     def _is_past_the_edge(self) -> bool:
-        """Its centre has crossed the map's right edge: it drops no more
+        """Its center has crossed the map's right edge: it drops no more
         bombs while its sprite slides off. (A bomb drifts on about
         speed / (1 - Bomb.DRAG) px, so the last ones can still land a little
         past the edge; the cut-off awaits the owner's decision, #59.)"""

@@ -352,7 +352,7 @@ def test_the_plane_panel_stays_open_while_it_flies(game, plane):
 
 
 def test_the_panel_stays_open_until_the_whole_plane_has_left(game, plane):
-    # Issue #59: its centre past the edge, part of its sprite still on the map.
+    # Issue #59: its center past the edge, part of its sprite still on the map.
     click(game, screen_pos(game, plane))
     game.game_state.is_started = True
     plane.position.x = MAP_WIDTH + 1

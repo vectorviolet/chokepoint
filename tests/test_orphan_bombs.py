@@ -48,7 +48,7 @@ def played(game, monkeypatch):
 
 
 def plane_at_the_edge(battle, tower_config, assets, audio=None):
-    """A plane whose next tick drops a bomb with its centre right at the
+    """A plane whose next tick drops a bomb with its center right at the
     map's right edge, the last bomb it drops; its sprite then slides off the
     map and the plane is removed (issue #59)."""
     width = battle.tilemap.map_width
