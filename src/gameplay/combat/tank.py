@@ -21,8 +21,25 @@ if TYPE_CHECKING:
     from domain.protocols import IGameContext
 
 
+# Used when a tank in config/enemies.yaml leaves the key out.
+DEFAULT_RANGE = 280
+DEFAULT_FIRE_INTERVAL_MS = 2500
+DEFAULT_BULLET_DAMAGE = 20
+
+
 def _given(value: int | None, default: int) -> int:
     return default if value is None else value
+
+
+def tank_weapon(stats) -> tuple[int, int, int]:
+    """(range, fire_interval_ms, bullet_damage) of a tank's `EnemyStats`,
+    with the defaults for keys enemies.yaml leaves out (an explicit 0 is
+    kept)."""
+    return (
+        _given(stats.range, DEFAULT_RANGE),
+        _given(stats.fire_interval_ms, DEFAULT_FIRE_INTERVAL_MS),
+        _given(stats.bullet_damage, DEFAULT_BULLET_DAMAGE),
+    )
 
 
 class Tank(Enemy):
@@ -36,9 +53,7 @@ class Tank(Enemy):
 
         stats = _BASE_STATS[enemy_type]
         # None means "not in enemies.yaml"; an explicit 0 is kept.
-        self.range: int = _given(stats.range, 280)
-        self.fire_interval_ms: int = _given(stats.fire_interval_ms, 2500)
-        self.bullet_damage: int = _given(stats.bullet_damage, 20)
+        self.range, self.fire_interval_ms, self.bullet_damage = tank_weapon(stats)
 
         muzzle_path = assets.image_path(f"enemy_{enemy_type}_muzzle")
         self._muzzle_base: pygame.Surface = load_image(muzzle_path)

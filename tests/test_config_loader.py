@@ -72,7 +72,7 @@ def test_only_tank_types_have_combat_stats():
 
 def test_wave_compositions_cover_at_least_the_win_wave():
     waves = load_wave_compositions()
-    # WIN_WAVE in src/app/game.py is 25 -- the victory popup fires once this
+    # WIN_WAVE in src/util/constants.py is 25 -- the victory popup fires once this
     # wave clears, so it must exist and be reachable by spawning something.
     assert 25 in waves
     for wave_num, wave_def in waves.items():
