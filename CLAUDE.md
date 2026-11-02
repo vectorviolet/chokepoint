@@ -34,17 +34,17 @@ commit, with its hash added to `.git-blame-ignore-revs`.
 
 **Spelling:** American English everywhere (code, comments, docs, devlog, player-visible text):
 color, center, gray, behavior, defense, -ize. Run `uv run --group dev codespell` before
-committing; CI runs it in the "Spelling (codespell)" job (required once the owner adds it to the
-ruleset). Config, skip list and ignored words are in `[tool.codespell]` in `pyproject.toml`;
+committing; CI runs it in the "Spelling (codespell)" job, a required check in the "Protect main"
+ruleset. Config, skip list and ignored words are in `[tool.codespell]` in `pyproject.toml`;
 `.codespell-en-us.txt` adds British forms the built-in dictionaries miss. Asset file names and
 save/config keys read from disk keep their spelling (e.g. Kenney's `button_grey`). Add a real
 false positive to `ignore-words-list` with a comment saying why.
 
-**Type checking:** run `uv run --group dev mypy` too (CI's "Type check (mypy)" job). It checks
-`src/` (not the pygamine submodule, whose types it still uses) with mypy's default, non-strict
-checks; the config is `[tool.mypy]` in `pyproject.toml`. Where mypy can't see that a value is
-set, use `assert x is not None` rather than a silent `if not x: return`; handle None for real only
-where it can happen. A `# type: ignore[code]` names its error code and says why on the line
+**Type checking:** run `uv run --group dev mypy` too (CI's "Type check (mypy)" job, a required
+check). It checks `src/` (not the pygamine submodule, whose types it still uses) with
+mypy's default, non-strict checks; the config is `[tool.mypy]` in `pyproject.toml`. Where
+mypy can't see that a value is set, use `assert x is not None` rather than a silent `if not x: return`;
+handle None for real only where it can happen. A `# type: ignore[code]` names its error code and says why on the line
 above. Game's mixins (`app.game_events`, `app.game_save`) skip `attr-defined`/`has-type` for now.
 
 **Always run simulations and tests in a temporary folder, never against the real `saves/`.**

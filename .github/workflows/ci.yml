@@ -60,7 +60,7 @@ jobs:
   spelling:
     # Typos and British spellings (American English everywhere, issue #90).
     # Config, skip list, project dictionary and ignored words: [tool.codespell]
-    # in pyproject.toml. Not (yet) a required check: that's the owner's ruleset call.
+    # in pyproject.toml. A required check in the "Protect main" ruleset.
     name: Spelling (codespell)
     runs-on: ubuntu-latest
     steps:
@@ -81,7 +81,7 @@ jobs:
         run: uvx codespell@2.4.3
 
   typecheck:
-    # Not (yet) a required check in the ruleset. A lenient start (issue #37):
+    # A required check in the "Protect main" ruleset. A lenient start (issue #37):
     # see [tool.mypy] in pyproject.toml.
     name: Type check (mypy)
     runs-on: ubuntu-latest
