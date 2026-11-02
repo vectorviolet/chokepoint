@@ -57,6 +57,28 @@ jobs:
       - name: Format (ruff, Black-compatible)
         run: uv run --group dev ruff format --check .
 
+  spelling:
+    # Typos and British spellings (American English everywhere, issue #90).
+    # Config, skip list and ignored words: [tool.codespell] in pyproject.toml.
+    name: Spelling (codespell)
+    runs-on: ubuntu-latest
+    steps:
+      # With the submodule: `uv run` builds the project environment, which
+      # installs pygamine from src/pygamine (codespell itself skips that folder).
+      - name: Checkout (with pygamine submodule)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up uv + Python
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Spelling (codespell)
+        run: uv run --group dev codespell
+
   typecheck:
     # Not (yet) a required check in the ruleset. A lenient start (issue #37):
     # see [tool.mypy] in pyproject.toml.

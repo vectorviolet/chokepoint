@@ -32,6 +32,13 @@ lint is pyflakes-only (`[tool.ruff.lint]`). CI fails on `ruff format --check .` 
 errors. Keep pure reformatting out of feature commits; a repo-wide reformat goes in its own
 commit, with its hash added to `.git-blame-ignore-revs`.
 
+**Spelling:** American English everywhere (code, comments, docs, devlog, player-visible text):
+color, center, gray, behavior, defense, -ize. CI's "Spelling (codespell)" job runs
+`uv run --group dev codespell` (config, skip list and ignored words in `[tool.codespell]` in
+`pyproject.toml`); run it before committing. Asset file names and save/config keys read from disk
+keep their spelling (e.g. Kenney's `button_grey`). Add a real false positive to
+`ignore-words-list` with a comment saying why.
+
 **Type checking:** run `uv run --group dev mypy` too (CI's "Type check (mypy)" job). It checks
 `src/` (not the pygamine submodule, whose types it still uses) with mypy's default, non-strict
 checks; the config is `[tool.mypy]` in `pyproject.toml`. Where mypy can't see that a value is
