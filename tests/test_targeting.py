@@ -16,6 +16,7 @@ from gameplay.combat import targeting
 from gameplay.combat.tank import Tank
 from gameplay.combat.targeting import CELL_SIZE, EnemyGrid, TowerGrid
 from gameplay.towers.ground_tower import GroundTower
+from pygamine import angle_of_delta
 
 RANGES = (160, 192, 224, 256, 288)  # every ground tower range in towers.yaml
 
@@ -315,14 +316,16 @@ def test_planes_alone_are_no_target():
 # ── the whole battle ──────────────────────────────────────────────────────────
 
 
-def _reference_work(self, enemies, is_started, enemy_grid=None):
-    if not is_started or not enemies:
-        return
-    index = reference_enemy(enemies, self.position, self.range, self.min_range)
-    if index is None:
-        return
-    self.rotate_to_delta(enemies[index].position - self.position)
-    if self._is_attack_ready():
+def _reference_work(self, enemies, is_started, enemy_grid=None, elapsed_ms=0.0):
+    index = None
+    if is_started and enemies:
+        index = reference_enemy(enemies, self.position, self.range, self.min_range)
+    if index is not None:
+        delta = enemies[index].position - self.position
+        if delta.length_squared() != 0:
+            self.aim_angle = angle_of_delta(delta)
+    self._turn_barrel(elapsed_ms)  # the drawn barrel (issue #83)
+    if index is not None and self._is_attack_ready():
         self._shoot(enemies[index])
 
 
@@ -343,7 +346,7 @@ def _target_id(bullet):
 
 def _snapshot(demo):
     """Everything targeting decides: who each tower and tank aims at (their
-    sprite's rotated size, the tank's muzzle angle) and shoots at (their
+    sprite's rotated size and aim angle, the tank's muzzle angle) and shoots at (their
     bullets' targets), and what came of it (HP, kills, positions)."""
     return (
         demo.game_state.level,
@@ -365,6 +368,7 @@ def _snapshot(demo):
                 t.hp,
                 t.kills,
                 tuple(t.rect),
+                getattr(t, "aim_angle", None),
                 [_target_id(b) for b in t.bullets],
             )
             for t in demo.towers
