@@ -30,6 +30,7 @@ build = [
 ]
 dev = [
     { name = "coverage-badge" },
+    { name = "pillow" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
@@ -51,6 +52,7 @@ build = [
 ]
 dev = [
     { name = "coverage-badge", specifier = ">=1.1" },
+    { name = "pillow" },
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-cov", specifier = ">=5" },
     { name = "ruff", specifier = "==0.17.2" },
