@@ -1,3 +1,4 @@
+import random
 from functools import partial
 from pathlib import Path
 from typing import override
@@ -99,7 +100,15 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     # ── construction ──────────────────────────────────────────────────────────
 
-    def __init__(self):
+    def __init__(self, seed: int | None = None):
+        # `seed` makes every random choice repeatable (the menu demo's runs,
+        # the place/sell and kill effects): the README capture script uses it.
+        # None (the game) leaves them unseeded.
+        seeds = random.Random(seed) if seed is not None else None
+
+        def rng() -> random.Random | None:
+            return random.Random(seeds.getrandbits(64)) if seeds else None
+
         # Guards on_canvas_resized() firing while Application.__init__ (called
         # below) sets up the very first display mode -- game_area/camera/
         # panel_manager don't exist yet at that point. Flipped True once the
@@ -194,6 +203,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.audio.play_sfx,
             self.assets.sound_path("tower_placed"),
             self.assets.sound_path("tower_sold"),
+            rng=rng(),
         )
         self.bomb_impacts = BombImpactFeedback(
             self.assets, self.audio.play_sfx, self.assets.sound_path("bomb_impact")
@@ -231,6 +241,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.kill_feedback = KillFeedback(
             self.assets.get_image("coin_sheet"),
             self.assets.font_path("comic_neue_bold"),
+            rng=rng(),
         )
         self.life_lost_feedback = LifeLostFeedback(
             self.assets.sound_path("life_lost"), self.audio.effective_sfx_volume
@@ -238,7 +249,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
         # Behind the menus: a battle playing itself, in a world of its own.
         self.menu_demo = MenuDemo(
-            self.tilemap, self.assets, self.tower_config, self.size
+            self.tilemap, self.assets, self.tower_config, self.size, rng=rng()
         )
         self.menu_overlay = pygame.Surface(self.size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
