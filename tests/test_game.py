@@ -361,7 +361,7 @@ def test_time_ms_reads_from_game_state():
     assert game.time_ms == 1234.5
 
 
-def test_show_path_entrance_centres_the_camera_on_the_spawn_point():
+def test_show_path_entrance_centers_the_camera_on_the_spawn_point():
     game = make_game()
     game.camera = SimpleNamespace(center_on=Spy())
     spawn = pygame.math.Vector2(2624, 0)

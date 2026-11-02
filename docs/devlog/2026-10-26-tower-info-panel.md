@@ -22,7 +22,7 @@ for review:
 </tr>
 </table>
 
-- **Placement:** a floating panel top left, under the money counter, using the counters' grey
+- **Placement:** a floating panel top left, under the money counter, using the counters' gray
   background (`[50, 50, 50, 200]`) and no new art. A sidebar was not tried at this point; it came
   up later in [#33](2026-10-27-info-panel-placement.md).
 - **Units:** range in tiles (`3.5 → 4 tiles`) instead of pixels; fire rate in shots per second with
@@ -32,7 +32,7 @@ for review:
 
 ## Decision
 
-Defaults chosen by Claude in PR #28, approved by the owner at merge. Two behaviour changes came with
+Defaults chosen by Claude in PR #28, approved by the owner at merge. Two behavior changes came with
 it:
 
 - **Kill attribution:** each kill and its money go to the tower whose missile, muzzle flash or bomb

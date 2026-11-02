@@ -49,7 +49,7 @@ class BuyTooltip:
         self._objects = [self._bg, *self._texts]
         self._buttons = [panel[name] for name in BUY_BUTTONS]
         self._bar = panel["tower_panel_bg"]
-        # The background colour as panels.yaml set it, for re-sizing it.
+        # The background color as panels.yaml set it, for re-sizing it.
         self._bg_color = self._bg.images[None].get_at((0, 0))
         # Left padding (the title's offset) is mirrored on the right.
         self._pad = self._texts[0].rect.left - self._bg.rect.left
@@ -108,7 +108,7 @@ class BuyTooltip:
         bg.add_surface(None, surface)
 
     def _place(self, button: pygame.Rect) -> None:
-        """Centred above the button, clear of the tower bar (and the 1-4
+        """Centered above the button, clear of the tower bar (and the 1-4
         badges on it), clamped to the screen."""
         bg = self._bg.rect
         target = bg.copy()

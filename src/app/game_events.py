@@ -202,7 +202,7 @@ class GameEventsMixin:
         if not self._activate(button, event, sound=False):
             return
         if self.game_state.plane_level != 1:
-            return  # maxed: greyed, and a click does nothing (not even a sound)
+            return  # maxed: grayed, and a click does nothing (not even a sound)
         if not self._buy_plane_upgrade():
             self._deny_purchase()  # the denied sound only, like a refused tower pick
             return

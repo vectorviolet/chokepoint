@@ -128,10 +128,10 @@ class LoadScenario:
         for row, cells in enumerate(game.tilemap.buildable_grid):
             for col, buildable in enumerate(cells):
                 if buildable:
-                    centre = Vector2(
+                    center = Vector2(
                         col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE
                     )
-                    tiles.append((distance_to_path(centre, path), row, col))
+                    tiles.append((distance_to_path(center, path), row, col))
         tiles.sort()
 
         types = [TOWER_TYPES[i % len(TOWER_TYPES)] for i in range(tower_count)]
@@ -242,12 +242,12 @@ def build_game(speed: int, zoom: str):
     gs.level = LEVEL
     gs.lives = 10**9
     gs.money = 10**9
-    centre = (game.tilemap.map_width / 2, game.tilemap.map_height / 2)
+    center = (game.tilemap.map_width / 2, game.tilemap.map_height / 2)
     if zoom == "fit":  # zoomed all the way out: the whole map on screen
         game.camera._zoom_at(game.game_area.center, 0.0)
     else:
         game.camera.scale = float(zoom)
-    game.camera.center_on(centre)
+    game.camera.center_on(center)
     return game
 
 

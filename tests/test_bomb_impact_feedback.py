@@ -104,7 +104,7 @@ def test_drawing_runs_through_the_camera_at_its_zoom(feedback):
     side = round(feedback.world_size(40) * camera.scale)  # 160 screen px
     drawn = surface.get_bounding_rect()
     assert drawn.width <= side and drawn.height <= side
-    assert drawn.collidepoint(100, 100)  # centred on the landing point on screen
+    assert drawn.collidepoint(100, 100)  # centered on the landing point on screen
     assert drawn.width > side / 2  # and about as wide as the splash circle
 
 

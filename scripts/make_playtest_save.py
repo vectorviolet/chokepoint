@@ -41,7 +41,7 @@ sys.path.insert(0, str(ROOT / "src" / "pygamine"))
 DEFAULT_MONEY = 100_000
 DEFAULT_LEVEL = 10
 # Ground towers stand on build tiles this far from the path (in tiles, tile
-# centre to path: beside it, never on it) and at least this far apart
+# center to path: beside it, never on it) and at least this far apart
 # (Chebyshev).
 NEAR_PATH_TILES = (0.9, 1.6)
 TOWER_SPACING_TILES = 2
@@ -202,7 +202,7 @@ def tiles_beside_path(
     band_tiles: tuple[float, float] = NEAR_PATH_TILES,
     spacing_tiles: int = TOWER_SPACING_TILES,
 ) -> list[tuple[int, int]]:
-    """`count` build tiles beside the path (tile centres `band_tiles` from
+    """`count` build tiles beside the path (tile centers `band_tiles` from
     it), nearest `anchor` first (default: the entrance, where the camera
     opens), at least `spacing_tiles` apart (Chebyshev). Picked on a map
     with no towers yet."""

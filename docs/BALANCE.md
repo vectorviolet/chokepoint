@@ -42,7 +42,7 @@ Like the smoke test, the script sends every save to a temporary folder and fails
   standing, the first bought on a tie. Auto-pause between waves is off.
 - **Where to build:** each tower goes on the free build tile that covers the most path within its
   range (outside the cannon's blind spot). "Front" tiles are those right beside the path (tile
-  centre 0.5 to 1.6 tiles from it), "back" the row behind (1.6 to 3 tiles); when a ring is full,
+  center 0.5 to 1.6 tiles from it), "back" the row behind (1.6 to 3 tiles); when a ring is full,
   any free tile. Destroyed towers free their tile, so the bot rebuilds there.
 - **Planes** are placed at the left end of the path's longest horizontal straight (y = 576, x 1408
   to 2624, near the entrance) and fly right along it, against the walking enemies. A plane is

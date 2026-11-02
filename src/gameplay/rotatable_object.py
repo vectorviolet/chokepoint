@@ -114,8 +114,8 @@ class RotatableObject(StateObject):
         """Like rotate_to_angle(), for a sprite that turns smoothly and is
         called every tick: the angle is rounded to ANGLE_STEP, nothing is
         done while the (image, step) pair is unchanged, and rotated images
-        come from a shared bounded cache. The rect is re-centred on the
-        position, so the sprite keeps its centre at every angle."""
+        come from a shared bounded cache. The rect is re-centered on the
+        position, so the sprite keeps its center at every angle."""
         source = self._sprite_image()
         rotation = quantise_angle(self.sprite_orientation - angle)
         if (

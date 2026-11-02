@@ -39,7 +39,7 @@ from pygame.math import Vector2
 GUN, MISSILE, CANNON, PLANE = 1, 2, 3, 4
 TOWER_NAMES = {GUN: "gun", MISSILE: "missile", CANNON: "cannon", PLANE: "plane"}
 
-# Build-tile rings, as distances (in tiles) from the tile centre to the path.
+# Build-tile rings, as distances (in tiles) from the tile center to the path.
 RINGS = {"front": (0.5, 1.6), "back": (1.6, 3.0)}
 # Path sample spacing (world px) used to measure how much path a spot covers.
 SAMPLE_PX = 8
@@ -195,7 +195,7 @@ class Mixed(Bot):
 
 class Minimal(Bot):
     """The difficulty floor: it buys rapid guns (the cheapest tower) only
-    while its defence has proved too weak -- from a lost life until a
+    while its defense has proved too weak -- from a lost life until a
     whole wave passes without one -- and saves otherwise. Towers destroyed
     by tanks are only replaced once that leaks."""
 
@@ -255,14 +255,14 @@ def rank_tiles(tilemap, tower_config, rng: random.Random) -> dict:
     for row, cells in enumerate(tilemap.buildable_grid):
         for col, buildable in enumerate(cells):
             if buildable:
-                centre = Vector2(
+                center = Vector2(
                     col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE
                 )
-                tiles.append((row, col, centre))
+                tiles.append((row, col, center))
     rng.shuffle(tiles)  # the seeded tie-break; sorted() below is stable
     distance = {
-        (row, col): distance_to_path(centre, tilemap.waypoints) / TILE_SIZE
-        for row, col, centre in tiles
+        (row, col): distance_to_path(center, tilemap.waypoints) / TILE_SIZE
+        for row, col, center in tiles
     }
     ranked = {}
     for tower_type in (GUN, MISSILE, CANNON):
@@ -270,9 +270,9 @@ def rank_tiles(tilemap, tower_config, rng: random.Random) -> dict:
         mins = tower_config.min_ranges
         blind = (mins[tower_type - 1][0] if tower_type <= len(mins) else 0) ** 2
         cover = {}
-        for row, col, centre in tiles:
+        for row, col, center in tiles:
             cover[(row, col)] = sum(
-                1 for p in samples if blind < centre.distance_squared_to(p) <= reach
+                1 for p in samples if blind < center.distance_squared_to(p) <= reach
             )
         by_cover = sorted(
             ((row, col) for row, col, _ in tiles if cover[(row, col)] > 0),

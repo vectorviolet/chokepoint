@@ -287,7 +287,7 @@ panels:
         position: [CENTER, 1376]
         text: "pygamine"
       # Profile links, closing the scroll a little apart from the sections:
-      # platform icon + username, the pair centred as a row
+      # platform icon + username, the pair centered as a row
       # (icons right-aligned at x=859, names start at x=873).
       credits_github_icon:
         position: [817, 1498]
@@ -563,7 +563,7 @@ panels:
                     asset: btn_active
                 x4_active:
                     asset: btn_active_2
-          upgrade_plane_button:  # greyed "maxed" look once bought (ui/game_hud.py)
+          upgrade_plane_button:  # grayed "maxed" look once bought (ui/game_hud.py)
             extends: btn-sm
             size: [60, 60]
 

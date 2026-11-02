@@ -58,7 +58,7 @@ def test_moving_it_scales_music_and_sfx_live_but_not_their_own_sliders(game):
     assert game.audio.effective_music_volume() == pytest.approx(0.4)
     assert game.audio.effective_sfx_volume() == pytest.approx(0.3)
     # ...and it reached the mixer (SDL_AUDIODRIVER=dummy, so it's always up)
-    assert mixer.get_init(), "the mixer should be initialised by Game()"
+    assert mixer.get_init(), "the mixer should be initialized by Game()"
     assert mixer.Channel(0).get_volume() == pytest.approx(0.4, abs=0.01)
     assert mixer.Channel(1).get_volume() == pytest.approx(0.3, abs=0.01)
     game._bind_settings_ui()

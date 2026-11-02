@@ -60,7 +60,7 @@ Types 5–6 are armed: while advancing, they fire on the nearest ground tower in
 
 ### Towers
 
-| # | Name           | Levels | Price (L1) | Behaviour                                |
+| # | Name           | Levels | Price (L1) | Behavior                                 |
 |---|----------------|--------|------------|------------------------------------------|
 | 1 | Rapid gun      | 1      | $100       | Cheap starter — fast, low damage         |
 | 2 | Homing missile | 3      | $160       | Tracks targets; scales hard with upgrades |

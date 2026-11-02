@@ -168,7 +168,7 @@ def test_buy_buttons_are_only_updated_when_their_look_changes(tower_config):
     assert [panel[f"buy_tower_{i + 1}"].set_state_calls for i in range(4)] == calls
 
 
-def test_buy_buttons_grey_out_when_money_falls_short(tower_config):
+def test_buy_buttons_gray_out_when_money_falls_short(tower_config):
     hud, panel, game_state = make_hud(tower_config, money=tower_config.prices[0][0])
 
     assert panel["buy_tower_1"].state is None

@@ -14,7 +14,7 @@ hidden.
 
 <table>
 <tr>
-<td><img src="img/6-tooltip-rapid-gun.png" width="400"><br>Rapid gun: the tooltip is centred above its button.</td>
+<td><img src="img/6-tooltip-rapid-gun.png" width="400"><br>Rapid gun: the tooltip is centered above its button.</td>
 <td><img src="img/6-tooltip-plane.png" width="400"><br>Plane: the rightmost button; the tooltip is clamped to the screen.</td>
 </tr>
 </table>
@@ -24,9 +24,9 @@ The choices listed for review in PR #36:
 - **Text** in `config/towers.yaml` (`name` + `tooltip: {strength, weakness}` per tower), validated
   by `config_loader.load_tower_tooltips()`. The tower names come from the README's tower table; they
   weren't shown in the game before.
-- **Row labels** "Good" and "Weak", in the tower info panel's grey label style, so the tooltip
+- **Row labels** "Good" and "Weak", in the tower info panel's gray label style, so the tooltip
   looks like the [tower info panel](2026-10-26-tower-info-panel.md).
-- **Position** 8 px above the tower bar, centred on the button, clamped to the screen; the width
+- **Position** 8 px above the tower bar, centered on the button, clamped to the screen; the width
   follows the text, so each tooltip has a different width.
 - It also shows in placement mode when a button is hovered. It takes no clicks.
 

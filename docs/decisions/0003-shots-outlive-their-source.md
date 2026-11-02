@@ -21,7 +21,7 @@ applies to any future shooter too.
 
 - PR #52 kept a plane's in-flight bombs in `BattleSimulation.orphan_bombs` after the plane was
   removed.
-- PR #65 generalises that into one mechanism, `BattleSimulation.orphan_shots`, replacing
+- PR #65 generalizes that into one mechanism, `BattleSimulation.orphan_shots`, replacing
   `orphan_bombs`:
   - Shot types that can outlive their source say so with `outlives_source = True` (missile
     `Projectile`, `Bomb`, `TankBullet`). Instant hits (muzzle flashes) don't; they land in the same
@@ -43,6 +43,6 @@ applies to any future shooter too.
 
 - **One carry-over list per shooter type** (extending `orphan_bombs` with similar lists): #62 asked
   explicitly for one general mechanism.
-- **Leave it (shots vanish):** #50 offered closing it as intended behaviour because of the small
+- **Leave it (shots vanish):** #50 offered closing it as intended behavior because of the small
   damage increase near the edge. The owner merged the fix instead and then made the general rule in
   #62.

@@ -11,19 +11,19 @@ MAXED_LABEL = "MAX"  # its hover label then, instead of the price
 # white in turn, FLASH_STEP_MS each, for FLASH_MS (real time).
 FLASH_MS = 450
 FLASH_STEP_MS = 150
-# Multiplied into a buy button's (greyed) image while its tower is unaffordable.
+# Multiplied into a buy button's (grayed) image while its tower is unaffordable.
 DISABLED_SHADE = (150, 150, 150)
 
 
 def disabled_state(state):
-    """The key of a buy button's greyed look for its look `state`."""
+    """The key of a buy button's grayed look for its look `state`."""
     return "disabled" if state is None else f"{state}_disabled"
 
 
-def _greyed(image: pygame.Surface) -> pygame.Surface:
-    grey = pygame.transform.grayscale(image)
-    grey.fill(DISABLED_SHADE, special_flags=pygame.BLEND_RGB_MULT)
-    return grey
+def _grayed(image: pygame.Surface) -> pygame.Surface:
+    gray = pygame.transform.grayscale(image)
+    gray.fill(DISABLED_SHADE, special_flags=pygame.BLEND_RGB_MULT)
+    return gray
 
 
 class GameHUD:
@@ -65,9 +65,9 @@ class GameHUD:
         self._plane_upgrade_label: str | None = None
         self._plane_upgrade_button = panel_manager["game"][PLANE_UPGRADE]
         button = self._plane_upgrade_button
-        maxed = _greyed(button.images[None])
+        maxed = _grayed(button.images[None])
         button.add_surface(MAXED, maxed)
-        # The same greyed look while hovered: pygamine has no public setter
+        # The same grayed look while hovered: pygamine has no public setter
         # for a generated hover surface, so it goes in the hover table.
         hover_images = getattr(button, "_hover_images", None)
         if hover_images is not None:
@@ -75,7 +75,7 @@ class GameHUD:
 
     def refresh_plane_upgrade(self) -> None:
         """Once planes are upgraded (the max level), the UPG PLANES button
-        is greyed and shows MAX instead of its price on hover."""
+        is grayed and shows MAX instead of its price on hover."""
         maxed = self._game_state.plane_level >= 2
         state = MAXED if maxed else None
         if self._plane_upgrade_button.state != state:
@@ -86,17 +86,17 @@ class GameHUD:
             self._plane_upgrade_label = label
 
     def _bind_buy_buttons(self, panel_manager: PanelManager) -> None:
-        """Gives each buy button a greyed copy of each of its looks, shown
+        """Gives each buy button a grayed copy of each of its looks, shown
         while its tower is unaffordable."""
         self.buy_buttons = [panel_manager["game"][name] for name in BUY_BUTTONS]
         for button in self.buy_buttons:
             for state, image in list(button.images.items()):
                 if isinstance(state, str) and state.endswith("disabled"):
                     continue
-                button.add_surface(disabled_state(state), _greyed(image))
+                button.add_surface(disabled_state(state), _grayed(image))
 
     def refresh_buy_buttons(self) -> None:
-        """Shows each buy button greyed while its tower is unaffordable; the
+        """Shows each buy button grayed while its tower is unaffordable; the
         plane's in its level-2 look once planes are upgraded."""
         money = self._game_state.money
         for i, button in enumerate(self.buy_buttons):

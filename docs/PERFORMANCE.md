@@ -98,7 +98,7 @@ Times are in ms.
 
 - **Real play is fine on average.** The largest authored wave (25) has 33
   enemies, and they spawn over time, so fewer than that are alive at once.
-  Endless mode grows waves past wave 30. A late-game defence is assumed to have
+  Endless mode grows waves past wave 30. A late-game defense is assumed to have
   roughly 20 to 40 towers. The `30 x 20` rows
   use about 11 to 20% of the simulation budget and run at the 165 FPS cap.
 - **There are stutter spikes even at real-game sizes.** Single ticks of 5 to 17
@@ -170,7 +170,7 @@ In priority order:
 2. **A spatial grid for tower targeting** (done in #40, see below). Once per tick, bucket enemies into
    128 px cells. Each tower then scans only the cells its range covers, and
    compares `distance_squared_to` against `range**2` without building lists.
-   The behaviour is the same: it picks the nearest enemy within range. This
+   The behavior is the same: it picks the nearest enemy within range. This
    brought `600 x 300` from 48 to 20 ms per tick by itself, and from 48 to 15 ms
    together with fixes 1 and 3. Just switching to `min(...,
    key=distance_squared_to)` without the grid gained only about 20%, because

@@ -47,7 +47,7 @@ def play(game, fake_ticks, seconds, fps=60, draw_every=0):
             game.draw()
 
 
-def place_defence(game, types=(1, 1, 2)):
+def place_defense(game, types=(1, 1, 2)):
     """Buys towers on the first buildable tiles beside the path's opening
     stretch -- a fixed, reproducible layout (paid for with a top-up: these
     tests are about the loop, not the economy)."""
@@ -120,7 +120,7 @@ def test_a_new_game_opens_with_the_path_entrance_in_view(make_game):
 def test_a_defended_opening_wave_is_fought_through_the_real_loop(make_game, fake_ticks):
     game = make_game()
     game._start_new_game()
-    place_defence(game)
+    place_defense(game)
     money_after_buying = game.game_state.money
     game.game_state.is_started = True
 
@@ -191,7 +191,7 @@ def test_every_screen_and_game_overlay_draws(make_game, fake_ticks):
         game.draw()
 
     game._start_new_game()
-    place_defence(game, types=(2, 4))
+    place_defense(game, types=(2, 4))
     game.game_state.is_started = True
     play(game, fake_ticks, seconds=4, draw_every=20)
 
@@ -245,7 +245,7 @@ def test_play_after_watching_the_menu_demo_starts_a_fresh_game(make_game, fake_t
 def test_leaving_a_game_saves_it_and_continue_restores_it(make_game, fake_ticks):
     game = make_game()
     game._start_new_game()
-    place_defence(game)
+    place_defense(game)
     game.game_state.is_started = True
     play(game, fake_ticks, seconds=5)
     towers, money = len(game.towers), game.game_state.money

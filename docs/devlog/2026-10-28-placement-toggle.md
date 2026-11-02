@@ -31,7 +31,7 @@ Before and after (screenshots from the game, with 150 gold for the tower bar):
 <table>
 <tr>
 <td><img src="img/69-tower-bar-before.png" width="390"><br>Before: every tower can be picked; only the price is red.</td>
-<td><img src="img/69-tower-bar-after.png" width="390"><br>After: towers you can't afford are greyed out and can't be picked.</td>
+<td><img src="img/69-tower-bar-after.png" width="390"><br>After: towers you can't afford are grayed out and can't be picked.</td>
 </tr>
 <tr>
 <td><img src="img/69-blocked-preview-before.png" width="390"><br>Before: on a path tile only the range ring turns red.</td>
@@ -47,20 +47,20 @@ Before and after (screenshots from the game, with 150 gold for the tower bar):
 
 The owner chose **options 0 and 1**, plus the blocked-tile part of option 2:
 
-- **Keep placing** is a toggle button in the control column, under auto-pause, styled like it (grey
+- **Keep placing** is a toggle button in the control column, under auto-pause, styled like it (gray
   off, yellow on). Pressing Shift toggles it as well; holding Shift does nothing more. It is a global
   setting saved with the others (default off), and "reset to defaults" turns it off. Tab hides it
   with the rest of the column.
 - With it on, placement mode stays on after each placement. When gold runs out, placement ends as
   before, but the toggle stays on, so the next tower you pick carries on the same way.
-- **An unaffordable tower can't be picked.** Its buy button is greyed (the plane's too, in both its
+- **An unaffordable tower can't be picked.** Its buy button is grayed (the plane's too, in both its
   looks); a click or its number key plays a short "denied" sound and flashes the gold counter red.
   The tower already being placed, if any, stays picked.
 - **Blocked tiles:** over a tile you can't build on (not buildable, or taken), the tower preview is
   tinted red as well as the range ring.
 
 - **The bought plane upgrade shows as maxed** (owner, during review): once UPG PLANES is bought
-  (its only level), the button is greyed with the same greyscale look as an unaffordable buy button,
+  (its only level), the button is grayed with the same grayscale look as an unaffordable buy button,
   shows "MAX" instead of its price on hover, and a click does nothing (no denied sound: it isn't
   about money). It stays in place, so the column doesn't move, and a loaded save shows it the same
   way. Before, it turned yellow and still showed "5K $" on hover.
@@ -68,7 +68,7 @@ The owner chose **options 0 and 1**, plus the blocked-tile part of option 2:
 <table>
 <tr>
 <td><img src="img/69-upgrade-hover-before.png" width="70"><br>Not bought: its price on hover.</td>
-<td><img src="img/69-upgrade-maxed.png" width="70"><br>Bought: greyed.</td>
+<td><img src="img/69-upgrade-maxed.png" width="70"><br>Bought: grayed.</td>
 <td><img src="img/69-upgrade-maxed-hover.png" width="70"><br>Bought, hovered: "MAX".</td>
 </tr>
 </table>
@@ -80,7 +80,7 @@ Choices Claude made where the issue was silent, listed in the PR and approved by
 - The flash blinks red, white, red over 0.45 s, so it shows even when the counter is already red at
   0 gold. If the HUD is hidden (Tab), the counter peeks back so the flash is seen.
 - The plane upgrade button (UPG PLANES) gives the same denied sound and flash when you can't afford
-  it. It isn't greyed: its price shows only on hover.
+  it. It isn't grayed: its price shows only on hover.
 - A Shift press plays the usual click sound, like Space for start/pause. Only a plain Shift press
   counts: not with Ctrl, Alt or Meta held (Alt+Shift switches the keyboard layout on Windows).
 
@@ -100,4 +100,4 @@ the blocked-tile tint, and the control column fitting at every window size.
 ## Revisit if
 
 - Players miss the toggle or don't know Shift flips it: add a tooltip to the control buttons.
-- The denied sound or the greyed look reads poorly in play.
+- The denied sound or the grayed look reads poorly in play.

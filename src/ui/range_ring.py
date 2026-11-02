@@ -1,8 +1,8 @@
 """The range ring drawn around a selected tower and under the placement
-cursor: a translucent grey disc out to the tower's range with a coloured
+cursor: a translucent gray disc out to the tower's range with a colored
 outline. A tower with a blind spot (the heavy cannon's minimum range,
 issue #11) gets a hole in the disc out to that radius, edged by a thin
-ring in the same colour, so the area it can't shoot at reads as uncovered.
+ring in the same color, so the area it can't shoot at reads as uncovered.
 """
 
 import pygame
@@ -20,7 +20,7 @@ def draw_range_ring(
     width: int,
     min_radius: int = 0,
 ) -> None:
-    """Blit a ring of `radius` screen px centred on `center`, outlined in
+    """Blit a ring of `radius` screen px centered on `center`, outlined in
     `outline` `width` px wide, with a blind spot out to `min_radius` (none
     when 0)."""
     if radius <= 0:

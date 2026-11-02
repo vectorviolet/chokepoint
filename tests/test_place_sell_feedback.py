@@ -80,7 +80,7 @@ def test_placing_plays_the_place_sound_and_puffs_dust_on_the_tile(feedback, sfx)
     assert len(feedback.dust) == DUST_PUFFS
     assert not feedback.coins
     assert all(d.origin == Vector2(160, 224) for d in feedback.dust)
-    for dust in feedback.dust:  # starts on the tile centre
+    for dust in feedback.dust:  # starts on the tile center
         assert feedback.dust_position(dust) == Vector2(160, 224)
     feedback.update(DUST_LIFE_MS - 1)
     for dust in feedback.dust:  # and drifts out a little

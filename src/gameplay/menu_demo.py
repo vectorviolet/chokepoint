@@ -9,7 +9,7 @@ it never runs out of lives.
 Each run is random: towers of every type at random spots along the path,
 pre-upgraded, starting at a mid-game wave with planes flying bombing runs.
 A camera eases between whatever is happening. After a few waves, or once
-the defence has been worn down, it fades to black and starts a new run.
+the defense has been worn down, it fades to black and starts a new run.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ START_LEVELS = (8, 16)  # a run starts at a random wave in this range
 WAVES_PER_RUN = 3  # ...and is replaced after this many waves
 TOWER_COUNT = (16, 22)
 MIN_TOWERS_LEFT = 5  # fewer ground towers than this: start over
-# Towers go on build tiles whose centre is this far from the path (world px):
+# Towers go on build tiles whose center is this far from the path (world px):
 # close enough to reach it, never on it.
 TOWER_PATH_DISTANCE = (0.9 * TILE_SIZE, 2.6 * TILE_SIZE)
 PLANE_INTERVAL_MS = (5000, 11000)  # game time between bombing runs

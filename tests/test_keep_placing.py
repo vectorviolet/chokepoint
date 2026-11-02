@@ -129,7 +129,7 @@ def test_the_button_toggles_it_and_shows_it(game, mouse):
     assert game.tower_controller.keep_placing is True
     button = panel(game)["keep_placing_button"]
     assert button.state == "enabled"
-    assert button.images["enabled"] is not button.images[None]  # yellow, not grey
+    assert button.images["enabled"] is not button.images[None]  # yellow, not gray
 
     toggle(game, mouse)
     assert game.keep_placing is False
@@ -301,7 +301,7 @@ def test_the_look_follows_the_money(game):
     assert button.state is None
 
 
-def test_a_greyed_look_is_grey(game):
+def test_a_grayed_look_is_gray(game):
     button = panel(game)["buy_tower_2"]
     image = button.images["disabled"]
     w, h = image.get_size()
@@ -422,7 +422,7 @@ def assert_maxed(game):
     image = button.images["maxed"]
     w, h = image.get_size()
     c = image.get_at((w // 2, h // 2))
-    assert c.r == c.g == c.b  # the greyscale look of an unaffordable buy button
+    assert c.r == c.g == c.b  # the grayscale look of an unaffordable buy button
     assert panel(game)["upgrade_plane_button_text"].states["hover"] == "MAX"
 
 
@@ -434,7 +434,7 @@ def test_before_the_upgrade_it_shows_its_price(game):
     assert label == (f"{price / 1000:g}K $" if price >= 1000 else f"{price} $")
 
 
-def test_the_bought_upgrade_is_greyed_and_shows_max(game, mouse):
+def test_the_bought_upgrade_is_grayed_and_shows_max(game, mouse):
     rest = panel(game)["upgrade_plane_button"].rect.copy()
 
     buy_plane_upgrade(game, mouse)

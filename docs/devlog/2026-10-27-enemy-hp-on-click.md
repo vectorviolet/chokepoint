@@ -5,7 +5,7 @@
 
 ## Context
 
-An enemy's HP bar shows roughly how hurt it is, but not whether the defence will finish it. Issue #7
+An enemy's HP bar shows roughly how hurt it is, but not whether the defense will finish it. Issue #7
 asked for a click on an enemy to show its HP as numbers ("320 / 420") next to the bar, updating
 live, without getting in the way of tower selection or placement.
 

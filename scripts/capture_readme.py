@@ -46,7 +46,7 @@ TOWER_SPACING_TILES = 3
 # Shown on the Settings screenshot (silent: the audio driver is a dummy).
 VOLUMES = {"master_volume": 0.8, "music_volume": 0.6, "sfx_volume": 0.8}
 # The GIF's one palette is built from this many frames spread evenly over the
-# clip, each shrunk by this factor first (only their colours matter).
+# clip, each shrunk by this factor first (only their colors matter).
 PALETTE_SAMPLES = 12
 PALETTE_SAMPLE_REDUCE = 4
 
@@ -107,8 +107,8 @@ def palette_indices(frame_count: int) -> list[int]:
 
 
 def save_gif(frames: list[Image.Image], path: Path, fps: int) -> None:
-    """One 256-colour palette for the whole clip, built from frames sampled
-    across it, so colours that only appear later (fire, coins, HP bars) are
+    """One 256-color palette for the whole clip, built from frames sampled
+    across it, so colors that only appear later (fire, coins, HP bars) are
     in it too."""
     samples = [
         frames[i].reduce(PALETTE_SAMPLE_REDUCE) for i in palette_indices(len(frames))
