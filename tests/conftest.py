@@ -60,7 +60,7 @@ class FakeContext:
 
     def enemy_killed(self, enemy) -> None:
         self.killed.append(enemy)
-        self.increase_money(enemy.killMoney)
+        self.increase_money(enemy.kill_money)
 
     def bomb_landed(self, position, radius: float) -> None:
         self.bombs_landed.append((position, radius))

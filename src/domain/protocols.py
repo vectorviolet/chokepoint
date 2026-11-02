@@ -1,4 +1,4 @@
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 
 class IGameContext(Protocol):
@@ -10,10 +10,20 @@ class IGameContext(Protocol):
 
     enemies: list
     towers: list
-    speed: int
-    time_ms: float
-    map_width: int
-    map_height: int
+
+    # Read-only: a context may compute them (BattleSimulation does) or
+    # store them as plain attributes (test stubs do).
+    @property
+    def speed(self) -> int: ...
+
+    @property
+    def time_ms(self) -> float: ...
+
+    @property
+    def map_width(self) -> int: ...
+
+    @property
+    def map_height(self) -> int: ...
 
     def enemy_killed(self, enemy) -> None:
         """Pays out a kill (the enemy is already removed)."""
@@ -23,3 +33,15 @@ class IGameContext(Protocol):
         """A bomb landed at `position` (its splash damage already dealt);
         shows its explosion and plays its sound."""
         ...
+
+
+@runtime_checkable
+class ArmedEnemy(Protocol):
+    """An enemy that fights back (a tank): the battle updates its combat and
+    shots, and draws its turret. Checked by what it has, not by its class."""
+
+    bullets: list
+
+    def update_combat(self, ctx: IGameContext) -> None: ...
+
+    def draw_muzzle(self, surface, camera) -> None: ...

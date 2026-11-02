@@ -205,7 +205,6 @@ def test_the_placement_preview_shows_the_blind_spot(game):
     ctrl = game.tower_controller
     game.game_state.money = 10_000
     ctrl.buying_tower_type = CANNON
-    ctrl.cursor_row, ctrl.cursor_col = 5, 5
     surface = pygame.Surface(game.window.get_size(), pygame.SRCALPHA)
     centre = game.camera.world_to_screen((5 * 64 + 32, 5 * 64 + 32))
 

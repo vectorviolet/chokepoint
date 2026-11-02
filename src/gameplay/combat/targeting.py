@@ -15,7 +15,7 @@ The answers are exactly the ones the old full scans gave, ties included:
   at that length or closer are left out first: the answer is the nearest
   enemy with ``min_radius < length <= radius``. A minimum range of 0 leaves
   nothing out, so the answer is exactly the one above.
-- ``TowerGrid.nearest`` returns the targetable tower (``maxHP`` not None)
+- ``TowerGrid.nearest`` returns the targetable tower (``max_hp`` not None)
   with the smallest ``(tower.position - position).length_squared()``, the
   first one in list order on a tie, at any distance.
 
@@ -109,7 +109,7 @@ class EnemyGrid:
 
 class TowerGrid:
     """The targetable towers of one tick, bucketed by position, for tanks.
-    Towers without HP (planes: ``maxHP`` is None) are left out."""
+    Towers without HP (planes: ``max_hp`` is None) are left out."""
 
     def __init__(self, towers: list) -> None:
         self.towers = towers
@@ -123,7 +123,7 @@ class TowerGrid:
         cells: dict[tuple[int, int], list] = {}
         index = 0
         for tower in self.towers:
-            if tower.maxHP is None:
+            if tower.max_hp is None:
                 continue
             x, y = tower.position
             cells.setdefault(_cell(x, y), []).append((index, tower))

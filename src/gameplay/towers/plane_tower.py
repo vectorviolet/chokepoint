@@ -32,7 +32,8 @@ class PlaneTower(BaseTower):
             None  # set on the first update, in game time
         )
 
-    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(self, game_state: GameState, enemies: list, enemy_grid=None) -> None:  # type: ignore[override]
         self.now = game_state.time_ms
         if self._last_bomb_drop_at is None:
             self._last_bomb_drop_at = self.now
@@ -49,6 +50,7 @@ class PlaneTower(BaseTower):
                 self._maybe_drop_bomb()
 
     def _maybe_drop_bomb(self) -> None:
+        assert self._last_bomb_drop_at is not None  # set by update()
         if self.now - self._last_bomb_drop_at < BOMB_DROP_INTERVAL_MS:
             return
         self._last_bomb_drop_at = self.now
@@ -57,7 +59,8 @@ class PlaneTower(BaseTower):
         drop_velocity = Vector2(self.speed, 0)
         self.bullets.append(Bomb(self, drop_velocity))
 
-    def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
+    # Draws through the camera, unlike GameObject.draw() (mypy: override).
+    def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:  # type: ignore[override]
         shadow = self.assets.get_image(
             f"tower_{self.tower_type}_shadow_lvl{self.level}"
         )
@@ -89,7 +92,9 @@ class PlaneTower(BaseTower):
     def _fit_rect(self) -> None:
         """Sizes `rect` to the sprite: a plane never rotates, and only
         rotating sizes a RotatableObject's rect."""
-        self.rect.size = self.image.get_size()
+        image = self.image
+        assert image is not None  # load() just set it
+        self.rect.size = image.get_size()
         self.rect.center = self.position
 
     def sprite_rect(self) -> pygame.Rect:

@@ -25,8 +25,8 @@ class WaveManager:
         self._waypoints = waypoints
         self._assets = assets
         self._count_all_time: int = 0
-        self._last_spawn_time: int = 0
-        self._level_finish_time: int | None = None
+        self._last_spawn_time: float = 0
+        self._level_finish_time: float | None = None
         self._current_level: int = -1
         self._spawn_queue: list[int] = []  # flattened list of enemy types
         self._queue_index: int = 0

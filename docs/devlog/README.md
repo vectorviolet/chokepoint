@@ -35,6 +35,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-10-30 | [Round counter wording](2026-10-30-round-counter.md) | UI | PR #81 |
 | 2026-11-02 | [Smooth turret turning](2026-11-02-smooth-turret-turning.md) | Feel, rendering | #83, PR #89 |
 | 2026-11-02 | [Generated stats reference and wiki mirror](2026-11-02-stats-reference.md) | Docs, tooling | #82, PR #86 |
+| 2026-11-02 | [Type checking: mypy and asserts instead of silent guards](2026-11-02-type-checking.md) | Tooling, code | #37, PR #91 |
 <!-- index:end -->
 
 ## Adding an entry

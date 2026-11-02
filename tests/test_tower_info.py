@@ -27,7 +27,7 @@ def make_tower(tower_config, assets, tower_type, *, level=1, row=0, col=0):
         tower_type, row, col, tower_config, assets, audio=None, map_width=MAP_WIDTH
     )
     tower.level = level
-    tower.hp = tower.maxHP
+    tower.hp = tower.max_hp
     return tower
 
 
@@ -50,12 +50,12 @@ def test_a_killing_blow_credits_the_source_tower(assets, tower_config, ctx):
     enemy = make_enemy(assets, (100, 100))
     ctx.enemies.append(enemy)
 
-    enemy.decrease_hp(enemy.maxHP - 1, ctx, tower)
+    enemy.decrease_hp(enemy.max_hp - 1, ctx, tower)
     assert tower.kills == 0  # not dead yet
     enemy.decrease_hp(1, ctx, tower)
 
-    assert (tower.kills, tower.money_earned) == (1, enemy.killMoney)
-    assert ctx.money_earned == enemy.killMoney  # paid out once, as before
+    assert (tower.kills, tower.money_earned) == (1, enemy.kill_money)
+    assert ctx.money_earned == enemy.kill_money  # paid out once, as before
 
 
 def test_hitting_an_already_dead_enemy_credits_nothing(assets, tower_config, ctx):
@@ -64,8 +64,8 @@ def test_hitting_an_already_dead_enemy_credits_nothing(assets, tower_config, ctx
     enemy = make_enemy(assets, (100, 100))
     ctx.enemies.append(enemy)
 
-    enemy.decrease_hp(enemy.maxHP, ctx, first)
-    enemy.decrease_hp(enemy.maxHP, ctx, second)
+    enemy.decrease_hp(enemy.max_hp, ctx, first)
+    enemy.decrease_hp(enemy.max_hp, ctx, second)
 
     assert (first.kills, second.kills) == (1, 0)
 
@@ -81,7 +81,7 @@ def test_a_missile_kill_is_credited_to_its_tower(assets, tower_config, ctx):
 
     missile.update(ctx)
 
-    assert (tower.kills, tower.money_earned) == (1, target.killMoney)
+    assert (tower.kills, tower.money_earned) == (1, target.kill_money)
 
 
 def test_a_twin_barrel_volley_counts_one_kill(assets, tower_config, ctx):
@@ -111,7 +111,7 @@ def test_a_bomb_kill_is_credited_to_its_plane(assets, tower_config, ctx):
     bomb.update(ctx)
 
     assert plane.kills == 3
-    assert plane.money_earned == sum(e.killMoney for e in enemies)
+    assert plane.money_earned == sum(e.kill_money for e in enemies)
 
 
 # ── stat texts and upgrade previews ──────────────────────────────────────────
@@ -297,12 +297,12 @@ def test_the_panel_follows_kills_as_they_happen(game, placed):
     enemy = Enemy(1, 1, level=1, waypoints=game.tilemap.waypoints, assets=game.assets)
     game.enemies.append(enemy)
 
-    enemy.decrease_hp(enemy.maxHP, game, placed)
+    enemy.decrease_hp(enemy.max_hp, game, placed)
     frame(game)
 
     panel = game.panel_manager["game"]
     assert panel["tower_info_kills_value"].text == "1"
-    assert panel["tower_info_earned_value"].text == f"{enemy.killMoney} $"
+    assert panel["tower_info_earned_value"].text == f"{enemy.kill_money} $"
 
 
 def test_the_panel_hides_with_the_hud(game, placed):
@@ -319,14 +319,14 @@ def test_the_panel_hides_with_the_hud(game, placed):
 
 def test_drawing_the_open_panel_does_not_raise(game, placed):
     click(game, screen_pos(game, placed))
-    placed.hp = placed.maxHP // 2
+    placed.hp = placed.max_hp // 2
     game.draw()
 
 
 @pytest.mark.parametrize("size", COMMON_RESOLUTIONS)
 def test_the_panel_fits_on_screen_at_every_window_size(game, placed, size):
     placed.level = 2  # the longest texts: previews on every row
-    placed.hp = placed.maxHP
+    placed.hp = placed.max_hp
     placed.kills = 9999
     placed.money_earned = 999_999
     game.game_state.selected_tower = placed

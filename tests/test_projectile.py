@@ -94,8 +94,8 @@ def test_a_landing_bomb_damages_enemies_inside_its_radius_but_not_outside(
     land(bomb, ctx)
 
     # at the moment of impact, on game time; the explosion is only cosmetic
-    assert inside.hp == inside.maxHP - plane.damage
-    assert outside.hp == outside.maxHP
+    assert inside.hp == inside.max_hp - plane.damage
+    assert outside.hp == outside.max_hp
 
 
 def test_a_bomb_deals_its_damage_only_once(tower_config, assets, ctx):
@@ -112,7 +112,7 @@ def test_a_bomb_deals_its_damage_only_once(tower_config, assets, ctx):
         for bullet in list(plane.bullets):
             bullet.update(ctx)
 
-    assert victim.hp == victim.maxHP - plane.damage
+    assert victim.hp == victim.max_hp - plane.damage
     assert len(ctx.bombs_landed) == 1
 
 
@@ -149,7 +149,7 @@ def test_missile_homes_in_on_its_target_by_its_speed_times_game_speed(
     missile.update(ctx)
 
     assert missile.position == Vector2(1000 + Projectile.BULLET_SPEED * 2, 1000)
-    assert target.hp == target.maxHP  # still in flight
+    assert target.hp == target.max_hp  # still in flight
 
 
 def test_missile_explodes_on_reaching_its_target(tower_config, assets, ctx):
@@ -164,7 +164,7 @@ def test_missile_explodes_on_reaching_its_target(tower_config, assets, ctx):
     missile.update(ctx)
 
     assert missile not in tower.bullets
-    assert target.hp == target.maxHP - tower.damage
+    assert target.hp == target.max_hp - tower.damage
 
 
 def test_missile_follows_its_target_when_the_enemy_list_is_rebuilt(
@@ -198,7 +198,7 @@ def test_missile_is_removed_once_out_of_the_map(tower_config, assets, ctx):
     missile.update(ctx)
 
     assert missile not in tower.bullets
-    assert target.hp == target.maxHP
+    assert target.hp == target.max_hp
 
 
 # ── muzzle flash (instant hit) ───────────────────────────────────────────────
@@ -222,7 +222,7 @@ def test_muzzle_flash_hits_once_then_disappears_after_its_duration(
     ctx.time_ms = 500.0
     flash.update(ctx)
     flash.update(ctx)
-    assert target.hp == target.maxHP - tower.damage  # hit exactly once
+    assert target.hp == target.max_hp - tower.damage  # hit exactly once
     assert flash in tower.bullets
 
     ctx.time_ms = 500.0 + MuzzleFlash.FLASH_DURATION_MS + 1
@@ -241,4 +241,4 @@ def test_second_barrel_flash_is_visual_only(tower_config, assets, ctx):
 
     MuzzleFlash(target, tower, tower.position, deals_damage=False).update(ctx)
 
-    assert target.hp == target.maxHP
+    assert target.hp == target.max_hp

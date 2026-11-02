@@ -132,7 +132,7 @@ def game(monkeypatch, tmp_path, fake_ticks):
 def kill_one(game, assets):
     enemy = Enemy(1, 1, level=1, waypoints=game.tilemap.waypoints, assets=assets)
     game.enemies.append(enemy)
-    enemy.decrease_hp(enemy.maxHP, game)
+    enemy.decrease_hp(enemy.max_hp, game)
     return enemy
 
 
@@ -147,8 +147,8 @@ def test_a_kill_in_the_game_pays_once_and_shows_its_reward(game, assets):
 
     enemy = kill_one(game, assets)
 
-    assert game.game_state.money == money + enemy.killMoney
-    assert [t.amount for t in game.kill_feedback.texts] == [enemy.killMoney]
+    assert game.game_state.money == money + enemy.kill_money
+    assert [t.amount for t in game.kill_feedback.texts] == [enemy.kill_money]
     assert game.kill_feedback.texts[0].position == enemy.position
 
 
@@ -196,7 +196,7 @@ def test_the_menu_demo_has_no_kill_effects(tilemap_and_assets):
     demo = MenuDemo(tilemap, assets, tower_config, (1280, 720), random.Random(1))
     enemy = demo.enemies[0]
 
-    enemy.decrease_hp(enemy.maxHP, demo)  # must not raise
+    enemy.decrease_hp(enemy.max_hp, demo)  # must not raise
 
     assert enemy not in demo.enemies
     assert type(demo)._on_enemy_killed is BattleSimulation._on_enemy_killed

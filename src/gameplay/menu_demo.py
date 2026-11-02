@@ -89,7 +89,9 @@ class MenuDemo(BattleSimulation):
         self._tower_config = tower_config
         self._audio = _SilentAudio()
         # Explosions where the bombs land, silent like the rest of the demo.
-        self.bomb_impacts = BombImpactFeedback(assets, play_sfx=None)
+        self.bomb_impacts: BombImpactFeedback = BombImpactFeedback(
+            assets, play_sfx=None
+        )
         self._rng = rng or random.Random()
 
         self.view = Rect(0, 0, *size)

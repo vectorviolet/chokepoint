@@ -47,7 +47,8 @@ class GroundTower(BaseTower):
         self.barrel_angle: float = float(self.sprite_orientation)
         self.aim_angle: float | None = None
 
-    def update(
+    # Takes the battle's state, unlike GameObject.update() (mypy: override).
+    def update(  # type: ignore[override]
         self, game_state: GameState, enemies: list, enemy_grid: EnemyGrid | None = None
     ) -> None:
         # At most one tick's worth of turning: a tower built mid-run starts
@@ -58,7 +59,8 @@ class GroundTower(BaseTower):
         self.now = game_state.time_ms
         self.work(enemies, game_state.is_started, enemy_grid, elapsed_ms)
 
-    def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:
+    # Draws through the camera, unlike GameObject.draw() (mypy: override).
+    def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:  # type: ignore[override]
         camera.draw(surface, self.platform)
 
         if game_state.selected_tower is self:

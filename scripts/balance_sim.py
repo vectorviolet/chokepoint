@@ -56,6 +56,7 @@ from balance_bots import (  # noqa: E402
     plane_tile,
     rank_tiles,
 )
+from util.constants import HALF_TILE, TILE_SIZE  # noqa: E402
 
 DEFAULT_WAVES = 40
 DEFAULT_SEED = 70
@@ -127,8 +128,11 @@ class Sim:
         towers = self.game.towers
         before = len(towers)
         controller.buying_tower_type = tower_type
-        controller.cursor_row, controller.cursor_col = row, col
-        controller._handle_tower_purchase(self.game.game_area.center)
+        # A click on the tile's centre, with the camera brought over it.
+        camera = self.game.camera
+        center = (col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
+        camera.center_on(center)
+        controller._handle_tower_purchase(tuple(camera.world_to_screen(center)))
         controller.buying_tower_type = 0
         if len(towers) == before:
             return False

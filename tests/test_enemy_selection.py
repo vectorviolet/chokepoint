@@ -231,7 +231,7 @@ class FakeCtx:
 
 def test_the_numbers_show_current_and_max_hp(assets):
     enemy = make_enemy(assets, ENEMY_POS)
-    enemy.maxHP = 420
+    enemy.max_hp = 420
     enemy.hp = 320
 
     assert hp_text(enemy) == "320 / 420"
@@ -243,15 +243,15 @@ def test_the_numbers_follow_damage(assets):
 
     enemy.decrease_hp(7, FakeCtx([enemy]))
 
-    assert full == f"{enemy.maxHP} / {enemy.maxHP}"
-    assert hp_text(enemy) == f"{enemy.maxHP - 7} / {enemy.maxHP}"
+    assert full == f"{enemy.max_hp} / {enemy.max_hp}"
+    assert hp_text(enemy) == f"{enemy.max_hp - 7} / {enemy.max_hp}"
 
 
 def test_the_numbers_never_go_below_zero(assets):
     enemy = make_enemy(assets, ENEMY_POS)
     enemy.hp = -15
 
-    assert hp_text(enemy) == f"0 / {enemy.maxHP}"
+    assert hp_text(enemy) == f"0 / {enemy.max_hp}"
 
 
 def test_the_label_is_drawn_right_of_the_bar_and_rerendered_on_change(assets):
@@ -313,7 +313,7 @@ def test_the_selection_clears_when_the_enemy_dies(assets):
     battle = Battle([enemy])
     battle.game_state.selected_enemy = enemy
 
-    enemy.decrease_hp(enemy.maxHP, battle)
+    enemy.decrease_hp(enemy.max_hp, battle)
     battle._tick()
 
     assert battle.game_state.selected_enemy is None

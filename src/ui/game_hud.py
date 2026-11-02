@@ -62,7 +62,7 @@ class GameHUD:
             f"{price / 1000:g}K $" if price >= 1000 else f"{price} $"
         )
         self._plane_upgrade_text = panel_manager["game"]["upgrade_plane_button_text"]
-        self._plane_upgrade_label = None
+        self._plane_upgrade_label: str | None = None
         self._plane_upgrade_button = panel_manager["game"][PLANE_UPGRADE]
         button = self._plane_upgrade_button
         maxed = _greyed(button.images[None])

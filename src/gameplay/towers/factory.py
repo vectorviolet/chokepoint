@@ -26,6 +26,7 @@ class TowerFactory:
         level: int = 1,
     ) -> BaseTower:
         """A new tower at `level`: its sprite for that level and full HP."""
+        tower: BaseTower
         if tower_type == PLANE_TYPE:
             tower = PlaneTower(tower_type, row, col, config, assets, audio, map_width)
         else:
@@ -33,5 +34,5 @@ class TowerFactory:
         if level != 1:
             tower.level = level
             tower.load(assets.image_path(f"tower_{tower_type}_lvl{level}"))
-            tower.hp = tower.maxHP
+            tower.hp = tower.max_hp
         return tower
