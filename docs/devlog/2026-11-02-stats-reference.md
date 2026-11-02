@@ -1,7 +1,7 @@
 # Generated stats reference and wiki mirror
-<!-- index | refs: #82 -->
+<!-- index | refs: #82, PR #86 -->
 
-**Date:** 2026-11-02 · **Area:** Docs, tooling · **Issue:** [#82](https://github.com/vectorviolet/chokepoint/issues/82)
+**Date:** 2026-11-02 · **Area:** Docs, tooling · **Issue:** [#82](https://github.com/vectorviolet/chokepoint/issues/82) · **PR:** [#86](https://github.com/vectorviolet/chokepoint/pull/86) (open when this entry was written)
 
 ## Context
 
