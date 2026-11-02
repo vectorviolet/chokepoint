@@ -194,26 +194,33 @@ def _cwd(path: Path) -> Iterator[None]:
 # ── building the run ─────────────────────────────────────────────────────────
 
 
-def tiles_beside_path(game, count: int) -> list[tuple[int, int]]:
-    """`count` build tiles beside the path, nearest the entrance (where the
-    camera opens) first, at least TOWER_SPACING_TILES apart. Picked on a
-    map with no towers yet."""
+def tiles_beside_path(
+    game,
+    count: int,
+    *,
+    anchor=None,
+    band_tiles: tuple[float, float] = NEAR_PATH_TILES,
+    spacing_tiles: int = TOWER_SPACING_TILES,
+) -> list[tuple[int, int]]:
+    """`count` build tiles beside the path (tile centres `band_tiles` from
+    it), nearest `anchor` first (default: the entrance, where the camera
+    opens), at least `spacing_tiles` apart (Chebyshev). Picked on a map
+    with no towers yet."""
     from gameplay.path_geometry import tiles_near_path
     from util.constants import HALF_TILE, TILE_SIZE
 
-    near, far = (tiles * TILE_SIZE for tiles in NEAR_PATH_TILES)
-    entrance = game.tilemap.waypoints[0]
+    near, far = (tiles * TILE_SIZE for tiles in band_tiles)
+    if anchor is None:
+        anchor = game.tilemap.waypoints[0]
     candidates = sorted(
         tiles_near_path(game.tilemap, near, far),
-        key=lambda rc: entrance.distance_to(
+        key=lambda rc: anchor.distance_to(
             (rc[1] * TILE_SIZE + HALF_TILE, rc[0] * TILE_SIZE + HALF_TILE)
         ),
     )
     chosen: list[tuple[int, int]] = []
     for row, col in candidates:
-        if all(
-            max(abs(row - r), abs(col - c)) >= TOWER_SPACING_TILES for r, c in chosen
-        ):
+        if all(max(abs(row - r), abs(col - c)) >= spacing_tiles for r, c in chosen):
             chosen.append((row, col))
             if len(chosen) == count:
                 return chosen
@@ -293,7 +300,7 @@ def fill_wave(game, level: int) -> int:
 
 
 def _win_wave() -> int:
-    from app.game import WIN_WAVE
+    from util.constants import WIN_WAVE
 
     return WIN_WAVE
 

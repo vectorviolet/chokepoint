@@ -83,3 +83,38 @@ def test_decrease_hp_on_already_dead_enemy_is_a_no_op(assets, ctx):
     # simultaneous hits resolving in the same frame).
     e.decrease_hp(e.maxHP, ctx)
     assert ctx.money_earned == 0
+
+
+def test_decrease_hp_credits_the_source_with_the_hp_taken_not_overkill(
+    assets, ctx, tower_config
+):
+    from gameplay.towers import TowerFactory
+
+    tower = TowerFactory.create(1, 0, 0, tower_config, assets, None, 3008)
+    e = Enemy(1, 1, level=1, waypoints=WAYPOINTS, assets=assets)
+    ctx.enemies.append(e)
+
+    e.decrease_hp(5, ctx, tower)
+    assert tower.damage_dealt == 5
+    e.decrease_hp(e.maxHP, ctx, tower)  # the killing blow: only what was left
+    assert tower.damage_dealt == e.maxHP
+    assert (tower.kills, tower.money_earned) == (1, e.killMoney)
+
+    e.decrease_hp(10, ctx, tower)  # already dead: nothing more
+    assert tower.damage_dealt == e.maxHP
+
+
+def test_damage_counter_changes_nothing_else(assets, ctx, tower_config):
+    """The counter is statistics only: HP, kills and money come out the same
+    with or without a source."""
+    from gameplay.towers import TowerFactory
+
+    tower = TowerFactory.create(2, 0, 0, tower_config, assets, None, 3008)
+    with_source = Enemy(1, 3, level=4, waypoints=WAYPOINTS, assets=assets)
+    without = Enemy(2, 3, level=4, waypoints=WAYPOINTS, assets=assets)
+    ctx.enemies.extend([with_source, without])
+    for damage in (17, 40, 3):
+        with_source.decrease_hp(damage, ctx, tower)
+        without.decrease_hp(damage, ctx)
+    assert with_source.hp == without.hp
+    assert tower.damage_dealt == 60

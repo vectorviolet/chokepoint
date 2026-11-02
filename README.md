@@ -74,6 +74,15 @@ destroyed or removed from the map.
 
 All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves.yaml` — tweak freely.
 
+### Stats reference
+
+Every tower level, enemy and wave with its numbers (price, range, DPS, HP and kill money per
+wave, each wave's enemies) is in [`docs/stats/`](docs/stats/README.md), generated from the config
+by `scripts/gen_stats.py`: [towers](docs/stats/towers.md), [enemies](docs/stats/enemies.md),
+[waves](docs/stats/waves.md). After changing the config, run
+`uv run python scripts/gen_stats.py` and commit the pages with it; CI fails when they are stale.
+A workflow also mirrors them to the project wiki.
+
 ### Controls
 
 | Action | Input |
@@ -91,7 +100,8 @@ All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves
 | Scroll the map | Move the mouse to a screen edge |
 | Zoom | Mouse wheel |
 | Toggle fullscreen | F11 |
-| Open / close the pause menu | Esc, or the menu button to open it |
+| Open / close the pause menu | Esc or the window's close button, or the menu button to open it |
+| Leave the victory / game-over popup | Esc or the window's close button: back to the main menu (a won run is saved; a lost one isn't) |
 | Save the run and return to the main menu | Main menu inside the pause menu |
 
 The pause menu also provides Settings and a music toggle. Settings includes window size/mode
@@ -204,6 +214,7 @@ assets/                Images, sounds, fonts, Tiled map
 scripts/               Smoke checks, play-test saves, media and documentation generators
 docs/devlog/           Feature history and decisions with screenshots
 docs/decisions/        Architecture decision records
+docs/stats/            Generated stats reference (towers, enemies, waves)
 ```
 
 See [CLAUDE.md](CLAUDE.md) for the architecture overview and development conventions.

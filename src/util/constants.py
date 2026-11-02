@@ -1,4 +1,8 @@
 TILE_SIZE = 64
+
+# Clearing this wave triggers the victory popup once per run (config/waves.yaml
+# keeps generating waves past it -- "Continue" just keeps playing those).
+WIN_WAVE = 25
 HALF_TILE = TILE_SIZE // 2
 
 # Gameplay advances in fixed ticks, TICKS_PER_SECOND of them per real second

@@ -203,15 +203,26 @@ class GameEventsMixin:
             return
         if self.game_state.plane_level != 1:
             return  # maxed: greyed, and a click does nothing (not even a sound)
-        price = self.tower_config.prices[3][1]
-        if self.game_state.money < price:
+        if not self._buy_plane_upgrade():
             self._deny_purchase()  # the denied sound only, like a refused tower pick
             return
         self._play_click(button)
+
+    def _buy_plane_upgrade(self) -> bool:
+        """UPG PLANES: every plane flies at level 2 from now on, for its
+        price. False, and nothing changes, if it's already bought or not
+        affordable. The HUD button and the balance simulator both buy it
+        through here."""
+        if self.game_state.plane_level != 1:
+            return False
+        price = self.tower_config.prices[3][1]
+        if self.game_state.money < price:
+            return False
         # plane_level first: the money listener then shows the plane's buy
-        # button in its lvl2 look and this button maxed.
+        # button in its lvl2 look and the UPG PLANES button maxed.
         self.game_state.plane_level = 2
         self.game_state.decrease_money(price)
+        return True
 
     def _handle_start_pause(self, event) -> None:
         panel = self.panel_manager["game"]

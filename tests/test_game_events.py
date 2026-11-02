@@ -688,6 +688,31 @@ def test_upgrade_plane_button_not_clicked_is_a_no_op():
     assert game.game_state.plane_level == 1
 
 
+def test_buy_plane_upgrade_is_the_buttons_rule():
+    """The rule the button and the balance simulator share: bought once,
+    only when affordable, plane level first."""
+    game = FakeGame(money=PLANE_UPGRADE_PRICE - 1)
+    assert game._buy_plane_upgrade() is False
+    assert (game.game_state.money, game.game_state.plane_level) == (
+        PLANE_UPGRADE_PRICE - 1,
+        1,
+    )
+
+    game.game_state.money = PLANE_UPGRADE_PRICE + 10
+    levels_seen = []
+    game.game_state.add_money_listener(
+        lambda money: levels_seen.append(game.game_state.plane_level)
+    )
+    assert game._buy_plane_upgrade() is True
+    assert (game.game_state.money, game.game_state.plane_level) == (10, 2)
+    assert levels_seen == [2]  # the money listener already sees level 2
+    assert game.audio.played == []  # sounds are the button's business
+
+    game.game_state.money = 50_000
+    assert game._buy_plane_upgrade() is False  # one-time
+    assert game.game_state.money == 50_000
+
+
 # ── speed toggle ─────────────────────────────────────────────────────────────
 
 
