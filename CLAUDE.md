@@ -167,6 +167,11 @@ The battle part (`BattleSimulation._draw_battle`) is shared by the game and the 
 | `config/waves.yaml` | `config_loader.load_wave_compositions()` | `{wave_num: [[enemy_type, count], ...]}` |
 | `config/panels.yaml` | `PanelLoaderExt.load()` | Panels + groups + optional `object_templates` |
 
+`docs/stats/` (the stats reference) is generated from `towers.yaml`, `enemies.yaml`, `waves.yaml`
+and `settings.yaml` by `scripts/gen_stats.py`: after a config change run
+`uv run python scripts/gen_stats.py` and commit the pages; `tests/test_stats_docs.py` runs `--check`
+in CI. `.github/workflows/wiki.yml` mirrors the pages to the GitHub wiki on a push to `main`.
+
 ### Coordinate system
 
 Tile size is 64 px. Map is 47×34 tiles = 3008×2176 px world space. The camera viewport is the whole canvas (whatever window size is in use); the map is larger than it, so the `Camera` edge-scrolls and zooms over it, opening on the path entrance. The HUD floats over the map: counters top-left, buttons top-right, tower bar bottom-centre. All entity positions are world-space center points stored as `pygame.math.Vector2`.
