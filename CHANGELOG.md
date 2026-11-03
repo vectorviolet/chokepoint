@@ -80,7 +80,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#104](https://github.com/vectorviolet/chokepoint/pull/104),
   [devlog](docs/devlog/2026-11-03-hit-feedback.md)).
 - Killed enemies explode (tanks bigger) and destroyed towers explode and leave scorched rubble
-  that fades out ([#PR_NUM](https://github.com/vectorviolet/chokepoint/pull/PR_NUM),
+  that fades out ([#109](https://github.com/vectorviolet/chokepoint/pull/109),
   [devlog](docs/devlog/2026-11-03-death-effects.md)).
 
 ### Changed

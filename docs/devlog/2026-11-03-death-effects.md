@@ -1,7 +1,7 @@
 # Death effects: explosions and rubble
-<!-- index | refs: #85, PR #PR_NUM -->
+<!-- index | refs: #85, PR #109 -->
 
-**Date:** 2026-11-03 · **Area:** Feel, feedback · **Issue:** [#85](https://github.com/vectorviolet/chokepoint/issues/85) · **PR:** [#PR_NUM](https://github.com/vectorviolet/chokepoint/pull/PR_NUM)
+**Date:** 2026-11-03 · **Area:** Feel, feedback · **Issue:** [#85](https://github.com/vectorviolet/chokepoint/issues/85) · **PR:** [#109](https://github.com/vectorviolet/chokepoint/pull/109)
 
 ## Context
 
