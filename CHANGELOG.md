@@ -225,6 +225,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   lead's review ([#124](https://github.com/vectorviolet/chokepoint/pull/124)).
 - CodeRabbit no longer posts its docstring-coverage pre-merge warning
   ([#126](https://github.com/vectorviolet/chokepoint/pull/126)).
+- pygamine bumped to 0.29.0 (localization and `Display`); test fakes updated for `app.display`.
 
 ## [0.3.1] – 2026-10-25
 

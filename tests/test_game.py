@@ -99,6 +99,9 @@ def make_game_panel():
 
 def make_game(**overrides):
     game = object.__new__(Game)
+    # Application forwards mouse, window, ... to its Display (pygamine 0.29.0);
+    # a bare namespace stands in for it so tests can set those attributes.
+    game.display = SimpleNamespace()
     game.game_state = GameState(start_money=500, start_lives=10)
     game.panel_manager = FakePanelManager({"game": make_game_panel()})
     game._bind_popup_objects()
