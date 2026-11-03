@@ -1,6 +1,6 @@
 import random
 from functools import partial
-from typing import override
+from typing import Any, override
 
 import pygame
 from pygame import Rect
@@ -46,7 +46,8 @@ from ui.place_sell_feedback import PlaceSellFeedback
 from ui.buy_tooltip import BuyTooltip
 from ui.enemy_hp_label import EnemyHpLabel
 from ui.tower_info import TowerInfoPanel
-from ui.pause_panel import PausePanel
+from ui.pause_panel import PAUSE_PANEL_OBJECTS, PausePanel
+from pygamine.ecs._dispatch import dispatch_draw
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -635,14 +636,33 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.menu_demo.draw(canvas)
             canvas.blit(self.menu_overlay, (0, 0))
         if self.panel_manager.current_panel == "game":
-            with self.hud_slide.shifted():
-                self.panel_manager.draw(canvas)
-                if not self.pause_panel.is_open:  # not over the menu's overlay
-                    self.tower_controller.draw_shortcuts(canvas)
-                    self.tower_info.draw_hp_fill(canvas)
-            self._draw_kill_coins()
+            self._draw_game_panel(canvas)
         else:
             self.panel_manager.draw(canvas)
+
+    def _draw_game_panel(self, canvas: pygame.Surface) -> None:
+        """The HUD, then the run's real-time effects drawn over it (the
+        kill coins flying to the counter, which pops as they land), then the
+        popups last (pause menu, victory, game over): nothing from the run
+        is ever drawn over them."""
+        panel = self.panel_manager["game"]
+        popups = self._popup_objects()
+        with self.hud_slide.shifted():
+            dispatch_draw([o for o in panel.values() if o not in popups], canvas)
+            self.tower_controller.draw_shortcuts(canvas)
+            self.tower_info.draw_hp_fill(canvas)
+        self._draw_kill_coins()
+        dispatch_draw([o for o in panel.values() if o in popups], canvas)
+
+    def _popup_objects(self) -> list[Any]:
+        """The game panel's pause, victory and game over popup objects."""
+        panel = self.panel_manager["game"]
+        names = (
+            *PAUSE_PANEL_OBJECTS,
+            *_VICTORY_POPUP_OBJECTS,
+            *_GAMEOVER_POPUP_OBJECTS,
+        )
+        return [panel[name] for name in names]
 
     def _draw_game(self) -> None:
         canvas = self.window

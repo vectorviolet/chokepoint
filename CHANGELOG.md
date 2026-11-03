@@ -159,6 +159,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - Death effects: a tower's blast and rubble show even if it is sold the same moment; enemy kills no
   longer silence or cut short a falling tower's explosion
   ([#112](https://github.com/vectorviolet/chokepoint/pull/112)).
+- The kill-reward coins and the money counter's pop are no longer drawn over the pause menu, victory
+  or game over popups; the popups now cover everything from the run
+  ([#93](https://github.com/vectorviolet/chokepoint/issues/93)).
 
 ### Development
 

@@ -298,3 +298,43 @@ def test_death_blasts_go_with_the_bomb_explosions(
     assert drawn.index("explosions") + 1 == blasts  # right with them
     assert blasts < drawn.index("sparks") < index_of(drawn, plane)
     assert blasts < index_of(drawn, ("hp", tuple(enemy.position)))
+
+
+# ── popups go over everything from the run (#93) ──────────────────────────
+
+
+@pytest.mark.parametrize(
+    ("open_popup", "panel_bg"),
+    [
+        (lambda g: g._open_pause_menu(), "pause_panel_bg"),
+        (lambda g: g._trigger_victory(), "victory_panel_bg"),
+        (lambda g: g._trigger_game_over(), "gameover_panel_bg"),
+    ],
+    ids=["pause", "victory", "game_over"],
+)
+def test_popups_are_drawn_after_the_kill_coins(game, monkeypatch, open_popup, panel_bg):
+    game.kill_feedback.add_kill((700, 700), 5, (700, 700), game.game_state.time_ms)
+    assert game.kill_feedback.coins  # in flight
+    open_popup(game)
+    panel = game.panel_manager["game"]
+    drawn: list[str] = []
+    real_coins = game.kill_feedback.draw_coins
+    real_pop = game.kill_feedback.draw_pop
+    real_bg = panel[panel_bg].draw
+    monkeypatch.setattr(
+        game.kill_feedback,
+        "draw_coins",
+        lambda *a: (drawn.append("coins"), real_coins(*a))[1],
+    )
+    monkeypatch.setattr(
+        game.kill_feedback,
+        "draw_pop",
+        lambda *a: (drawn.append("pop"), real_pop(*a))[1],
+    )
+    monkeypatch.setattr(
+        panel[panel_bg], "draw", lambda s: (drawn.append("popup"), real_bg(s))[1]
+    )
+
+    game.draw()
+
+    assert drawn == ["coins", "pop", "popup"]
