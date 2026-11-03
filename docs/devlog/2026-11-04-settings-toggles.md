@@ -36,11 +36,15 @@ The owner decided what each setting does (issues #115 to #117). Claude chose how
 - **Skip intro** is read once at startup: when on, no `SplashScreen` is built, so `run()` goes
   straight to the main menu. Turning it on or off in Settings takes effect on the next launch. With
   it off, a key press or click still skips the splash as before.
-- **Pause on focus loss** listens for `WINDOWFOCUSLOST`. In a battle with no popup open it calls
-  the same `_open_pause_menu()` as Esc. Nothing happens in the menus or with a popup open, and
-  `WINDOWFOCUSGAINED` does not resume. Whatever the toggle says, `Game` remembers whether the
-  window is focused and the camera's edge scrolling doesn't run while it isn't, so the map can't
-  drift after an alt-tab.
+- **Pause on focus loss** listens for `WINDOWFOCUSLOST`, but only marks it pending: the next
+  `update()` opens the pause menu (the same `_open_pause_menu()` as Esc) if the window is still
+  unfocused (`pygame.key.get_focused()`). That keeps the focus-lost/-gained pair SDL sends when F11
+  changes the window mode from pausing the run. Nothing happens in the menus or with a popup open,
+  and `WINDOWFOCUSGAINED` does not resume; the click that brings the window back (the first mouse
+  press after a focus-loss pause, and its release) is swallowed so it can't hit the pause menu's
+  buttons. Whatever the toggle says, `Game` reads the window's focus every update (so focus taken
+  during the splash is not missed) and the camera's edge scrolling doesn't run while it is
+  unfocused, so the map can't drift after an alt-tab.
 - **Reduce flashing** is one `reduce_flashing` flag passed to `HitFeedback`, `BombImpactFeedback`
   and `DeathFeedback` (not a global). `BattleSimulation.set_reduce_flashing()` sets it on a
   battle's three feedback objects, and `Game` calls it for the game and for the menu demo, so the
@@ -49,7 +53,10 @@ The owner decided what each setting does (issues #115 to #117). Claude chose how
   fireball is blitted at `REDUCED_FIREBALL_ALPHA` (128 of 255); the smoke and the rubble decal
   are unchanged. Sounds and gameplay don't change.
 - All three are saved with the other settings (defaults in `config/settings.yaml`, reset by
-  Reset to default) and are `< value >` rows built like the window rows.
+  Reset to default) and are `< value >` rows built like the window rows. One list,
+  `TOGGLE_SETTINGS`, drives their load, save, reset, labels and keyboard rows, so a fourth toggle
+  is a key, a default and its panel objects. `ExplosionFrames` keeps only the variant (normal or
+  reduced) asked for last, so the cache doesn't double when the setting changes.
 
 ## Rejected alternatives
 

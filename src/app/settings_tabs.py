@@ -18,13 +18,31 @@ import pygame
 DEFAULT_TAB = "display"
 
 
+# The ON/OFF settings: one `< ON/OFF >` row each, named `<key>_back_button`,
+# `<key>_next_button`, `<key>_value_text` in panels.yaml, with the shipped
+# default under `gameplay:` in config/settings.yaml. They are loaded, saved,
+# reset and labeled from this one list (Game.toggles); a row's tab lists them
+# with toggle_rows().
+TOGGLE_SETTINGS = ("skip_intro", "pause_on_focus_loss", "reduce_flashing")
+
+
 @dataclass(frozen=True)
 class SettingsRow:
     """A keyboard-focusable, clickable button of a tab's row and what it does."""
 
     button: str  # its object in the settings panel
     handler: str  # name of the Game method called as handler(arg)
-    arg: int  # e.g. the step of a `<` (-1) or `>` (1) button
+    arg: int | str  # the step of a `<` (-1) or `>` (1) button, or a toggle's key
+
+
+def toggle_rows(*keys: str) -> tuple[SettingsRow, ...]:
+    """The `<` and `>` buttons of each toggle in `keys`, top to bottom."""
+    assert all(key in TOGGLE_SETTINGS for key in keys)
+    return tuple(
+        SettingsRow(f"{key}_{side}_button", "_toggle_setting", key)
+        for key in keys
+        for side in ("back", "next")
+    )
 
 
 @dataclass(frozen=True)
@@ -52,24 +70,14 @@ SETTINGS_TABS = (
             SettingsRow("window_size_next_button", "_cycle_window_size", 1),
             SettingsRow("window_mode_back_button", "_cycle_window_mode", -1),
             SettingsRow("window_mode_next_button", "_cycle_window_mode", 1),
-            SettingsRow("reduce_flashing_back_button", "_toggle_reduce_flashing", -1),
-            SettingsRow("reduce_flashing_next_button", "_toggle_reduce_flashing", 1),
+            *toggle_rows("reduce_flashing"),
         ),
     ),
     SettingsTab("audio", shown=True),
     SettingsTab(
         "game",
         shown=True,
-        rows=(
-            SettingsRow("skip_intro_back_button", "_toggle_skip_intro", -1),
-            SettingsRow("skip_intro_next_button", "_toggle_skip_intro", 1),
-            SettingsRow(
-                "pause_on_focus_loss_back_button", "_toggle_pause_on_focus_loss", -1
-            ),
-            SettingsRow(
-                "pause_on_focus_loss_next_button", "_toggle_pause_on_focus_loss", 1
-            ),
-        ),
+        rows=toggle_rows("skip_intro", "pause_on_focus_loss"),
     ),
     SettingsTab("controls", shown=False),
 )

@@ -114,6 +114,10 @@ def make_game(**overrides):
     game._last_frame_ticks = None
     game._tick_backlog_ms = 0.0
     game._window_focused = True
+    game._focus_lost_pending = False
+    game._swallow_press = False
+    game._swallow_release = False
+    game.toggles = {"pause_on_focus_loss": True}
     game.life_lost_feedback = SimpleNamespace(lives_lost=Spy(), update=Spy())
     game.tower_info = SimpleNamespace(show=Spy(), draw_hp_fill=Spy())
     game.buy_tooltip = SimpleNamespace(update=Spy())

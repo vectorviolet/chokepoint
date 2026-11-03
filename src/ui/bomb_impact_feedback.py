@@ -106,14 +106,20 @@ class ExplosionFrames:
         self._smoke_images = [
             assets.get_image(f"black_smoke_{i}") for i in range(TOTAL_FRAMES)
         ]
-        # Keyed on (size, reduced): built on first use.
-        self._frames_by_size: dict[tuple[int, bool], list[pygame.Surface]] = {}
+        # Built on first use, for one variant at a time (`_reduced`): asking
+        # for the other drops these, so the memory doesn't double.
+        self._reduced = False
+        self._frames_by_size: dict[int, list[pygame.Surface]] = {}
 
     def frames(self, size: int, reduced: bool = False) -> list[pygame.Surface]:
         """TOTAL_FRAMES frames, `size` px square. `reduced`: the fireball at
-        REDUCED_FIREBALL_ALPHA (the smoke unchanged)."""
-        key = (size, reduced)
-        frames = self._frames_by_size.get(key)
+        REDUCED_FIREBALL_ALPHA (the smoke unchanged). Only the variant asked
+        for last is kept; the bomb impacts and the deaths sharing this object
+        always ask with the same flag."""
+        if reduced != self._reduced:
+            self._frames_by_size.clear()
+            self._reduced = reduced
+        frames = self._frames_by_size.get(size)
         if frames is None:
             target = (size, size)
             frames = []
@@ -129,7 +135,7 @@ class ExplosionFrames:
                         fire.set_alpha(REDUCED_FIREBALL_ALPHA)
                     frame.blit(fire, (0, 0))
                 frames.append(frame)
-            self._frames_by_size[key] = frames
+            self._frames_by_size[size] = frames
         return frames
 
 

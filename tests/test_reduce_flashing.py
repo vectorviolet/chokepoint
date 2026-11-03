@@ -195,18 +195,18 @@ def flags(battle) -> list[bool]:
 
 
 def test_the_default_is_off(game):
-    assert game.reduce_flashing is False
+    assert game.toggles["reduce_flashing"] is False
     assert flags(game) == [False] * 3
     assert flags(game.menu_demo) == [False] * 3
 
 
 def test_setting_it_reaches_the_game_and_the_menu_demo_at_once(game):
-    game.reduce_flashing = True
+    game.set_toggle("reduce_flashing", True)
 
     assert flags(game) == [True] * 3
     assert flags(game.menu_demo) == [True] * 3
 
-    game.reduce_flashing = False
+    game.set_toggle("reduce_flashing", False)
 
     assert flags(game) == [False] * 3
     assert flags(game.menu_demo) == [False] * 3
@@ -223,3 +223,16 @@ def test_a_standalone_menu_demo_takes_the_flag(game):
     )
 
     assert flags(demo) == [True] * 3
+
+
+def test_only_the_current_variant_of_the_frames_is_kept(assets):
+    frames = ExplosionFrames(assets)
+    normal = frames.frames(64)
+
+    reduced = frames.frames(64, reduced=True)
+
+    assert reduced is not normal
+    assert list(frames._frames_by_size) == [64]  # the normal set was dropped
+    assert frames.frames(64, reduced=True) is reduced  # and this one is cached
+    assert frames.frames(64) is not normal  # back to normal: rebuilt, not both kept
+    assert list(frames._frames_by_size) == [64]

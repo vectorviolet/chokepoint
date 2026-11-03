@@ -7,7 +7,12 @@ from pygame import Rect
 
 from app.game_events import GameEventsMixin
 from app.game_save import GameSaveMixin
-from app.settings_tabs import DEFAULT_TAB, SettingsTabs, link_hierarchy
+from app.settings_tabs import (
+    DEFAULT_TAB,
+    TOGGLE_SETTINGS,
+    SettingsTabs,
+    link_hierarchy,
+)
 from app.volume_settings import VOLUME_SETTINGS, VolumeSetting, saved_volume
 from pygamine import Application
 from pygamine import AssetManager
@@ -128,11 +133,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._default_audio_settings = dict(audio)  # kept for "reset to defaults"
         self._default_auto_pause = bool(gameplay.get("auto_pause_between_waves", False))
         self._default_keep_placing = bool(gameplay.get("keep_placing", False))
-        self._default_skip_intro = bool(gameplay.get("skip_intro", False))
-        self._default_pause_on_focus_loss = bool(
-            gameplay.get("pause_on_focus_loss", True)
-        )
-        self._default_reduce_flashing = bool(gameplay.get("reduce_flashing", False))
+        self._default_toggles = {key: bool(gameplay[key]) for key in TOGGLE_SETTINGS}
 
         self.settings_store = SaveStore("settings")
         saved_settings = self.settings_store.load()
@@ -149,18 +150,21 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             saved_settings.get("auto_pause_between_waves", self._default_auto_pause)
         )
 
-        # Settings > GAME / DISPLAY toggles. Old settings files without them
-        # load at the shipped default.
-        self.skip_intro: bool = bool(
-            saved_settings.get("skip_intro", self._default_skip_intro)
-        )
-        self.pause_on_focus_loss: bool = bool(
-            saved_settings.get("pause_on_focus_loss", self._default_pause_on_focus_loss)
-        )
-        self._window_focused = True  # False between a focus-lost and -gained event
-        self._reduce_flashing: bool = bool(
-            saved_settings.get("reduce_flashing", self._default_reduce_flashing)
-        )
+        # The ON/OFF settings (TOGGLE_SETTINGS). Old settings files without
+        # them load at the shipped default.
+        self.toggles: dict[str, bool] = {
+            key: bool(saved_settings.get(key, default))
+            for key, default in self._default_toggles.items()
+        }
+        # Window focus (pause on focus loss, no edge scroll while unfocused):
+        # `_window_focused` follows pygame.key.get_focused() every update();
+        # a focus-lost event only marks `_focus_lost_pending`, acted on in
+        # update() if the window is still unfocused (see _sync_focus).
+        self._window_focused = True  # read from the real window below
+        self._focus_lost_pending = False
+        self._paused_by_focus_loss = False
+        self._swallow_press = False  # drop the press that refocuses the window
+        self._swallow_release = False
 
         self.save_store = SaveStore("save")
         self._starting_money = gameplay["starting_money"]
@@ -175,6 +179,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             tuple(window["size"]), window["title"], window["fps"], Mouse(TILE_SIZE)
         )
         self.restore_window_settings(saved_settings)
+        self._window_focused = pygame.key.get_focused()  # the display exists now
 
         window_transform = Transform((0, 0), self.size)
         self.towers: list[BaseTower] = []
@@ -234,10 +239,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.audio.play_sfx,
             self.assets.sound_path("bomb_impact"),
             frames=explosion_frames,
-            reduce_flashing=self._reduce_flashing,
+            reduce_flashing=self.toggles["reduce_flashing"],
         )
         self.hit_feedback: HitFeedback = HitFeedback(
-            rng=rng(), reduce_flashing=self._reduce_flashing
+            rng=rng(), reduce_flashing=self.toggles["reduce_flashing"]
         )
         self.death_feedback: DeathFeedback = DeathFeedback(
             self.assets,
@@ -245,7 +250,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.assets.sound_path("enemy_destroyed"),
             self.assets.sound_path("heavy_destroyed"),
             frames=explosion_frames,
-            reduce_flashing=self._reduce_flashing,
+            reduce_flashing=self.toggles["reduce_flashing"],
         )
         self.tower_controller = TowerPlacementController(
             self.towers,
@@ -294,14 +299,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.tower_config,
             self.size,
             rng=rng(),
-            reduce_flashing=self._reduce_flashing,
+            reduce_flashing=self.toggles["reduce_flashing"],
         )
         self.menu_overlay = pygame.Surface(self.size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
         # "Skip intro": no splash is set up, so run() goes straight to the menu.
         self.splash = (
             None
-            if self.skip_intro
+            if self.toggles["skip_intro"]
             else SplashScreen(standard_splash_media(self.audio), skip_completely=True)
         )
         self._init_wave_manager()
@@ -462,12 +467,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     def _refresh_toggle_labels(self) -> None:
         settings = self.panel_manager["settings"]
-        for name, on in (
-            ("skip_intro", self.skip_intro),
-            ("pause_on_focus_loss", self.pause_on_focus_loss),
-            ("reduce_flashing", self.reduce_flashing),
-        ):
-            settings[f"{name}_value_text"].set_text("ON" if on else "OFF")
+        for key, on in self.toggles.items():
+            settings[f"{key}_value_text"].set_text("ON" if on else "OFF")
 
     def _refresh_volume_label(self, volume: VolumeSetting) -> None:
         self.panel_manager["settings"][volume.label].set_text(
@@ -490,17 +491,16 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.tower_controller.keep_placing = on
         self._refresh_keep_placing_button()
 
-    @property
-    def reduce_flashing(self) -> bool:
-        """The "Reduce flashing" toggle; the game and the menu demo's
-        feedback follow it at once."""
-        return self._reduce_flashing
-
-    @reduce_flashing.setter
-    def reduce_flashing(self, on: bool) -> None:
-        self._reduce_flashing = on
-        self.set_reduce_flashing(on)
-        self.menu_demo.set_reduce_flashing(on)
+    def set_toggle(self, key: str, on: bool) -> None:
+        """Sets the ON/OFF setting `key` (one of TOGGLE_SETTINGS). Reduce
+        flashing reaches the game's and the menu demo's feedback at once;
+        Skip intro is only read at the next launch."""
+        assert key in self.toggles, key
+        self.toggles[key] = on
+        if key == "reduce_flashing":
+            self.set_reduce_flashing(on)
+            self.menu_demo.set_reduce_flashing(on)
+        self._refresh_toggle_labels()
 
     def _save_settings(self) -> None:
         self.settings_store.save(
@@ -513,9 +513,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 "music_on": not self.audio.is_music_paused,
                 "auto_pause_between_waves": self.auto_pause,
                 "keep_placing": self.keep_placing,
-                "skip_intro": self.skip_intro,
-                "pause_on_focus_loss": self.pause_on_focus_loss,
-                "reduce_flashing": self.reduce_flashing,
+                **self.toggles,
             }
         )
 
@@ -531,9 +529,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.auto_pause = self._default_auto_pause
         self._refresh_auto_pause_button()
         self.keep_placing = self._default_keep_placing
-        self.skip_intro = self._default_skip_intro
-        self.pause_on_focus_loss = self._default_pause_on_focus_loss
-        self.reduce_flashing = self._default_reduce_flashing
+        for key, default in self._default_toggles.items():
+            self.set_toggle(key, default)
 
         self._bind_settings_ui()  # sliders, labels and window labels
         self._save_settings()
@@ -676,6 +673,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     @override
     def update(self) -> None:
+        self._sync_focus()
         frame_ms = self._elapsed_frame_ms()
         self.panel_manager.update()
         if self.panel_manager.current_panel == "game":
@@ -728,10 +726,17 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def handle_event(self, event):
         if event.type == pygame.WINDOWFOCUSLOST:
             self._window_focused = False
-            self._on_focus_lost()
+            self._focus_lost_pending = True  # acted on in update(): _sync_focus
             return
         if event.type == pygame.WINDOWFOCUSGAINED:
-            self._window_focused = True  # the pause menu stays open: no auto-resume
+            # No auto-resume: the pause menu stays open. The click that brings
+            # the window back must not land on it, so the first press is dropped.
+            self._window_focused = True
+            self._focus_lost_pending = False
+            self._swallow_press = self._paused_by_focus_loss
+            self._paused_by_focus_loss = False
+            return
+        if self._swallow_input(event):
             return
         self.panel_manager.handle_event(event, self.mouse.position)
         if controller := self.menu_controllers.get(self.panel_manager.current_panel):
@@ -745,16 +750,38 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         ):
             self._toggle_music()
 
-    def _on_focus_lost(self) -> None:
-        """When the window loses focus (the "Pause on focus loss" setting) during a
-        battle with no popup open, the pause menu opens exactly as with Esc.
-        Nothing happens in the menus."""
+    def _sync_focus(self) -> None:
+        """Called each update(). The window's real focus decides, not the
+        events alone: SDL sends a focus-lost/-gained pair when the window
+        mode changes (F11), and the splash's own event loop takes the focus
+        events of the intro. A focus-lost event only counts if the window is
+        still unfocused now; then, with "Pause on focus loss" on, a battle
+        with no popup open gets the pause menu exactly as with Esc (nothing in
+        the menus)."""
+        self._window_focused = pygame.key.get_focused()
+        pending, self._focus_lost_pending = self._focus_lost_pending, False
         if (
-            self.pause_on_focus_loss
+            pending
+            and not self._window_focused
+            and self.toggles["pause_on_focus_loss"]
             and self.panel_manager.current_panel == "game"
             and not self._any_popup_open()
         ):
             self._open_pause_menu()
+            self._paused_by_focus_loss = True
+
+    def _swallow_input(self, event) -> bool:
+        """True for the first mouse press after a focus-loss pause got its
+        focus back, and for that press's release: clicking the window to
+        refocus it must not hit the pause menu's buttons."""
+        if event.type == pygame.MOUSEBUTTONDOWN and self._swallow_press:
+            self._swallow_press = False
+            self._swallow_release = True
+            return True
+        if event.type == pygame.MOUSEBUTTONUP and self._swallow_release:
+            self._swallow_release = False
+            return True
+        return False
 
     # ── render pipeline ───────────────────────────────────────────────────────
 
