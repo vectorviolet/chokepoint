@@ -43,6 +43,9 @@ reviews:
       instructions: "Check the entry matches what the PR actually changes. American English."
     - path: "CHANGELOG.md"
       instructions: "New entries go under 'Unreleased'. Check they match the PR."
+  pre_merge_checks:
+    docstrings:
+      mode: "off"                 # no docstring-coverage rule in our repos
   tools:
     ruff:
       enabled: false              # CI runs ruff with the repo's own config
