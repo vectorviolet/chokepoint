@@ -37,6 +37,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-11-02 | [Generated stats reference and wiki mirror](2026-11-02-stats-reference.md) | Docs, tooling | #82, PR #86 |
 | 2026-11-02 | [Type checking: mypy and asserts instead of silent guards](2026-11-02-type-checking.md) | Tooling, code | #37, PR #91 |
 | 2026-11-03 | [American English spelling, checked in CI](2026-11-03-american-english.md) | Docs, tooling | #90, PR #92 |
+| 2026-11-03 | [Planes drop only bombs that land on the map](2026-11-03-bombs-land-on-the-map.md) | Feel, gameplay | #94, #59 |
 <!-- index:end -->
 
 ## Adding an entry

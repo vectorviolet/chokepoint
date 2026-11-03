@@ -1,10 +1,13 @@
 import pygame
+import pytest
+from pygame.math import Vector2
 
 from domain.game_state import GameState
 from gameplay.combat.projectile import Bomb
 from gameplay.towers import TowerFactory
 from gameplay.towers.plane_tower import BOMB_DROP_INTERVAL_MS
 from gameplay.towers import PLANE_TYPE
+from util.constants import TICK_MS
 
 MAP_WIDTH = 3008
 
@@ -103,24 +106,114 @@ def test_flies_on_until_its_sprite_has_left_the_map(tower_config, assets):
     assert plane.position.x - plane.speed - plane.sprite_rect().width / 2 <= MAP_WIDTH
 
 
-def test_drops_a_bomb_with_its_center_on_the_edge_but_none_past_it(
-    tower_config, assets
+class LandingCtx:
+    """The bits of IGameContext a falling bomb reads; records where each lands."""
+
+    def __init__(self, game_state: GameState) -> None:
+        self._gs = game_state
+        self.enemies: list = []
+        self.landings: list[float] = []
+
+    @property
+    def speed(self) -> int:
+        return self._gs.speed
+
+    @property
+    def time_ms(self) -> float:
+        return self._gs.time_ms
+
+    def bomb_landed(self, position, radius) -> None:
+        self.landings.append(position.x)
+
+
+def fly_to_the_end(plane, gs: GameState) -> list[float]:
+    """Ticks like the battle (game time, the plane, then its bombs) until
+    the plane has left the map and its last bomb has landed; returns where
+    each bomb landed."""
+    ctx = LandingCtx(gs)
+    for _ in range(100_000):
+        if plane.should_remove() and not plane.bullets:
+            return ctx.landings
+        gs.tick()
+        plane.update(gs, [])
+        for bomb in list(plane.bullets):
+            bomb.update(ctx)
+    raise AssertionError("the plane never left")
+
+
+@pytest.mark.parametrize("level", [1, 2])
+@pytest.mark.parametrize("speed", [1, 2])
+def test_the_last_bomb_lands_at_or_before_the_edge(tower_config, assets, level, speed):
+    # Issue #94: a bomb drifts on after its release; the plane drops only
+    # bombs that will land on the map.
+    plane = make_plane(tower_config, assets)
+    gs = running_state(speed=speed, time_ms=1000)
+    gs.plane_level = level
+    plane.update(gs, [])  # takes the level, starts the bomb timer
+    assert plane.level == level
+    plane.position.x = MAP_WIDTH - 1000
+
+    landings = fly_to_the_end(plane, gs)
+
+    assert len(landings) >= 3
+    assert max(landings) <= MAP_WIDTH
+    # It drops right up to the cut-off: the next bomb, one drop interval
+    # of flight later, would have landed past the edge.
+    interval_flight = plane.speed * BOMB_DROP_INTERVAL_MS / TICK_MS  # any speed
+    assert landings[-1] > MAP_WIDTH - interval_flight - plane.speed * speed
+
+
+@pytest.mark.parametrize("level", [1, 2])
+@pytest.mark.parametrize("speed", [1, 2])
+def test_drops_a_bomb_landing_on_the_edge_but_none_past_it(
+    tower_config, assets, level, speed
 ):
     plane = make_plane(tower_config, assets)
-    gs = running_state(time_ms=1000)
-    plane.update(gs, [])  # starts the bomb timer
+    gs = running_state(speed=speed, time_ms=1000)
+    gs.plane_level = level
+    plane.update(gs, [])  # takes the level, starts the bomb timer
+    step = plane.speed * speed
+    drift = Bomb.landing_offset(Vector2(plane.speed, 0), speed).x
 
-    plane.position.x = MAP_WIDTH - plane.speed  # next tick: center on the edge
+    plane.position.x = MAP_WIDTH - drift - step  # next tick: lands on the edge
     gs.time_ms += BOMB_DROP_INTERVAL_MS
     plane.update(gs, [])
-    assert plane.position.x == MAP_WIDTH
     assert len(plane.bullets) == 1
 
-    # Center past the edge: no more bombs while the sprite slides off.
+    plane.bullets.clear()
+    plane.position.x = MAP_WIDTH - drift - step + 0.5  # next tick: just past it
+    gs.time_ms += BOMB_DROP_INTERVAL_MS
+    plane.update(gs, [])
+    assert plane.bullets == []
+    # Nor while its sprite slides off.
     while not plane.should_remove():
         gs.time_ms += BOMB_DROP_INTERVAL_MS
         plane.update(gs, [])
-    assert len(plane.bullets) == 1
+    assert plane.bullets == []
+
+
+@pytest.mark.parametrize(
+    ("plane_speed", "game_speed", "expected"),
+    [(2, 1, 33.3), (1, 1, 16.7), (2, 2, 34.4), (1, 2, 17.2)],
+)
+def test_landing_offset_is_the_drift_a_falling_bomb_covers(
+    tower_config, assets, plane_speed, game_speed, expected
+):
+    offset = Bomb.landing_offset(Vector2(plane_speed, 0), game_speed)
+    assert offset.y == 0
+    assert offset.x == pytest.approx(expected, abs=0.05)
+
+    # A real bomb drifts that far, to within a tenth of a pixel, and no further.
+    plane = make_plane(tower_config, assets)
+    plane.now = 0.0
+    bomb = Bomb(plane, Vector2(plane_speed, 0))
+    start = bomb.position.x
+    gs = running_state(speed=game_speed)
+    ctx = LandingCtx(gs)
+    while not ctx.landings:
+        bomb.update(ctx)
+        gs.tick()
+    assert offset.x - 0.1 <= ctx.landings[0] - start <= offset.x
 
 
 def test_never_blocks_a_build_tile_and_is_untargetable(tower_config, assets):

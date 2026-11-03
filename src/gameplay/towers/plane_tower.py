@@ -46,18 +46,20 @@ class PlaneTower(BaseTower):
         if game_state.is_started and not self._is_off_map():
             self.position.x += self.speed * game_state.speed
             self.rect.center = self.position
-            if not self._is_past_the_edge():
+            if not self._bomb_would_land_past_the_edge(game_state.speed):
                 self._maybe_drop_bomb()
+
+    def _drop_velocity(self) -> Vector2:
+        # Bomb inherits the plane's forward momentum at release; drag in Bomb.update
+        # then slows it while the plane keeps cruising, so it lands behind the plane.
+        return Vector2(self.speed, 0)
 
     def _maybe_drop_bomb(self) -> None:
         assert self._last_bomb_drop_at is not None  # set by update()
         if self.now - self._last_bomb_drop_at < BOMB_DROP_INTERVAL_MS:
             return
         self._last_bomb_drop_at = self.now
-        # Bomb inherits the plane's forward momentum at release; drag in Bomb.update
-        # then slows it while the plane keeps cruising, so it lands behind the plane.
-        drop_velocity = Vector2(self.speed, 0)
-        self.bullets.append(Bomb(self, drop_velocity))
+        self.bullets.append(Bomb(self, self._drop_velocity()))
 
     # Draws through the camera, unlike GameObject.draw() (mypy: override).
     def draw(self, game_state: GameState, camera, surface: pygame.Surface) -> None:  # type: ignore[override]
@@ -125,12 +127,14 @@ class PlaneTower(BaseTower):
     def get_blocking_position(self) -> tuple | None:
         return None  # Planes fly over the map and never block a build tile
 
-    def _is_past_the_edge(self) -> bool:
-        """Its center has crossed the map's right edge: it drops no more
-        bombs while its sprite slides off. (A bomb drifts on about
-        speed / (1 - Bomb.DRAG) px, so the last ones can still land a little
-        past the edge; the cut-off awaits the owner's decision, #59.)"""
-        return self.position.x > self._map_width
+    def _bomb_would_land_past_the_edge(self, game_speed: float) -> bool:
+        """A bomb dropped now, at `game_speed`, would land past the map's
+        right edge: it drifts on with the plane's momentum (Bomb.landing_offset,
+        about 33 px at level 1 and 17 px at level 2), so the plane stops
+        dropping that far before the edge and drops no more while its
+        sprite slides off (issue #94, owner's choice)."""
+        offset = Bomb.landing_offset(self._drop_velocity(), game_speed)
+        return self.position.x + offset.x > self._map_width
 
     def _is_off_map(self) -> bool:
         """Its whole sprite has cleared the map's right edge."""
