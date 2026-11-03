@@ -16,6 +16,7 @@ import pygame
 import pytest
 from pygame import Rect
 
+from ui.pause_panel import PAUSE_PANEL_OBJECTS
 from app.game import (
     Game,
     WIN_WAVE,
@@ -90,6 +91,8 @@ def make_game_panel():
     for name in _VICTORY_POPUP_OBJECTS:
         panel[name] = FakeGuiObject()
     for name in _GAMEOVER_POPUP_OBJECTS:
+        panel[name] = FakeGuiObject()
+    for name in PAUSE_PANEL_OBJECTS:
         panel[name] = FakeGuiObject()
     return panel
 

@@ -649,8 +649,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         popups = self._popup_objects()
         with self.hud_slide.shifted():
             dispatch_draw([o for o in panel.values() if o not in popups], canvas)
-            self.tower_controller.draw_shortcuts(canvas)
-            self.tower_info.draw_hp_fill(canvas)
+            if not self.pause_panel.is_open:  # not over the menu's overlay
+                self.tower_controller.draw_shortcuts(canvas)
+                self.tower_info.draw_hp_fill(canvas)
         self._draw_kill_coins()
         dispatch_draw([o for o in panel.values() if o in popups], canvas)
 
