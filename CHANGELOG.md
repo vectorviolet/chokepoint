@@ -191,6 +191,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - pygamine updated to 0.28.0: sprites and the window are used without Optional checks
   (`require_image()`, the renderer StateObject keeps, the non-Optional window), and the 0-1 clamps
   use `clamp01()` ([#101](https://github.com/vectorviolet/chokepoint/pull/101)).
+- `balance_sim.py --watch --strategy <name>` plays one bot's run in a game window, in real time
+  ([#103](https://github.com/vectorviolet/chokepoint/pull/103),
+  [devlog](docs/devlog/2026-11-03-watch-the-bots-play.md)).
 
 ## [0.3.1] – 2026-10-25
 

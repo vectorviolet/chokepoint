@@ -39,6 +39,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-11-03 | [American English spelling, checked in CI](2026-11-03-american-english.md) | Docs, tooling | #90, PR #92 |
 | 2026-11-03 | [Planes drop only bombs that land on the map](2026-11-03-bombs-land-on-the-map.md) | Feel, gameplay | #94, #59, PR #97 |
 | 2026-11-03 | [Victory popup on clearing round 25](2026-11-03-victory-on-clear.md) | UI, bug | #96, PR #105 |
+| 2026-11-03 | [Watch the balance bots play](2026-11-03-watch-the-bots-play.md) | Tooling, balance | #100, PR #103 |
 <!-- index:end -->
 
 ## Adding an entry

@@ -200,3 +200,110 @@ def test_a_stuck_wave_raises_instead_of_spinning(sim, monkeypatch):
     monkeypatch.setattr(Game, "_set_started", lambda self, started: None)
     with pytest.raises(RuntimeError, match="hasn't ended after 50 ticks"):
         sim.run_strategy("gun_spam", waves=1)
+
+
+# ── --watch (#100) ────────────────────────────────────────────────────────────
+
+
+def test_watch_needs_exactly_one_strategy(sim, capsys):
+    with pytest.raises(SystemExit):
+        sim.parse_args(["--watch"])
+    assert "--watch needs exactly one --strategy" in capsys.readouterr().err
+    assert sim.parse_args(["--watch", "--strategy", "minimal"]).watch
+
+
+def test_watched_run_draws_writes_nothing_and_leaves_saves_alone(
+    sim, tmp_path, monkeypatch, capsys
+):
+    from app.game import Game
+    from smoke_test import snapshot  # scripts/ is on sys.path via balance_sim
+
+    real_saves = sim.ROOT / "saves"
+    before = snapshot(real_saves)
+    drawn = []
+    real_draw = Game.draw
+    monkeypatch.setattr(Game, "draw", lambda self: drawn.append(1) or real_draw(self))
+    out = tmp_path / "out"
+    sim.main(["--watch", "--strategy", "gun_spam", "--out", str(out)], frames=5)
+    assert len(drawn) == 5
+    assert not out.exists()
+    assert snapshot(real_saves) == before
+    assert "gun_spam: stopped (watched; nothing written)" in capsys.readouterr().out
+
+
+def _watcher(sim, monkeypatch, waves=1):
+    import pygame
+
+    watch = _load("balance_watch")
+    run = sim.StrategyRun(
+        "gun_spam",
+        waves,
+        game_class=watch.watched_game_class(sim._sim_game_class()),
+        keep_camera=True,
+    )
+    watcher = watch.Watcher(run, lambda: sim.watch_summary(run))
+    # The mouse rests mid-window: no edge scrolling.
+    center = watcher.game.window.get_rect().center
+    monkeypatch.setattr(pygame.mouse, "get_pos", lambda: center)
+    return watcher, pygame
+
+
+def _key(pygame, key, text=""):
+    return pygame.event.Event(pygame.KEYDOWN, key=key, unicode=text)
+
+
+def test_watch_keys_pause_change_speed_and_quit(sim, monkeypatch):
+    watcher, pygame = _watcher(sim, monkeypatch)
+    gs = watcher.game.game_state
+    assert gs.speed == 4  # the bot's default speed
+    watcher.handle_event(_key(pygame, pygame.K_MINUS, "-"))
+    watcher.handle_event(_key(pygame, pygame.K_MINUS, "-"))
+    watcher.handle_event(_key(pygame, pygame.K_MINUS, "-"))
+    assert gs.speed == 1  # stops at x1
+    watcher.handle_event(_key(pygame, pygame.K_EQUALS, "+"))
+    assert gs.speed == 2
+    # Paused: the game's ticks are dropped, fast-forward too.
+    watcher.handle_event(_key(pygame, pygame.K_SPACE, " "))
+    watcher.handle_event(_key(pygame, pygame.K_f, "f"))
+    ticks = watcher.run.result.ticks
+    for _ in range(3):
+        watcher.frame()
+    assert watcher.run.result.ticks == ticks
+    watcher.handle_event(_key(pygame, pygame.K_SPACE, " "))
+    watcher.frame()
+    assert watcher.run.result.ticks > ticks  # fast-forward ticks on
+    watcher.handle_event(_key(pygame, pygame.K_ESCAPE))
+    assert not watcher.running
+
+
+def test_watched_run_matches_headless_and_shows_its_summary(sim, monkeypatch):
+    watcher, pygame = _watcher(sim, monkeypatch)
+    camera = watcher.game.camera
+    view = (pygame.Vector2(camera._offset), camera.scale)
+    summaries = []
+    real_render = watcher._render_summary
+    monkeypatch.setattr(
+        watcher, "_render_summary", lambda: summaries.append(1) or real_render()
+    )
+    watcher.handle_event(_key(pygame, pygame.K_f, "f"))
+    for _ in range(2_000):
+        watcher.frame()
+        if watcher.run.finished:
+            break
+    assert watcher.run.finished
+    # The bot bought towers, but the camera stayed where the viewer left it.
+    assert watcher.run.sim.bought
+    assert (pygame.Vector2(camera._offset), camera.scale) == view
+    for _ in range(3):
+        watcher.frame()
+    assert summaries == [1]  # built once, then reused
+    # Nothing left to pause or fast-forward.
+    watcher.handle_event(_key(pygame, pygame.K_SPACE, " "))
+    watcher.handle_event(_key(pygame, pygame.K_f, "f"))
+    assert not watcher.paused and not watcher.fast_forward
+    headless = sim.run_strategy("gun_spam", waves=1)
+    assert watcher.run.result.rows == headless.rows
+    assert watcher.run.result.ticks == headless.ticks
+    lines = sim.watch_summary(watcher.run)
+    assert lines[0] == "gun_spam: cleared 1 of 1"
+    assert "Waves cleared: 1" in lines
