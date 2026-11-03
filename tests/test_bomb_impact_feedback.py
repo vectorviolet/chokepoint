@@ -216,7 +216,7 @@ def played(game, monkeypatch):
         calls.append(path)
         return object()
 
-    monkeypatch.setattr(game.bomb_impacts, "_play_sfx", spy)
+    monkeypatch.setattr(game.bomb_impacts._sound_cap, "_play_sfx", spy)
     return calls
 
 
@@ -312,7 +312,7 @@ def demo(assets, tower_config):
 
 
 def test_the_menu_demo_shows_explosions_without_sound(demo):
-    assert demo.bomb_impacts._play_sfx is None
+    assert demo.bomb_impacts._sound_cap._play_sfx is None
     assert not demo.bomb_impacts.explosions  # pre-warm impacts were cleared
 
     demo.bomb_landed(Vector2(500, 500), 96)

@@ -38,6 +38,7 @@ from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
 from ui.bomb_impact_feedback import BombImpactFeedback
+from ui.death_feedback import DeathFeedback
 from ui.hit_feedback import HitFeedback
 from ui.kill_feedback import KillFeedback
 from ui.life_lost_feedback import LifeLostFeedback
@@ -211,6 +212,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.assets, self.audio.play_sfx, self.assets.sound_path("bomb_impact")
         )
         self.hit_feedback: HitFeedback = HitFeedback(rng=rng())
+        self.death_feedback: DeathFeedback = DeathFeedback(
+            self.assets,
+            self.audio.play_sfx,
+            self.assets.sound_path("enemy_destroyed"),
+            self.assets.sound_path("heavy_destroyed"),
+        )
         self.tower_controller = TowerPlacementController(
             self.towers,
             self.tower_config,
@@ -578,6 +585,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.place_sell_feedback.update(frame_ms)
         self.bomb_impacts.update(frame_ms)
         self.hit_feedback.update(frame_ms)
+        self.death_feedback.update(frame_ms)
         self.life_lost_feedback.update(frame_ms)
         self.mouse.update()
         self.tower_controller.update_cursor(self.mouse.position)

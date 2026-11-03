@@ -335,6 +335,7 @@ def make_updating_game():
     game.place_sell_feedback = SimpleNamespace(update=Spy())
     game.bomb_impacts = SimpleNamespace(update=Spy())
     game.hit_feedback = SimpleNamespace(update=Spy())
+    game.death_feedback = SimpleNamespace(update=Spy())
     game._tick = Spy()
     return game
 
@@ -350,6 +351,7 @@ def test_update_game_forwards_input_motion_scaled_to_the_frame_time():
     assert game.hud_slide.update.calls == [(pytest.approx(2 * TICK_MS),)]
     assert game.hud.update.calls == [(pytest.approx(2 * TICK_MS),)]  # the money flash
     assert game.hit_feedback.update.calls == [(pytest.approx(2 * TICK_MS),)]
+    assert game.death_feedback.update.calls == [(pytest.approx(2 * TICK_MS),)]
 
 
 def test_update_game_runs_one_tick_per_tick_ms_of_frame_time():

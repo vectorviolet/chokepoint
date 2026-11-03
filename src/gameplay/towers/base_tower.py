@@ -237,8 +237,13 @@ class BaseTower(RotatableObject):
 
     # ── polymorphic interface ─────────────────────────────────────────────────
 
-    def should_remove(self) -> bool:
+    @property
+    def is_destroyed(self) -> bool:
+        """Its HP ran out (a plane, without HP, never is)."""
         return self.hp is not None and self.hp <= 0
+
+    def should_remove(self) -> bool:
+        return self.is_destroyed
 
     def get_blocking_position(self) -> tuple | None:
         return self.row, self.col

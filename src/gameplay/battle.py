@@ -16,6 +16,11 @@ simulation. A subclass provides the state it operates on:
                       flash on a hit enemy or tower (drawn right over it)
                       and the hit's spark (with the explosions); the owner
                       updates and clears it
+    death_feedback    a ui.death_feedback.DeathFeedback, or None: a killed
+                      enemy's or destroyed tower's explosion (with the
+                      bomb explosions) and a destroyed tower's rubble
+                      (under towers and enemies); the owner updates and
+                      clears it
 
 and may override the two hooks below for its own rules. It also satisfies
 domain.protocols.IGameContext, which projectiles and tanks are updated with.
@@ -48,6 +53,7 @@ if TYPE_CHECKING:
     from gameplay.tilemap import Tilemap
     from gameplay.towers import BaseTower
     from ui.bomb_impact_feedback import BombImpactFeedback
+    from ui.death_feedback import DeathFeedback
     from ui.hit_feedback import HitFeedback
 
 
@@ -99,6 +105,7 @@ class BattleSimulation:
     tilemap: Tilemap
     bomb_impacts: BombImpactFeedback | None = None
     hit_feedback: HitFeedback | None = None
+    death_feedback: DeathFeedback | None = None
     # This tick's grid of the towers while enemies update, for tanks
     # (IGameContext is free to lack it); None the rest of the time.
     tower_grid: TowerGrid | None = None
@@ -135,6 +142,10 @@ class BattleSimulation:
         self._tank_removed(enemy)
         self.increase_money(enemy.kill_money)
         self._on_enemy_killed(enemy)
+        if self.death_feedback is not None:  # cosmetic: its explosion
+            self.death_feedback.enemy_died(
+                enemy.position, isinstance(enemy, ArmedEnemy)
+            )
 
     def bomb_landed(self, position, radius: float) -> None:
         """A bomb landed (its damage is already dealt): show its explosion."""
@@ -189,6 +200,10 @@ class BattleSimulation:
         for tower in self.towers:
             if tower.should_remove():
                 self._tower_removed(tower, kept[-1] if kept else None)
+                if self.death_feedback is not None and tower.is_destroyed:
+                    # Cosmetic: its explosion and rubble. Not a plane that
+                    # left the map (nor a sold tower: that's _tower_sold).
+                    self.death_feedback.tower_destroyed(tower.position)
                 if self.game_state.selected_tower is tower:
                     # A plane that left the map or a destroyed tower: its
                     # info panel closes.
@@ -338,11 +353,14 @@ class BattleSimulation:
                 camera.draw(surface, bullet)
 
     def _draw_battle(self, surface: pygame.Surface, camera) -> None:
-        """Terrain, then ground towers and their bullets, then enemies and
-        theirs (a hit one's flash right over it), then bomb explosions and
-        hit sparks, then planes over all of them (they
-        fly), then every HP bar on top so neither fire nor a plane hides one."""
+        """Terrain and destroyed towers' rubble, then ground towers and
+        their bullets, then enemies and theirs (a hit one's flash right over
+        it), then bomb and death explosions and hit sparks, then planes over
+        all of them (they fly), then every HP bar on top so neither fire nor
+        a plane hides one."""
         self.tilemap.draw(surface, camera)
+        if self.death_feedback is not None:
+            self.death_feedback.draw_decals(surface, camera)
 
         for tower in self.towers:
             if not tower.is_flying:  # planes come after the explosions
@@ -372,6 +390,8 @@ class BattleSimulation:
 
         if self.bomb_impacts is not None:
             self.bomb_impacts.draw(surface, camera)
+        if self.death_feedback is not None:
+            self.death_feedback.draw_blasts(surface, camera)
         if self.hit_feedback is not None:
             self.hit_feedback.draw_sparks(surface, camera)
 
