@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import pygame
 from pygame.math import Vector2
 
@@ -6,6 +8,9 @@ from gameplay.rotatable_object import RotatableObject
 from pygamine import StateObject
 from domain.game_state import GameState, TowerConfig
 from ui.range_ring import draw_range_ring
+
+if TYPE_CHECKING:
+    from domain.protocols import IGameContext
 
 UPGRADE_BTN_OFFSET = Vector2(-55, -105)
 SELL_BTN_OFFSET = Vector2(20, -110)
@@ -124,10 +129,17 @@ class BaseTower(RotatableObject):
         """This tower's shot/bomb took `amount` HP off an enemy."""
         self.damage_dealt += amount
 
-    def decrease_hp(self, damage: int) -> None:
+    def decrease_hp(self, damage: int, ctx: "IGameContext", hit_from=None) -> None:
+        """Takes `damage` off the HP, and shows the hit (`ctx.target_hit`,
+        cosmetic) only when the damage was applied. `hit_from` is where the
+        shot was (world), for the hit's spark; without one the spark shows
+        on its center. A tower without HP (a plane) takes no damage and
+        shows no hit."""
         if self.hp is None:
             return
         self.hp -= damage
+        # Cosmetic: the flash and spark.
+        ctx.target_hit(self, self.position if hit_from is None else hit_from)
 
     # ── action hit-rects (screen space, zoom-aware) ───────────────────────────
 

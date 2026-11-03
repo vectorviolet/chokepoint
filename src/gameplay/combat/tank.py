@@ -116,6 +116,11 @@ class Tank(Enemy):
 
     # ── rendering hook ───────────────────────────────────────────────────────
 
+    def flash_parts(self) -> list[tuple[pygame.Surface, Vector2]]:
+        """A hit flashes the hull and the turret on it, as draw_muzzle()
+        draws it."""
+        return [*super().flash_parts(), (self._muzzle_image, Vector2(self.position))]
+
     def draw_muzzle(self, surface: pygame.Surface, camera) -> None:
         scaled = camera.scale_image(self._muzzle_image)
         center = camera.world_to_screen(self.position)
@@ -152,7 +157,7 @@ class TankBullet(RotatableObject):
 
         delta = self.target_tower.position - self.position
         if delta.length() <= self.EXPLODE_DISTANCE:
-            self.target_tower.decrease_hp(self.damage)
+            self.target_tower.decrease_hp(self.damage, ctx, self.position)
             self._remove()
             return
 

@@ -101,7 +101,7 @@ class HpTower:
         self.max_hp = hp
         self.hp = hp
 
-    def decrease_hp(self, damage):
+    def decrease_hp(self, damage, ctx, hit_from=None):
         self.hp -= damage
 
 

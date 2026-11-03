@@ -136,6 +136,14 @@ class RotatableObject(StateObject):
         """The unrotated sprite: every RotatableObject is built with one."""
         return self._sprite.require_image()
 
+    def flash_parts(self) -> list[tuple[pygame.Surface, Vector2]]:
+        """What a hit flash covers (ui.hit_feedback): (the surface drawn,
+        its world center) per drawn part, so the flash matches the sprite
+        exactly. Here the sprite as camera.draw() draws it."""
+        image = self.image
+        assert image is not None  # every RotatableObject is built with one
+        return [(image, Vector2(self.rect.center))]
+
     @override
     def draw(self, surface: pygame.Surface) -> None:
         if self.is_rotated and self.rotated_image is not None:

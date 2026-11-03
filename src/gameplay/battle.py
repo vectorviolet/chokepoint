@@ -12,6 +12,10 @@ simulation. A subclass provides the state it operates on:
     bomb_impacts      a ui.bomb_impact_feedback.BombImpactFeedback, or None:
                       the explosions where bombs land (drawn over towers,
                       under enemies); the owner updates and clears it
+    hit_feedback      a ui.hit_feedback.HitFeedback, or None: the white
+                      flash on a hit enemy or tower (drawn right over it)
+                      and the hit's spark (with the explosions); the owner
+                      updates and clears it
 
 and may override the two hooks below for its own rules. It also satisfies
 domain.protocols.IGameContext, which projectiles and tanks are updated with.
@@ -44,6 +48,7 @@ if TYPE_CHECKING:
     from gameplay.tilemap import Tilemap
     from gameplay.towers import BaseTower
     from ui.bomb_impact_feedback import BombImpactFeedback
+    from ui.hit_feedback import HitFeedback
 
 
 class OrphanShot:
@@ -93,6 +98,7 @@ class BattleSimulation:
     wave_manager: WaveManager | None
     tilemap: Tilemap
     bomb_impacts: BombImpactFeedback | None = None
+    hit_feedback: HitFeedback | None = None
     # This tick's grid of the towers while enemies update, for tanks
     # (IGameContext is free to lack it); None the rest of the time.
     tower_grid: TowerGrid | None = None
@@ -134,6 +140,12 @@ class BattleSimulation:
         """A bomb landed (its damage is already dealt): show its explosion."""
         if self.bomb_impacts is not None:
             self.bomb_impacts.bomb_landed(position, radius)
+
+    def target_hit(self, target, hit_from) -> None:
+        """An enemy or tower took a hit (its damage is dealt or about to be):
+        show it. Cosmetic only."""
+        if self.hit_feedback is not None:
+            self.hit_feedback.target_hit(target, hit_from)
 
     # ── hooks ─────────────────────────────────────────────────────────────────
 
@@ -319,13 +331,16 @@ class BattleSimulation:
 
     def _draw_tower(self, tower, surface: pygame.Surface, camera) -> None:
         tower.draw(self.game_state, camera, surface)
+        if self.hit_feedback is not None:
+            self.hit_feedback.draw_flash(surface, camera, tower)
         if not tower.draws_own_bullets:
             for bullet in tower.bullets:
                 camera.draw(surface, bullet)
 
     def _draw_battle(self, surface: pygame.Surface, camera) -> None:
         """Terrain, then ground towers and their bullets, then enemies and
-        theirs, then bomb explosions, then planes over all of them (they
+        theirs (a hit one's flash right over it), then bomb explosions and
+        hit sparks, then planes over all of them (they
         fly), then every HP bar on top so neither fire nor a plane hides one."""
         self.tilemap.draw(surface, camera)
 
@@ -348,12 +363,17 @@ class BattleSimulation:
             camera.draw(surface, enemy)
             if isinstance(enemy, ArmedEnemy):
                 enemy.draw_muzzle(surface, camera)
+            if self.hit_feedback is not None:
+                self.hit_feedback.draw_flash(surface, camera, enemy)
+            if isinstance(enemy, ArmedEnemy):
                 for bullet in enemy.bullets:
                     camera.draw(surface, bullet)
         self._draw_orphans(surface, camera, self._orphan_tank_shells)
 
         if self.bomb_impacts is not None:
             self.bomb_impacts.draw(surface, camera)
+        if self.hit_feedback is not None:
+            self.hit_feedback.draw_sparks(surface, camera)
 
         # Planes fly: bombs of planes that left the map first, then each
         # plane with its shadow, its falling bombs under it and, if

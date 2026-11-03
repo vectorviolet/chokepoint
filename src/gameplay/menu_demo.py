@@ -25,6 +25,7 @@ from domain.game_state import GameState, TowerConfig
 from gameplay.battle import BattleSimulation
 from gameplay.path_geometry import tiles_near_path
 from ui.bomb_impact_feedback import BombImpactFeedback
+from ui.hit_feedback import HitFeedback
 from gameplay.combat.wave_manager import WaveManager
 from pygamine import Camera
 from gameplay.towers import GROUND_TOWER_TYPES, PLANE_TYPE, TowerFactory
@@ -93,6 +94,12 @@ class MenuDemo(BattleSimulation):
             assets, play_sfx=None
         )
         self._rng = rng or random.Random()
+        # Hit flashes and sparks, as in the game (they have no sound). Their
+        # own stream, seeded from the demo's: a seeded demo shows the same
+        # sparks, and hits never shift the run's own random choices.
+        self.hit_feedback: HitFeedback = HitFeedback(
+            rng=random.Random(self._rng.random())
+        )
 
         self.view = Rect(0, 0, *size)
         self.camera = Camera(self.view, tilemap.map_width, tilemap.map_height)
@@ -113,6 +120,7 @@ class MenuDemo(BattleSimulation):
         """Advance by `frame_ms` of real time."""
         dt = frame_ms / 1000
         self.bomb_impacts.update(frame_ms)
+        self.hit_feedback.update(frame_ms)
         if self._fading_out:
             self._fade = min(1.0, self._fade + dt / FADE_S)
             if self._fade >= 1.0:
@@ -175,6 +183,7 @@ class MenuDemo(BattleSimulation):
         for _ in range(int(PREWARM_MS / TICK_MS)):
             self._tick()
         self.bomb_impacts.clear()  # bombs that landed while pre-warming
+        self.hit_feedback.clear()  # and hits
 
         self._camera_target = self._pick_camera_target()
         self._camera_pos = Vector2(self._target_position())

@@ -1,7 +1,7 @@
-"""The battle's layers (#55, #60): ground towers, then enemies, then bomb
-explosions, then planes (they fly), then HP bars on top; a plane's falling
-bombs under the plane, and a departed plane's bombs still in the planes'
-layer. Checked in
+"""The battle's layers (#55, #60, #84): ground towers, then enemies (a hit
+one's flash right over it), then bomb explosions and hit sparks, then
+planes (they fly), then HP bars on top; a plane's falling bombs under the
+plane, and a departed plane's bombs still in the planes' layer. Checked in
 the real game (saves in a temporary directory) and in the menu demo, by
 recording what is drawn in which order."""
 
@@ -50,6 +50,7 @@ def stage(battle, tower_config, assets):
     battle.towers.clear()
     battle.enemies.clear()
     battle.bomb_impacts.clear()
+    battle.hit_feedback.clear()
 
     tower = TowerFactory.create(
         GROUND_TYPE, 10, 10, tower_config, assets, None, map_width=3008
@@ -73,7 +74,8 @@ def stage(battle, tower_config, assets):
 
 def record_layers(battle, camera, monkeypatch):
     """Draw the battle once; return what was drawn, in order: entities
-    drawn through the camera, "explosions", and ("hp", position) per bar."""
+    drawn through the camera, "explosions", ("flash", target) per hit
+    flash, "sparks", and ("hp", position) per bar."""
     drawn = []
     camera_draw = camera.draw
 
@@ -94,6 +96,19 @@ def record_layers(battle, camera, monkeypatch):
             drawn.append(("hp", tuple(world_pos)))
         return bar_draw(surface, cam, world_pos, hp, max_hp, **kwargs)
 
+    hits = type(battle.hit_feedback)
+    flash_draw, sparks_draw = hits.draw_flash, hits.draw_sparks
+
+    def spy_flash_draw(self, surface, cam, target):
+        drawn.append(("flash", target))
+        return flash_draw(self, surface, cam, target)
+
+    def spy_sparks_draw(self, surface, cam):
+        drawn.append("sparks")
+        return sparks_draw(self, surface, cam)
+
+    monkeypatch.setattr(hits, "draw_flash", spy_flash_draw)
+    monkeypatch.setattr(hits, "draw_sparks", spy_sparks_draw)
     monkeypatch.setattr(camera, "draw", spy_camera_draw)
     monkeypatch.setattr(type(battle.bomb_impacts), "draw", spy_impacts_draw)
     monkeypatch.setattr(hp_bar, "draw", spy_bar_draw)
@@ -139,6 +154,40 @@ def test_planes_fly_over_enemies_and_explosions(
     assert index_of(drawn, tower) < plane_at
     assert index_of(drawn, tank) < plane_at
     assert index_of(drawn, shot) < plane_at
+
+
+def test_a_hit_flash_goes_right_over_its_target(
+    battle, tower_config, assets, monkeypatch
+):
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+    tank = Tank(2, TANK_TYPE, 1, [Vector2(700, 700)], assets)
+    shot = TankBullet(tank, tower)
+    tank.bullets.append(shot)
+    battle.enemies.append(tank)
+    for target in (tower, enemy, tank):
+        battle.target_hit(target, target.position)
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    for target in (tower, enemy, tank):
+        flash = drawn.index(("flash", target))
+        assert drawn[flash - 1] is target  # its own sprite, nothing else
+    # A tower's flash comes before its shots, a tank's before its shells.
+    assert drawn.index(("flash", tank)) < index_of(drawn, shot)
+
+
+def test_hit_sparks_go_with_the_explosions_under_planes(
+    battle, tower_config, assets, monkeypatch
+):
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+    battle.target_hit(enemy, (650, 700))
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    sparks = drawn.index("sparks")
+    assert index_of(drawn, enemy) < sparks
+    assert index_of(drawn, "explosions") < sparks < index_of(drawn, plane)
+    assert sparks < index_of(drawn, ("hp", tuple(enemy.position)))
 
 
 def test_hp_bars_stay_above_planes(battle, tower_config, assets, monkeypatch):
