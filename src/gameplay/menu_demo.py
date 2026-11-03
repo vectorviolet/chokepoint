@@ -93,9 +93,13 @@ class MenuDemo(BattleSimulation):
         self.bomb_impacts: BombImpactFeedback = BombImpactFeedback(
             assets, play_sfx=None
         )
-        # Hit flashes and sparks, as in the game (they have no sound).
-        self.hit_feedback: HitFeedback = HitFeedback()
         self._rng = rng or random.Random()
+        # Hit flashes and sparks, as in the game (they have no sound). Their
+        # own stream, seeded from the demo's: a seeded demo shows the same
+        # sparks, and hits never shift the run's own random choices.
+        self.hit_feedback: HitFeedback = HitFeedback(
+            rng=random.Random(self._rng.random())
+        )
 
         self.view = Rect(0, 0, *size)
         self.camera = Camera(self.view, tilemap.map_width, tilemap.map_height)

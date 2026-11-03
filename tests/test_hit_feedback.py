@@ -46,7 +46,7 @@ class Target:
 
     def flash_parts(self):
         self.parts_asked += 1
-        return [(self.image, 0, Vector2(self.position))]
+        return [(self.image, Vector2(self.position))]
 
 
 class Camera:
@@ -62,6 +62,9 @@ class Camera:
         if self.scale == 1.0:
             return image
         return pygame.transform.scale_by(image, self.scale)
+
+
+HIT_FROM = (50, 0)  # where the shot was, for tests that don't care
 
 
 @pytest.fixture
@@ -85,14 +88,14 @@ def test_a_hit_flashes_for_flash_ms_of_real_time(feedback):
 
 def test_hits_on_one_target_are_shown_at_most_once_per_interval(feedback):
     target = Target()
-    feedback.target_hit(target)
+    feedback.target_hit(target, HIT_FROM)
 
     feedback.update(HIT_MIN_INTERVAL_MS - 1)
-    assert not feedback.target_hit(target)  # gun spam: no strobe
+    assert not feedback.target_hit(target, HIT_FROM)  # gun spam: no strobe
     assert not feedback.is_flashing(target)
 
     feedback.update(1)
-    assert feedback.target_hit(target)
+    assert feedback.target_hit(target, HIT_FROM)
     assert feedback.is_flashing(target)
 
 
@@ -104,7 +107,7 @@ def test_steady_gunfire_flashes_at_the_capped_rate(feedback):
     flashing_ms = 0
     frame_ms = 5
     for _ in range(1000 // frame_ms):
-        shown += feedback.target_hit(target)
+        shown += feedback.target_hit(target, HIT_FROM)
         flashing_ms += frame_ms if feedback.is_flashing(target) else 0
         feedback.update(frame_ms)
 
@@ -114,27 +117,27 @@ def test_steady_gunfire_flashes_at_the_capped_rate(feedback):
 
 def test_the_cap_is_per_target(feedback):
     a, b = Target(), Target()
-    feedback.target_hit(a)
+    feedback.target_hit(a, HIT_FROM)
 
-    assert feedback.target_hit(b)
+    assert feedback.target_hit(b, HIT_FROM)
     assert feedback.is_flashing(a) and feedback.is_flashing(b)
 
 
 def test_at_most_max_effects_hits_play_at_once(feedback):
     targets = [Target() for _ in range(MAX_EFFECTS + 3)]
-    shown = [feedback.target_hit(t) for t in targets]
+    shown = [feedback.target_hit(t, HIT_FROM) for t in targets]
 
     assert shown == [True] * MAX_EFFECTS + [False] * 3
     assert feedback.live_effects == MAX_EFFECTS
 
     feedback.update(HIT_MIN_INTERVAL_MS)  # they play out
     assert feedback.live_effects == 0
-    assert feedback.target_hit(targets[-1])
+    assert feedback.target_hit(targets[-1], HIT_FROM)
 
 
 def test_clear_drops_every_hit(feedback):
     target = Target()
-    feedback.target_hit(target)
+    feedback.target_hit(target, HIT_FROM)
     feedback.clear()
 
     assert feedback.live_effects == 0
@@ -147,8 +150,7 @@ def test_clear_drops_every_hit(feedback):
 def test_the_spark_sits_on_the_side_facing_the_shot():
     assert impact_point((100, 100), (200, 100)) == Vector2(100 + IMPACT_REACH, 100)
     assert impact_point((100, 100), (100, 105)) == Vector2(100, 105)  # closer
-    assert impact_point((100, 100), None) == Vector2(100, 100)  # a bomb
-    assert impact_point((100, 100), (100, 100)) == Vector2(100, 100)
+    assert impact_point((100, 100), (100, 100)) == Vector2(100, 100)  # right on it
 
 
 def test_the_silhouette_is_white_in_the_sprites_shape():
@@ -173,7 +175,7 @@ def test_the_flash_draws_white_over_the_target_while_it_flashes(feedback):
     feedback.draw_flash(surface, Camera(), target)
     assert surface.get_at((20, 20))[:3] == (0, 0, 0)  # not hit: nothing
 
-    feedback.target_hit(target)
+    feedback.target_hit(target, HIT_FROM)
     feedback.draw_flash(surface, Camera(), target)
     r, g, b, _ = surface.get_at((20, 20))
     assert min(r, g, b) > 200  # white over it
@@ -184,7 +186,7 @@ def test_the_flash_follows_the_zoom(feedback):
     target = Target((20, 20))
     surface = pygame.Surface((80, 80))
     surface.fill((0, 0, 0))
-    feedback.target_hit(target)
+    feedback.target_hit(target, HIT_FROM)
 
     feedback.draw_flash(surface, Camera(scale=2.0), target)
 
@@ -202,7 +204,7 @@ def test_silhouettes_are_built_once_per_source_image(feedback, monkeypatch):
     )
     target = Target()
     surface = pygame.Surface((40, 40))
-    feedback.target_hit(target)
+    feedback.target_hit(target, HIT_FROM)
 
     for _ in range(5):
         feedback.draw_flash(surface, Camera(), target)
@@ -243,7 +245,8 @@ def test_a_ground_tower_flashes_its_platform_and_turret(tower_config, assets):
     parts = tower.flash_parts()
 
     assert len(parts) == 2
-    assert all(center == tower.position for _, _, center in parts)
+    assert [image for image, _ in parts] == [tower.platform.image, tower.image]
+    assert all(center == tower.position for _, center in parts)
 
 
 def test_a_tank_flashes_its_hull_and_turret(assets):
@@ -251,7 +254,8 @@ def test_a_tank_flashes_its_hull_and_turret(assets):
     parts = tank.flash_parts()
 
     assert len(parts) == 2
-    assert parts[1][0] is tank._muzzle_base
+    assert parts[0][0] is tank.image
+    assert parts[1][0] is tank._muzzle_image  # the turret as drawn
 
 
 # ── through the battle ────────────────────────────────────────────────────────
@@ -328,6 +332,10 @@ def test_a_bomb_flashes_every_enemy_in_its_splash(game):
     assert game.hit_feedback.is_flashing(near)
     assert game.hit_feedback.is_flashing(side)
     assert not game.hit_feedback.is_flashing(far)
+    # Each spark on the side facing the blast; right under it, the center.
+    hits = game.hit_feedback._hits
+    assert hits[id(near)].impact == near.position
+    assert hits[id(side)].impact == side.position - Vector2(IMPACT_REACH, 0)
 
 
 def test_a_tank_shell_flashes_the_tower_it_hits(game):
@@ -340,6 +348,38 @@ def test_a_tank_shell_flashes_the_tower_it_hits(game):
 
     assert tower.hp == tower.max_hp - tank.bullet_damage
     assert game.hit_feedback.is_flashing(tower)
+    hit = game.hit_feedback._hits[id(tower)]
+    assert hit.impact == tower.position + Vector2(10, 0)  # facing the shell
+
+
+def test_a_tower_without_hp_shows_no_hit(game):
+    plane = TowerFactory.create(
+        PLANE_TYPE, 0, 0, game.tower_config, game.assets, None, map_width=3008
+    )
+
+    plane.decrease_hp(50, game, Vector2(0, 0))
+
+    assert plane.hp is None
+    assert game.hit_feedback.live_effects == 0
+
+
+def test_the_flash_matches_the_sprite_as_drawn(game):
+    """Silhouettes come from the drawn (rotated) surface: the flash covers
+    exactly the pixels of the turned enemy, at its exact angle."""
+    enemy = add_enemy(game, (700, 700))
+    enemy.rotate_to_angle(37.3)
+    game.target_hit(enemy, (650, 700))
+
+    ((drawn, _),) = enemy.flash_parts()
+    white = game.hit_feedback._silhouette(drawn)
+
+    assert drawn is enemy.rotated_image
+    assert white.get_size() == drawn.get_size()
+    opaque = pygame.mask.from_surface(drawn, 1)
+    assert pygame.mask.from_surface(white, 1).overlap_area(opaque, (0, 0)) == (
+        opaque.count()
+    )
+    assert game.hit_feedback._silhouette(drawn) is white  # built once
 
 
 def test_a_killing_hit_is_safe_and_does_not_block_the_death(game):
@@ -377,7 +417,7 @@ def test_a_destroyed_tower_is_removed_as_usual(game):
 
 def test_hits_play_out_on_real_time_while_paused(game):
     enemy = add_enemy(game, (500, 500))
-    game.target_hit(enemy, None)
+    game.target_hit(enemy, enemy.position)
     game.game_state.is_started = False
 
     game._update_game(FLASH_MS)
@@ -388,7 +428,7 @@ def test_hits_play_out_on_real_time_while_paused(game):
 @pytest.mark.parametrize("reset", ["_start_new_game", "load"])
 def test_new_game_and_load_drop_the_hits(game, reset):
     enemy = add_enemy(game, (500, 500))
-    game.target_hit(enemy, None)
+    game.target_hit(enemy, enemy.position)
     if reset == "load":
         game._save_game()
         game._load_game()
@@ -434,6 +474,29 @@ def test_the_battle_plays_out_the_same_without_it(tilemap, assets, tower_config)
     assert with_it.hit_feedback is not None
     assert with_it.hit_feedback.live_effects > 0  # it was fighting
     assert battle_outcome(with_it) == battle_outcome(without)
+
+
+def test_a_seeded_menu_demo_shows_the_same_sparks(tilemap, assets, tower_config):
+    def sparks(seed):
+        demo = MenuDemo(tilemap, assets, tower_config, (1280, 720), random.Random(seed))
+        for _ in range(600):
+            demo._tick()
+        return [(tuple(h.impact), h.angle) for h in demo.hit_feedback._hits.values()]
+
+    assert sparks(5) and sparks(5) == sparks(5)
+
+
+def test_update_drops_only_expired_hits(feedback):
+    old, new = Target(), Target()
+    feedback.target_hit(old, HIT_FROM)
+    feedback.update(HIT_MIN_INTERVAL_MS - 10)
+    feedback.target_hit(new, HIT_FROM)
+
+    feedback.update(10)
+
+    assert not feedback.target_hit(new, HIT_FROM)  # still in its window
+    assert feedback.live_effects == 1
+    assert feedback.target_hit(old, HIT_FROM)  # its window is over
 
 
 def test_the_menu_demo_shows_hits(tilemap, assets, tower_config):

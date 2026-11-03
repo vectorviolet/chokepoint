@@ -13,7 +13,7 @@ from pygame.math import Vector2
 
 from gameplay.combat.enemy import Enemy, _BASE_STATS
 from gameplay.combat.targeting import TowerGrid
-from gameplay.rotatable_object import RotatableObject, quantise_angle
+from gameplay.rotatable_object import RotatableObject
 from pygamine import load_image
 from pygamine import angle_of_delta, angle_between_points
 
@@ -116,14 +116,10 @@ class Tank(Enemy):
 
     # ── rendering hook ───────────────────────────────────────────────────────
 
-    def flash_parts(self) -> list[tuple[pygame.Surface, int, Vector2]]:
-        """A hit flashes the hull and the turret on it (draw_muzzle())."""
-        turret = (
-            self._muzzle_base,
-            quantise_angle(-self._muzzle_angle),
-            Vector2(self.position),
-        )
-        return [*super().flash_parts(), turret]
+    def flash_parts(self) -> list[tuple[pygame.Surface, Vector2]]:
+        """A hit flashes the hull and the turret on it, as draw_muzzle()
+        draws it."""
+        return [*super().flash_parts(), (self._muzzle_image, Vector2(self.position))]
 
     def draw_muzzle(self, surface: pygame.Surface, camera) -> None:
         scaled = camera.scale_image(self._muzzle_image)
@@ -161,8 +157,7 @@ class TankBullet(RotatableObject):
 
         delta = self.target_tower.position - self.position
         if delta.length() <= self.EXPLODE_DISTANCE:
-            self.target_tower.decrease_hp(self.damage)
-            ctx.target_hit(self.target_tower, self.position)  # cosmetic
+            self.target_tower.decrease_hp(self.damage, ctx, self.position)
             self._remove()
             return
 

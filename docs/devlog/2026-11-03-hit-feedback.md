@@ -50,13 +50,16 @@ Claude chose the numbers within that:
 | `MAX_EFFECTS` | 64 | Hits playing at once; past that a new hit shows nothing |
 
 A hit inside a target's interval shows nothing (neither flash nor spark). The flash covers every
-part of the target: a ground tower's platform and turret, a tank's hull and turret. Silhouettes are
-built once per source image (an LRU of `MAX_CACHED_SILHOUETTES`), and rotated ones come from the
-shared rotation cache, so nothing is rebuilt per frame.
+part of the target: a ground tower's platform and turret, a tank's hull and turret. Each silhouette
+is made from the surface actually drawn, rotation included, so the flash matches the sprite exactly.
+They are kept in the feedback's own LRU (`MAX_CACHED_SILHOUETTES`) keyed on that surface: an enemy
+keeps its rotated surface between turns and a turret's comes from the rotation cache, so they are
+built once. The tank turret's surface is rebuilt every tick, so its small silhouette is rebuilt
+each frame while it flashes.
 
 Where the spark sits: a missile or tank shell's position when it lands, the shooting tower for an
-instant hit (gun, cannon), and the bomb's landing point for a bomb (the center of an enemy right
-under it).
+instant hit (gun, cannon), and the bomb's landing point for a bomb, so each enemy in a splash
+sparks on the side facing the blast (an enemy right under it sparks on its center).
 
 The menu demo shows the same flash and sparks, with no sound. Nothing makes a sound: the issue's
 decision has none.
@@ -72,8 +75,8 @@ decision has none.
 
 `ui.hit_feedback.HitFeedback`, owned by the game and by the menu demo like `bomb_impacts`. A hit
 goes through a new `IGameContext.target_hit(target, hit_from)`: `Enemy.decrease_hp()` calls it
-(after its "still on the map" check, before the damage), and so does `TankBullet` when it hits a
-tower. It only records the hit; damage, kills, money and lives are untouched, and a test runs the
+(after its "still on the map" check, before the damage), and so does `BaseTower.decrease_hp()`
+when it applies damage (a tower without HP, the plane, shows nothing). It only records the hit; damage, kills, money and lives are untouched, and a test runs the
 same seeded battle with and without it and compares money, lives, every enemy's and tower's HP,
 kills and damage. A target that dies on the hit is simply not drawn any more; its record lets go of
 it when its interval ends.

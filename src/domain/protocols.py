@@ -35,8 +35,8 @@ class IGameContext(Protocol):
         ...
 
     def target_hit(self, target, hit_from) -> None:
-        """`target` (an enemy or a tower) took a hit from a shot at
-        `hit_from` (world, or None); shows the hit. Cosmetic only."""
+        """`target` (an enemy or a tower) took a hit from a shot or bomb at
+        `hit_from` (world); shows the hit. Cosmetic only."""
         ...
 
 

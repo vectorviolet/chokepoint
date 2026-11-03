@@ -165,7 +165,7 @@ def test_a_hit_flash_goes_right_over_its_target(
     tank.bullets.append(shot)
     battle.enemies.append(tank)
     for target in (tower, enemy, tank):
-        battle.target_hit(target, None)
+        battle.target_hit(target, target.position)
 
     drawn = record_layers(battle, battle.camera, monkeypatch)
 

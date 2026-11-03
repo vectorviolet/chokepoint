@@ -3,12 +3,14 @@ was hit.
 
 - The flash is a white silhouette of the target's sprite (every part of
   it: a ground tower's platform and turret, a tank's hull and turret)
-  drawn right over it for FLASH_MS. Silhouettes are built once per source
-  image and kept in a small LRU cache (MAX_CACHED_SILHOUETTES); a rotated
-  part takes its rotation from the shared rotation cache.
+  drawn right over it for FLASH_MS. Each silhouette is made from the very
+  surface drawn (rotation included), so it matches the sprite exactly, and
+  kept in this feedback's own LRU cache (MAX_CACHED_SILHOUETTES) keyed on
+  that surface: a sprite that keeps its drawn surface builds it once.
 - The spark is a few short rays bursting from the impact point: the edge
-  of the target facing the shot (IMPACT_REACH from its center), or its
-  center for a bomb that landed on top of it. Drawn procedurally, no asset.
+  of the target facing the shot or bomb (IMPACT_REACH from its center, or
+  less if the shot is closer; its center if the bomb landed right on it).
+  Drawn procedurally, no asset.
 
 Both are cosmetic and run on real time (frame_ms), like PlaceSellFeedback
 and BombImpactFeedback: they play out while the game is paused and x2/x4
@@ -39,8 +41,6 @@ import pygame
 from pygame.math import Vector2
 from pygamine import clamp01
 
-from gameplay.rotatable_object import cached_rotation
-
 FLASH_MS = 80  # real time the sprite shows white
 FLASH_ALPHA = 220  # the silhouette's opacity over the sprite (255: solid)
 
@@ -66,7 +66,7 @@ class Flashable(Protocol):
 
     position: Vector2
 
-    def flash_parts(self) -> list[tuple[pygame.Surface, int, Vector2]]: ...
+    def flash_parts(self) -> list[tuple[pygame.Surface, Vector2]]: ...
 
 
 @dataclass
@@ -87,12 +87,10 @@ def silhouette(image: pygame.Surface) -> pygame.Surface:
 
 
 def impact_point(target_pos, hit_from) -> Vector2:
-    """Where a hit from `hit_from` (a shot's position, or None) lands on a
+    """Where a hit from `hit_from` (a shot's or bomb's position) lands on a
     target centered at `target_pos`: IMPACT_REACH toward the shot, or less
-    if the shot is closer; the center when there's no direction."""
+    if the shot is closer; the center if the shot is right on it."""
     center = Vector2(target_pos)
-    if hit_from is None:
-        return center
     delta = Vector2(hit_from) - center
     distance = delta.length()
     if distance == 0:
@@ -116,8 +114,8 @@ class HitFeedback:
 
     # ── events ────────────────────────────────────────────────────────────────
 
-    def target_hit(self, target: Flashable, hit_from=None) -> bool:
-        """`target` took a hit from a shot at `hit_from` (world, or None).
+    def target_hit(self, target: Flashable, hit_from) -> bool:
+        """`target` took a hit from a shot or bomb at `hit_from` (world).
         Shows it unless the target showed one less than HIT_MIN_INTERVAL_MS
         ago or MAX_EFFECTS hits are playing. True if shown."""
         key = id(target)
@@ -141,12 +139,16 @@ class HitFeedback:
         speed, not stopped by pause). Forgets the hits whose rate-cap window
         is over (their flash and spark ended before)."""
         self.now_ms += frame_ms
+        if not self._hits:
+            return
         now_ms = self.now_ms
-        self._hits = {
-            key: hit
+        expired = [
+            key
             for key, hit in self._hits.items()
-            if now_ms - hit.born_ms < HIT_MIN_INTERVAL_MS
-        }
+            if now_ms - hit.born_ms >= HIT_MIN_INTERVAL_MS
+        ]
+        for key in expired:
+            del self._hits[key]
 
     def is_flashing(self, target) -> bool:
         hit = self._hits.get(id(target))
@@ -161,10 +163,8 @@ class HitFeedback:
         flashing, through the camera (follows zoom and scroll)."""
         if not self.is_flashing(target):
             return
-        for source, rotation, center in target.flash_parts():
-            white = self._silhouette(source)
-            if rotation:
-                white = cached_rotation(white, rotation)
+        for drawn, center in target.flash_parts():
+            white = self._silhouette(drawn)
             scaled = camera.scale_image(white)
             screen = camera.world_to_screen(center)
             surface.blit(scaled, scaled.get_rect(center=(int(screen.x), int(screen.y))))
@@ -194,14 +194,20 @@ class HitFeedback:
                 core = max(1, round(SPARK_WIDTH * (1 - 2 * t) * camera.scale))
                 pygame.draw.circle(surface, SPARK_CORE_COLOR, center, core)
 
-    def _silhouette(self, source: pygame.Surface) -> pygame.Surface:
+    def _silhouette(self, drawn: pygame.Surface) -> pygame.Surface:
+        """The silhouette of `drawn` (a surface as it is drawn), from the
+        LRU cache. Keyed on the surface itself: an enemy keeps its rotated
+        surface between turns, a turret's comes from the rotation cache, so
+        they hit the cache; a surface rebuilt every tick (a tank's turret)
+        builds a small one per frame while it flashes, and the bound keeps
+        those from piling up."""
         cache = self._silhouettes
-        white = cache.get(source)
+        white = cache.get(drawn)
         if white is None:
-            white = silhouette(source)
-            cache[source] = white
+            white = silhouette(drawn)
+            cache[drawn] = white
             if len(cache) > MAX_CACHED_SILHOUETTES:
                 cache.popitem(last=False)
         else:
-            cache.move_to_end(source)
+            cache.move_to_end(drawn)
         return white

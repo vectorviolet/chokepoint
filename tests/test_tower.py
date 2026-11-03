@@ -42,34 +42,35 @@ def test_plane_has_no_max_hp_and_ground_tower_does(tower_config, assets):
     assert ground.hp == ground.max_hp
 
 
-def test_decrease_hp_on_ground_tower_reduces_hp(tower_config, assets):
+def test_decrease_hp_on_ground_tower_reduces_hp(tower_config, assets, ctx):
     tower = make_tower(tower_config, assets)
     start_hp = tower.hp
 
-    tower.decrease_hp(10)
+    tower.decrease_hp(10, ctx)
 
     assert tower.hp == start_hp - 10
 
 
-def test_decrease_hp_on_plane_is_a_no_op(tower_config, assets):
+def test_decrease_hp_on_plane_is_a_no_op(tower_config, assets, ctx):
     plane = make_tower(tower_config, assets, tower_type=PLANE_TYPE)
-    plane.decrease_hp(9999)
+    plane.decrease_hp(9999, ctx)
+    assert ctx.hits == []  # nothing applied, nothing shown
     assert plane.hp is None
 
 
-def test_should_remove_once_hp_drops_to_zero_or_below(tower_config, assets):
+def test_should_remove_once_hp_drops_to_zero_or_below(tower_config, assets, ctx):
     tower = make_tower(tower_config, assets)
     assert not tower.should_remove()
 
-    tower.decrease_hp(tower.max_hp)
+    tower.decrease_hp(tower.max_hp, ctx)
     assert tower.should_remove()
 
 
-def test_plane_never_should_remove_from_hp(tower_config, assets):
+def test_plane_never_should_remove_from_hp(tower_config, assets, ctx):
     # Planes are invulnerable to Tank fire -- see Tank._nearest_tower, which
     # excludes max_hp=None towers from targeting entirely.
     plane = make_tower(tower_config, assets, tower_type=PLANE_TYPE)
-    plane.decrease_hp(9999)
+    plane.decrease_hp(9999, ctx)
     assert not plane.should_remove()
 
 
