@@ -64,6 +64,7 @@ def run_to_end_of_wave(new_game, fake_ticks, level=1):
     game = new_game()
     game._start_new_game()
     game.game_state.level = level
+    game.hud.refresh()  # set directly, not through advance_level()
     game.game_state.is_started = True
     play_until(game, fake_ticks, lambda: wave_fully_spawned(game))
     return game
@@ -115,18 +116,58 @@ def test_continuing_mid_wave_spawns_the_rest_of_it(new_game, fake_ticks):
     assert game.wave_manager._queue_index > spawned
 
 
+def win_the_run(new_game, fake_ticks):
+    """Plays round WIN_WAVE to its end and clears it: the victory popup."""
+    game = run_to_end_of_wave(new_game, fake_ticks, level=WIN_WAVE)
+    game.enemies.clear()
+    play_until(game, fake_ticks, lambda: game.game_state.has_won)
+    return game
+
+
+def test_clearing_the_win_wave_opens_the_popup_before_the_next_round(
+    new_game, fake_ticks
+):
+    game = win_the_run(new_game, fake_ticks)
+
+    assert game._victory_popup_open
+    assert not game.game_state.is_started
+    assert game.game_state.level == WIN_WAVE
+    assert game.hud.level_text.text == f"Round {WIN_WAVE}"
+    subtitle = game.panel_manager["game"]["victory_subtitle_text"]
+    assert subtitle.text == f"Round {WIN_WAVE} cleared"
+
+    play(game, fake_ticks, NEXT_WAVE_MS)  # the popup holds the run there
+    assert game.game_state.level == WIN_WAVE
+    assert not game.enemies
+
+
+def test_continue_on_the_victory_popup_starts_the_next_round(new_game, fake_ticks):
+    game = win_the_run(new_game, fake_ticks)
+
+    game._close_victory_popup()  # what CONTINUE (ENDLESS) does
+    game._set_started(True)
+    play(game, fake_ticks, NEXT_WAVE_MS)
+
+    assert game.game_state.level == WIN_WAVE + 1
+    assert game.hud.level_text.text == f"Round {WIN_WAVE + 1}"
+    assert game.enemies
+    assert not game._victory_popup_open
+
+
 def test_continuing_after_victory_goes_on_into_endless_mode(new_game, fake_ticks):
-    before = run_to_end_of_wave(new_game, fake_ticks, level=WIN_WAVE)
-    before.enemies.clear()
-    play_until(before, fake_ticks, lambda: before.game_state.has_won)
-    assert before.game_state.level == WIN_WAVE + 1
+    """A run saved on the victory popup (Main menu or Esc) loads at the end
+    of round WIN_WAVE, already won, and goes on to the next round."""
+    before = win_the_run(new_game, fake_ticks)
 
     game = continue_in_a_new_game(new_game, fake_ticks, before)
-    game._close_victory_popup()
-    play(game, fake_ticks, 3 * WaveManager.SPAWN_INTERVAL_MS)
+    assert game.game_state.has_won
+    assert game.game_state.level == WIN_WAVE
+    assert not game._victory_popup_open
+    play(game, fake_ticks, NEXT_WAVE_MS)
 
     assert game.game_state.level == WIN_WAVE + 1
     assert game.enemies
+    assert not game._victory_popup_open
 
 
 def test_continuing_between_endless_waves_starts_the_next_one(new_game, fake_ticks):

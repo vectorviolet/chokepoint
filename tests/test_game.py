@@ -16,7 +16,13 @@ import pygame
 import pytest
 from pygame import Rect
 
-from app.game import Game, WIN_WAVE, _VICTORY_POPUP_OBJECTS, _GAMEOVER_POPUP_OBJECTS
+from app.game import (
+    Game,
+    VICTORY_SUBTITLE,
+    WIN_WAVE,
+    _VICTORY_POPUP_OBJECTS,
+    _GAMEOVER_POPUP_OBJECTS,
+)
 from util.constants import TICK_MS, MAX_FRAME_MS
 from domain.game_state import GameState
 from pygamine import Application, Camera
@@ -136,34 +142,71 @@ def test_increase_money_delegates_to_game_state():
 # ── victory popup ────────────────────────────────────────────────────────────
 
 
-def test_reaching_the_win_wave_triggers_victory():
-    game = make_game()
+def test_clearing_the_win_wave_triggers_victory():
+    game = make_game(auto_pause=False)
+    game.game_state.level = WIN_WAVE
+    game.game_state.is_started = True
 
-    game._on_level_changed(WIN_WAVE + 1)
+    game._on_wave_cleared()
 
     assert game.game_state.has_won is True
     assert game.game_state.is_started is False
     assert game.panel_manager["game"]["start_pause_button_icon"].state is None
     assert game._victory_popup_open is True
     assert all(game.panel_manager["game"][n].active for n in _VICTORY_POPUP_OBJECTS)
+    # Before the next round: the counter still shows the round just cleared.
+    assert game.game_state.level == WIN_WAVE
 
 
-def test_a_normal_level_change_does_not_trigger_victory():
-    game = make_game()
+@pytest.mark.parametrize("level", [1, WIN_WAVE - 1, WIN_WAVE + 1])
+def test_clearing_another_wave_does_not_trigger_victory(level):
+    game = make_game(auto_pause=False)
+    game.game_state.level = level
+    game.game_state.is_started = True
 
-    game._on_level_changed(3)
+    game._on_wave_cleared()
 
     assert game.game_state.has_won is False
     assert game._victory_popup_open is False
+    assert game.game_state.is_started is True
 
 
 def test_already_won_does_not_retrigger_victory():
-    game = make_game()
+    game = make_game(auto_pause=False)
+    game.game_state.level = WIN_WAVE
     game.game_state.has_won = True
 
-    game._on_level_changed(WIN_WAVE + 1)  # should be a no-op, not re-open the popup
+    game._on_wave_cleared()  # should be a no-op, not re-open the popup
 
     assert game._victory_popup_open is False
+
+
+def test_with_auto_pause_on_clearing_the_win_wave_still_opens_the_popup():
+    game = make_game(auto_pause=True)
+    game.game_state.level = WIN_WAVE
+    game.game_state.is_started = True
+
+    game._on_wave_cleared()
+
+    assert game._victory_popup_open is True
+    assert game.game_state.is_started is False
+
+
+def test_reaching_the_round_after_the_win_wave_does_not_trigger_victory():
+    """The popup opened on clearing round WIN_WAVE; the next round starting
+    is just a round starting."""
+    game = make_game(auto_pause=False)
+
+    game.game_state.advance_level()  # no level listener opens it
+    game.game_state.level = WIN_WAVE
+    game.game_state.advance_level()
+
+    assert game._victory_popup_open is False
+    assert game.game_state.has_won is False
+
+
+def test_the_victory_subtitle_follows_win_wave():
+    assert VICTORY_SUBTITLE == f"Round {WIN_WAVE} cleared"
 
 
 def test_close_victory_popup_deactivates_every_victory_object():
