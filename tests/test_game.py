@@ -101,6 +101,7 @@ def make_game(**overrides):
     game = object.__new__(Game)
     game.game_state = GameState(start_money=500, start_lives=10)
     game.panel_manager = FakePanelManager({"game": make_game_panel()})
+    game._bind_popup_objects()
     game._victory_popup_open = False
     game._gameover_popup_open = False
     game.pause_panel = FakePausePanel()

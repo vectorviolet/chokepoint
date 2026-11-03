@@ -1,6 +1,6 @@
 import random
 from functools import partial
-from typing import Any, override
+from typing import override
 
 import pygame
 from pygame import Rect
@@ -47,7 +47,6 @@ from ui.buy_tooltip import BuyTooltip
 from ui.enemy_hp_label import EnemyHpLabel
 from ui.tower_info import TowerInfoPanel
 from ui.pause_panel import PAUSE_PANEL_OBJECTS, PausePanel
-from pygamine.ecs._dispatch import dispatch_draw
 from domain.game_state import GameState
 from pygamine import Transform
 from gameplay.tilemap import Tilemap
@@ -367,6 +366,20 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
         loader.load("config/panels.yaml")
         self.panel_manager["game"]["victory_subtitle_text"].set_text(VICTORY_SUBTITLE)
+        self._bind_popup_objects()
+
+    def _bind_popup_objects(self) -> None:
+        """Single source of truth for what draws last on the game panel: the
+        pause, victory and game over popups (the panels are rebuilt on every
+        canvas resize, so this re-runs from _load_panel_layout). Any new modal
+        on the game panel must be added here, or the run's effects draw over it."""
+        panel = self.panel_manager["game"]
+        names = (
+            *PAUSE_PANEL_OBJECTS,
+            *_VICTORY_POPUP_OBJECTS,
+            *_GAMEOVER_POPUP_OBJECTS,
+        )
+        self._popup_object_ids = {id(panel[name]) for name in names}
 
     def _refresh_window_size_label(self) -> None:
         w, h = self.resolution
@@ -645,25 +658,30 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         kill coins flying to the counter, which pops as they land), then the
         popups last (pause menu, victory, game over): nothing from the run
         is ever drawn over them."""
-        panel = self.panel_manager["game"]
-        popups = self._popup_objects()
+        objects = [
+            obj
+            for obj in self.panel_manager["game"].values()
+            if hasattr(obj, "draw") and getattr(obj, "active", True)
+        ]
+        popups = self._popup_object_ids
         with self.hud_slide.shifted():
-            dispatch_draw([o for o in panel.values() if o not in popups], canvas)
-            if not self.pause_panel.is_open:  # not over the menu's overlay
+            for obj in objects:
+                if id(obj) not in popups:
+                    obj.draw(canvas)
+            if not self._any_popup_open():  # not over a popup's overlay
                 self.tower_controller.draw_shortcuts(canvas)
                 self.tower_info.draw_hp_fill(canvas)
         self._draw_kill_coins()
-        dispatch_draw([o for o in panel.values() if o in popups], canvas)
+        for obj in objects:
+            if id(obj) in popups:
+                obj.draw(canvas)
 
-    def _popup_objects(self) -> list[Any]:
-        """The game panel's pause, victory and game over popup objects."""
-        panel = self.panel_manager["game"]
-        names = (
-            *PAUSE_PANEL_OBJECTS,
-            *_VICTORY_POPUP_OBJECTS,
-            *_GAMEOVER_POPUP_OBJECTS,
+    def _any_popup_open(self) -> bool:
+        return (
+            self.pause_panel.is_open
+            or self._victory_popup_open
+            or self._gameover_popup_open
         )
-        return [panel[name] for name in names]
 
     def _draw_game(self) -> None:
         canvas = self.window

@@ -321,6 +321,8 @@ def test_popups_are_drawn_after_the_kill_coins(game, monkeypatch, open_popup, pa
     real_coins = game.kill_feedback.draw_coins
     real_pop = game.kill_feedback.draw_pop
     real_bg = panel[panel_bg].draw
+    hud = panel["coin_image"]  # a HUD object, drawn with the rest of the panel
+    real_hud = hud.draw
     monkeypatch.setattr(
         game.kill_feedback,
         "draw_coins",
@@ -331,10 +333,11 @@ def test_popups_are_drawn_after_the_kill_coins(game, monkeypatch, open_popup, pa
         "draw_pop",
         lambda *a: (drawn.append("pop"), real_pop(*a))[1],
     )
+    monkeypatch.setattr(hud, "draw", lambda s: (drawn.append("hud"), real_hud(s))[1])
     monkeypatch.setattr(
         panel[panel_bg], "draw", lambda s: (drawn.append("popup"), real_bg(s))[1]
     )
 
     game.draw()
 
-    assert drawn == ["coins", "pop", "popup"]
+    assert drawn == ["hud", "coins", "pop", "popup"]
