@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import pygame
 from pygame import mixer
+from pygamine import clamp01
 
 ATTACK_MS = 80  # up to full strength
 FADE_MS = 320  # then back to nothing: ~0.4 s in all
@@ -54,7 +55,7 @@ class LifeLostFeedback:
         if self._elapsed_ms < ATTACK_MS:
             t = self._elapsed_ms / ATTACK_MS
             return self._from + (self._peak - self._from) * (1 - (1 - t) ** 2)
-        t = min(1.0, (self._elapsed_ms - ATTACK_MS) / FADE_MS)
+        t = clamp01((self._elapsed_ms - ATTACK_MS) / FADE_MS)
         return self._peak * (1 - t) ** 2
 
     @property

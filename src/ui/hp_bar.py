@@ -6,6 +6,7 @@ The bar scales with camera zoom and uses a 3-stop color ramp
 """
 
 import pygame
+from pygamine import clamp01
 
 BAR_WIDTH = 36
 BAR_HEIGHT = 4
@@ -44,7 +45,7 @@ def draw(
         return
     if not force and hp >= max_hp:
         return
-    ratio = max(0.0, min(1.0, hp / max_hp))
+    ratio = clamp01(hp / max_hp)
     x, y, w, h = bar_rect(camera, world_pos, offset)
 
     pygame.draw.rect(surface, BG_COLOR, (x, y, w, h))
