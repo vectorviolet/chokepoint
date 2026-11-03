@@ -197,6 +197,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - `balance_sim.py --watch --strategy <name>` plays one bot's run in a game window, in real time
   ([#103](https://github.com/vectorviolet/chokepoint/pull/103),
   [devlog](docs/devlog/2026-11-03-watch-the-bots-play.md)).
+- Dependabot opens one grouped PR a week with `uv.lock` updates (`.github/dependabot.yml`).
 
 ## [0.3.1] – 2026-10-25
 
