@@ -24,8 +24,9 @@ class GameEventsMixin:
         A button that isn't active (hidden with its tab or panel) never is."""
         if not button.active:
             # A press that began while the button was shown must not complete
-            # later, when it's shown again: forget it.
-            button._pressed = False
+            # later, when it's shown again. is_clicked() with no cursor
+            # position never activates, and a mouse release clears the press.
+            button.is_clicked(event, None)
             return False
         activated = button.is_clicked(event, self.mouse.position) or (
             event.type == pygame.KEYUP
