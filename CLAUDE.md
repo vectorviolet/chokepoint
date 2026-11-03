@@ -14,7 +14,7 @@ python __main__.py         # or: uv run python __main__.py
 ```bash
 uv run --group dev pytest tests/ -q -n auto               # fast: skips @pytest.mark.slow, in parallel
 uv run --group dev pytest tests/ -q -n auto -m ""         # full: what CI runs (slow tests too)
-uv run --group dev pytest tests/ --cov --cov-report=term  # with coverage (add -n auto to be quicker)
+uv run --group dev pytest tests/ -n auto -m "" --cov --cov-report=term  # coverage over the full suite, as CI
 ```
 
 Run the fast command while iterating and the full one before you report. `-n auto` is
