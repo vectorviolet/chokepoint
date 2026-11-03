@@ -3,6 +3,7 @@ strategy bots and writes per-wave numbers.
 
     uv run python scripts/balance_sim.py                       # every strategy
     uv run python scripts/balance_sim.py --strategy gun_spam --waves 10
+    uv run python scripts/balance_sim.py --watch --strategy gun_cannon
 
 Each strategy plays a fresh run in a real Game() -- the game's own
 towers, enemies, waves, money and lives -- with nothing drawn, ticking as
@@ -20,6 +21,12 @@ Saves: the Game() saves into a temporary folder (saves_redirected() from
 smoke_test.py, the same mechanism as the tests), and the script fails if
 the real saves/ changed. A lost run deletes its save like the real game,
 so this matters (see CLAUDE.md).
+
+--watch (issue #100) plays one --strategy in a game window instead, drawn
+by the game with its HUD, in real time (scripts/balance_watch.py). The run
+is the same as headless, step for step, while the speed stays at
+--game-speed (+/- in the window change the timing, so results can differ
+from then on); it writes no CSV or report.
 """
 
 from __future__ import annotations
@@ -30,10 +37,13 @@ import os
 import random
 import sys
 import time
+from collections.abc import Iterator
+from contextlib import chdir, contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 
-os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+# No sound. The video driver isn't set here: run() picks the dummy one for
+# headless runs (nothing drawn), and --watch keeps the real one.
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -56,6 +66,7 @@ from balance_bots import (  # noqa: E402
     plane_tile,
     rank_tiles,
 )
+from pygame.math import Vector2  # noqa: E402
 from util.constants import HALF_TILE, TILE_SIZE  # noqa: E402
 
 DEFAULT_WAVES = 40
@@ -88,6 +99,11 @@ def _sim_game_class():
             self.escaped += 1
             super()._on_enemy_escaped(enemy)
 
+        def game_tick(self) -> None:
+            """The game's own tick. StrategyRun.step() calls this, so a
+            watched game can route Game.update()'s ticks to step()."""
+            super()._tick()
+
     return SimGame
 
 
@@ -95,9 +111,11 @@ class Sim:
     """A bot's hands: applies its steps to the game with the game's own
     rules. Every purchase goes through here, so spending is tracked."""
 
-    def __init__(self, game, tiles: dict) -> None:
-        """`tiles`: rank_tiles() for this game's map and towers."""
+    def __init__(self, game, tiles: dict, *, keep_camera: bool = False) -> None:
+        """`tiles`: rank_tiles() for this game's map and towers.
+        `keep_camera`: put the camera back after each purchase."""
         self.game = game
+        self.keep_camera = keep_camera
         self.gs = game.game_state
         self.tiles = tiles
         self.plane_tile = plane_tile(game.tilemap)
@@ -130,10 +148,14 @@ class Sim:
         controller.buying_tower_type = tower_type
         # A click on the tile's center, with the camera brought over it.
         camera = self.game.camera
+        # center_on() moves only the offset, never the zoom.
+        view = Vector2(camera._offset) if self.keep_camera else None
         center = (col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
         camera.center_on(center)
         controller._handle_tower_purchase(tuple(camera.world_to_screen(center)))
         controller.buying_tower_type = 0
+        if view is not None:
+            camera._offset.update(view)
         if len(towers) == before:
             return False
         # The controller puts a ground tower first and a plane last.
@@ -247,46 +269,90 @@ class RunResult:
         return sum(1 for r in self.rows if r["cleared"])
 
 
-def run_strategy(
-    name: str,
-    waves: int = DEFAULT_WAVES,
-    seed: int = DEFAULT_SEED,
-    game_speed: int = DEFAULT_GAME_SPEED,
-    tiles: dict | None = None,
-) -> RunResult:
-    """Plays one run of strategy `name`. The caller has redirected saves
-    and set the cwd to the repo root. `tiles`: rank_tiles() for `seed`,
-    shared between runs (computed here if None)."""
-    started = time.perf_counter()
-    game = _sim_game_class()()
-    # The run never stops between waves. (A player's setting; with saves
-    # redirected, nothing here reaches their settings file.)
-    game.auto_pause = False
-    game._start_new_game()
-    gs = game.game_state
-    gs.speed = game_speed
-    if tiles is None:
-        tiles = rank_tiles(game.tilemap, game.tower_config, random.Random(seed))
-    sim = Sim(game, tiles)
-    bot = STRATEGIES[name]()
-    result = RunResult(name, tiles=tiles)
+class StrategyRun:
+    """One run of a strategy, played a tick at a time by step(): the
+    headless loop (run_strategy()) and a watched window (Watcher) drive the
+    same steps. The caller has redirected saves and set the cwd to the repo
+    root. `tiles`: rank_tiles() for `seed`, shared between runs (computed
+    here if None). `keep_camera`: a purchase leaves the camera where it was
+    (a watched run's view is the viewer's; headless runs leave it on the
+    last tile bought, as they always have)."""
 
-    wave_start = {
-        "money": gs.money,
-        "lives": gs.lives,
-        "spent": 0,
-        "time": 0.0,
-        "tick": 0,
-    }
-    previous = sim.totals()
+    def __init__(
+        self,
+        name: str,
+        waves: int = DEFAULT_WAVES,
+        seed: int = DEFAULT_SEED,
+        game_speed: int = DEFAULT_GAME_SPEED,
+        tiles: dict | None = None,
+        *,
+        game_class=None,
+        keep_camera: bool = False,
+    ) -> None:
+        self.waves = waves
+        self.game = game = (game_class or _sim_game_class())()
+        # The run never stops between waves. (A player's setting; with saves
+        # redirected, nothing here reaches their settings file.)
+        game.auto_pause = False
+        game._start_new_game()
+        self.gs = gs = game.game_state
+        gs.speed = game_speed
+        if tiles is None:
+            tiles = rank_tiles(game.tilemap, game.tower_config, random.Random(seed))
+        self.sim = Sim(game, tiles, keep_camera=keep_camera)
+        self.bot = STRATEGIES[name]()
+        self.result = RunResult(name, tiles=tiles)
+        self._wave_start = {
+            "money": gs.money,
+            "lives": gs.lives,
+            "spent": 0,
+            "time": 0.0,
+            "tick": 0,
+        }
+        self._previous = self.sim.totals()
+        gs.add_level_listener(lambda level: self._record(level - 1, cleared=True))
 
-    def spent_total() -> int:
-        return sum(sim.spent_by_type.values())
+        self.bot.act(self.sim)
+        game._set_started(True)
+        self._next_decision = gs.time_ms + DECISION_MS
 
-    def record(wave: int, cleared: bool) -> None:
-        nonlocal previous
+    @property
+    def finished(self) -> bool:
+        """--waves cleared, or the run lost."""
+        return self.result.died_at is not None or self.gs.level > self.waves
+
+    def spent(self) -> int:
+        """Everything spent so far: towers, upgrades, UPG PLANES."""
+        return sum(self.sim.spent_by_type.values())
+
+    def step(self) -> None:
+        """One game tick, then what the bot and the run do after it."""
+        game, gs, result = self.game, self.gs, self.result
+        game.game_tick()
+        result.ticks += 1
+        if game._victory_popup_open:  # wave 25 cleared: Continue
+            game._close_victory_popup()
+            game._set_started(True)
+        if game._gameover_popup_open:
+            result.died_at = gs.level
+            self._record(gs.level, cleared=False)
+            return
+        if gs.time_ms >= self._next_decision:
+            self.bot.act(self.sim)
+            self._next_decision = gs.time_ms + DECISION_MS
+        if result.ticks - self._wave_start["tick"] > MAX_WAVE_TICKS:
+            state = "running" if gs.is_started else "paused"
+            raise RuntimeError(
+                f"{result.strategy}: wave {gs.level} hasn't ended after "
+                f"{MAX_WAVE_TICKS} ticks (game {state}, {len(game.enemies)} "
+                "enemies on the path)"
+            )
+
+    def _record(self, wave: int, cleared: bool) -> None:
+        game, gs, sim = self.game, self.gs, self.sim
+        wave_start, previous = self._wave_start, self._previous
         now = sim.totals()
-        spent = spent_total() - wave_start["spent"]
+        spent = self.spent() - wave_start["spent"]
         lost = wave_start["lives"] - gs.lives
         row = {
             "wave": wave,
@@ -316,44 +382,36 @@ def run_strategy(
                 if sim.spent_by_type[t]
                 else ""
             )
-        result.rows.append(row)
-        bot.wave_ended(lost)
-        previous = now
+        self.result.rows.append(row)
+        self.bot.wave_ended(lost)
+        self._previous = now
         game.killed = game.escaped = 0
         wave_start.update(
             money=gs.money,
             lives=gs.lives,
-            spent=spent_total(),
+            spent=self.spent(),
             time=gs.time_ms,
-            tick=result.ticks,
+            tick=self.result.ticks,
         )
 
-    gs.add_level_listener(lambda level: record(level - 1, cleared=True))
 
-    bot.act(sim)
-    game._set_started(True)
-    next_decision = gs.time_ms + DECISION_MS
-    while gs.level <= waves:
-        game._tick()
-        result.ticks += 1
-        if game._victory_popup_open:  # wave 25 cleared: Continue
-            game._close_victory_popup()
-            game._set_started(True)
-        if game._gameover_popup_open:
-            result.died_at = gs.level
-            record(gs.level, cleared=False)
-            break
-        if gs.time_ms >= next_decision:
-            bot.act(sim)
-            next_decision = gs.time_ms + DECISION_MS
-        if result.ticks - wave_start["tick"] > MAX_WAVE_TICKS:
-            state = "running" if gs.is_started else "paused"
-            raise RuntimeError(
-                f"{name}: wave {gs.level} hasn't ended after {MAX_WAVE_TICKS} "
-                f"ticks (game {state}, {len(game.enemies)} enemies on the path)"
-            )
-    result.seconds = time.perf_counter() - started
-    return result
+def run_strategy(
+    name: str,
+    waves: int = DEFAULT_WAVES,
+    seed: int = DEFAULT_SEED,
+    game_speed: int = DEFAULT_GAME_SPEED,
+    tiles: dict | None = None,
+) -> RunResult:
+    """Plays one run of strategy `name` headless, as fast as the CPU
+    allows. The caller has redirected saves and set the cwd to the repo
+    root. `tiles`: rank_tiles() for `seed`, shared between runs (computed
+    here if None)."""
+    started = time.perf_counter()
+    run = StrategyRun(name, waves, seed, game_speed, tiles)
+    while not run.finished:
+        run.step()
+    run.result.seconds = time.perf_counter() - started
+    return run.result
 
 
 # ── output ───────────────────────────────────────────────────────────────────
@@ -527,27 +585,23 @@ def run(
     out: Path | None = None,
     report=print,
 ) -> list[RunResult]:
-    """Runs `strategies` in order, writing their output into `out` (if
-    given). Saves are redirected; fails if the real saves/ changed."""
-    from make_playtest_save import _cwd
-    from smoke_test import REAL_SAVES, saves_redirected, snapshot
-
+    """Runs `strategies` in order, headless, writing their output into
+    `out` (if given). Saves are redirected; fails if the real saves/
+    changed."""
+    # Nothing is drawn. (A test's conftest, or the caller, may have chosen
+    # the driver already.)
+    os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
     results = []
-    with _cwd(ROOT):
-        real_saves = ROOT / REAL_SAVES
-        before = snapshot(real_saves)
-        with saves_redirected():
-            tiles = None  # the same for every strategy: same map and seed
-            for name in strategies:
-                result = run_strategy(name, waves, seed, game_speed, tiles)
-                tiles = result.tiles
-                results.append(result)
-                report(
-                    f"{name}: {_reached(result, waves)}, "
-                    f"{result.ticks} ticks in {result.seconds:.1f} s"
-                )
-        if snapshot(real_saves) != before:
-            raise SystemExit(f"balance_sim FAILED: it changed {real_saves}")
+    with _saves_guarded():
+        tiles = None  # the same for every strategy: same map and seed
+        for name in strategies:
+            result = run_strategy(name, waves, seed, game_speed, tiles)
+            tiles = result.tiles
+            results.append(result)
+            report(
+                f"{name}: {_reached(result, waves)}, "
+                f"{result.ticks} ticks in {result.seconds:.1f} s"
+            )
     if out is not None:
         out = Path(out)
         out.mkdir(parents=True, exist_ok=True)
@@ -557,6 +611,62 @@ def run(
             results, out / "report.md", waves=waves, seed=seed, game_speed=game_speed
         )
     return results
+
+
+@contextmanager
+def _saves_guarded() -> Iterator[None]:
+    """Runs in the repo root with saves redirected to a temporary folder;
+    fails if the real saves/ changed all the same. (Not make_playtest_save's
+    _cwd(): importing that script picks the dummy video driver, which
+    would keep a --watch window from opening.)"""
+    from smoke_test import REAL_SAVES, saves_redirected, snapshot
+
+    with chdir(ROOT):
+        real_saves = ROOT / REAL_SAVES
+        before = snapshot(real_saves)
+        with saves_redirected():
+            yield
+        if snapshot(real_saves) != before:
+            raise SystemExit(f"balance_sim FAILED: it changed {real_saves}")
+
+
+def watch(
+    name: str,
+    *,
+    waves: int = DEFAULT_WAVES,
+    seed: int = DEFAULT_SEED,
+    game_speed: int = DEFAULT_GAME_SPEED,
+    frames: int | None = None,
+) -> StrategyRun:
+    """Plays strategy `name` in a game window (scripts/balance_watch.py)
+    until Esc or the window is closed, or `frames` frames are drawn (for
+    tests). View-only: nothing is written, and saves are redirected as for
+    run()."""
+    from balance_watch import Watcher, watched_game_class
+
+    with _saves_guarded():
+        run = StrategyRun(
+            name,
+            waves,
+            seed,
+            game_speed,
+            game_class=watched_game_class(_sim_game_class()),
+            keep_camera=True,
+        )
+        Watcher(run, lambda: watch_summary(run)).loop(frames)
+    return run
+
+
+def watch_summary(run: StrategyRun) -> list[str]:
+    """The lines a watched window shows once its run has ended."""
+    result = run.result
+    return [
+        f"{result.strategy}: {_reached(result, run.waves)}",
+        f"Waves cleared: {result.waves_cleared}",
+        f"Lives: {run.gs.lives}",
+        f"Money spent: {run.spent():,}",
+        "Esc to close",
+    ]
 
 
 def parse_args(argv=None) -> argparse.Namespace:
@@ -581,14 +691,34 @@ def parse_args(argv=None) -> argparse.Namespace:
         default=ROOT / "docs" / "balance",
         help="folder for the CSVs and report.md (default: docs/balance)",
     )
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="play one --strategy in a game window, in real time, writing "
+        "nothing (Space pause, +/- speed, F fast-forward, Esc quit)",
+    )
     args = parser.parse_args(argv)
     if args.waves < 1:
         parser.error("--waves must be 1 or more")
+    if args.watch and args.strategy is None:
+        parser.error("--watch needs exactly one --strategy")
     return args
 
 
-def main(argv=None) -> None:
+def main(argv=None, *, frames: int | None = None) -> None:
+    """`frames`: a watched run stops after this many frames (for tests)."""
     args = parse_args(argv)
+    if args.watch:
+        watched = watch(
+            args.strategy,
+            waves=args.waves,
+            seed=args.seed,
+            game_speed=args.game_speed,
+            frames=frames,
+        )
+        state = _reached(watched.result, args.waves) if watched.finished else "stopped"
+        print(f"{args.strategy}: {state} (watched; nothing written)")
+        return
     strategies = [args.strategy] if args.strategy else list(STRATEGIES)
     started = time.perf_counter()
     run(
