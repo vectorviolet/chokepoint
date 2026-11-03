@@ -16,6 +16,14 @@ uv run python scripts/balance_sim.py --strategy gun_cannon --waves 10  # one str
 
 Options: `--strategy` (one of the six below; default all), `--waves` (40), `--seed` (70),
 `--game-speed` (4, the game's x4; 1 or 2 also work) and `--out` (`docs/balance`, overwritten).
+
+To watch a bot play, `uv run python scripts/balance_sim.py --watch --strategy gun_cannon` opens a
+game window and plays that one strategy from wave 1 with the game's screen and HUD, in real time
+at `--game-speed` (x4 by default). Space pauses and resumes, + and - change the speed (x1, x2,
+x4), F toggles fast-forward and Esc or closing the window quits; the camera scrolls and zooms as in
+the game. When the run ends, a summary stays on screen (strategy, waves cleared, lives, money
+spent). A watched run plays exactly as the headless one, writes no CSV or report and also sends
+its saves to a temporary folder.
 The default run takes **8 to 11 minutes** on the machine below, depending on what else it is
 doing: 492 s on a quiet machine, 678 s for the run recorded here (gun_cannon 244 s, gun_spam
 157 s, missile 131 s, mixed 102 s, plane_spam 43 s, minimal 3 s). Late waves with hundreds of
