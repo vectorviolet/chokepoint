@@ -1,7 +1,7 @@
 # Hit feedback: white flash and spark
-<!-- index | refs: #84, PR #NNN -->
+<!-- index | refs: #84, PR #104 -->
 
-**Date:** 2026-11-03 · **Area:** Feel, feedback · **Issue:** [#84](https://github.com/vectorviolet/chokepoint/issues/84) · **PR:** [#NNN](https://github.com/vectorviolet/chokepoint/pull/NNN)
+**Date:** 2026-11-03 · **Area:** Feel, feedback · **Issue:** [#84](https://github.com/vectorviolet/chokepoint/issues/84) · **PR:** [#104](https://github.com/vectorviolet/chokepoint/pull/104)
 
 ## Context
 
