@@ -106,6 +106,10 @@ class FakeGame(GameSaveMixin):
     def _init_wave_manager(self) -> None:
         self.calls.append("_init_wave_manager")
 
+    def _open_victory_if_won(self) -> bool:
+        self.calls.append("_open_victory_if_won")
+        return False
+
     def _set_victory_popup_active(self, active) -> None:
         self.calls.append(("_set_victory_popup_active", active))
 
