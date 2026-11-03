@@ -3,6 +3,8 @@
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 from pygamine import SaveStore
 
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "smoke_test.py"
@@ -40,6 +42,7 @@ def test_snapshot_detects_any_byte_change(tmp_path):
     assert smoke.snapshot(saves) != before
 
 
+@pytest.mark.slow
 def test_smoke_test_leaves_real_saves_unchanged(tmp_path, monkeypatch):
     """Runs the whole smoke test with SaveStore's default directory set to a
     sentinel "real saves" folder (holding a save and settings), so only the

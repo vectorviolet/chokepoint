@@ -27,6 +27,7 @@ def _quiet(*args):
     pass
 
 
+@pytest.mark.slow
 def test_tiny_run_is_deterministic_and_writes_its_tables(sim, tmp_path):
     outputs = []
     for run in ("a", "b"):
@@ -276,6 +277,7 @@ def test_watch_keys_pause_change_speed_and_quit(sim, monkeypatch):
     assert not watcher.running
 
 
+@pytest.mark.slow
 def test_watched_run_matches_headless_and_shows_its_summary(sim, monkeypatch):
     watcher, pygame = _watcher(sim, monkeypatch)
     camera = watcher.game.camera

@@ -139,11 +139,13 @@ jobs:
           python-version: "3.12"
           enable-cache: true
 
+      # -m "" runs the tests marked slow too (the default run skips them);
+      # -n auto spreads the tests over the runner's cores (pytest-xdist).
       - name: Run pytest with coverage
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-        run: uv run --group dev pytest -q --cov --cov-report=json --cov-report=term
+        run: uv run --group dev pytest -q -m "" -n auto --cov --cov-report=json --cov-report=term
 
       # Only on a push to main -- never on PRs or merge_group runs. The badge
       # lives on the orphan `badges` branch, not on main: main's ruleset
