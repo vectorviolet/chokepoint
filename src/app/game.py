@@ -36,6 +36,11 @@ from util.config_loader import (
 )
 from pygamine import Camera
 from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS, WIN_WAVE
+
+# A mouse press this soon after the window regains focus after a focus-loss
+# pause is the click that refocused it, and is dropped. Later ones are the
+# player's (the focus may have come back without a click at all).
+REFOCUS_CLICK_WINDOW_MS = 250
 from pygamine import Debug
 from pygamine import SplashScreen, standard_splash_media
 from pygamine import SaveStore
@@ -163,7 +168,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._window_focused = True  # read from the real window below
         self._focus_lost_pending = False
         self._paused_by_focus_loss = False
-        self._swallow_press = False  # drop the press that refocuses the window
+        # Wall-clock ms until which a press is the refocusing click (dropped);
+        # None: nothing to drop.
+        self._swallow_press_until: int | None = None
         self._swallow_release = False
 
         self.save_store = SaveStore("save")
@@ -733,7 +740,11 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             # the window back must not land on it, so the first press is dropped.
             self._window_focused = True
             self._focus_lost_pending = False
-            self._swallow_press = self._paused_by_focus_loss
+            self._swallow_press_until = (
+                pygame.time.get_ticks() + REFOCUS_CLICK_WINDOW_MS
+                if self._paused_by_focus_loss
+                else None
+            )
             self._paused_by_focus_loss = False
             return
         if self._swallow_input(event):
@@ -771,13 +782,19 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self._paused_by_focus_loss = True
 
     def _swallow_input(self, event) -> bool:
-        """True for the first mouse press after a focus-loss pause got its
-        focus back, and for that press's release: clicking the window to
-        refocus it must not hit the pause menu's buttons."""
-        if event.type == pygame.MOUSEBUTTONDOWN and self._swallow_press:
-            self._swallow_press = False
-            self._swallow_release = True
-            return True
+        """True for a mouse press within REFOCUS_CLICK_WINDOW_MS of a
+        focus-loss pause getting its focus back, and for that press's
+        release: clicking the window to refocus it must not hit the pause
+        menu's buttons. A later press (focus came back without a click) is
+        the player's, and disarms this."""
+        if (
+            event.type == pygame.MOUSEBUTTONDOWN
+            and self._swallow_press_until is not None
+        ):
+            until, self._swallow_press_until = self._swallow_press_until, None
+            if pygame.time.get_ticks() <= until:
+                self._swallow_release = True
+                return True
         if event.type == pygame.MOUSEBUTTONUP and self._swallow_release:
             self._swallow_release = False
             return True

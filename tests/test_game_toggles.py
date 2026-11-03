@@ -287,6 +287,22 @@ def test_the_click_that_refocuses_does_not_hit_the_pause_menu(game, window_focus
     assert game.panel_manager.current_panel == "main_menu"
 
 
+def test_a_press_long_after_refocusing_without_a_click_is_not_swallowed(
+    game, window_focus, fake_ticks
+):
+    """Alt-tab or the taskbar brings the window back with no click; the
+    player's first deliberate click, on Resume, must work."""
+    start_battle(game)
+    lose_focus(game, window_focus)
+    regain_focus(game, window_focus)
+    fake_ticks["t"] += 1000
+    resume = game.panel_manager["game"]["pause_back"]
+
+    press_and_release(game, resume.rect.center)
+
+    assert not game.pause_panel.is_open
+
+
 def test_clicks_are_not_swallowed_after_an_ordinary_focus_change(game, window_focus):
     """Only a focus-loss pause arms it: here the pause menu was opened by the
     player and focus came and went."""
