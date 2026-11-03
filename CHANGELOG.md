@@ -169,6 +169,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 
 ### Development
 
+- A CodeRabbit config (`.coderabbit.yaml`) for a trial of automated PR reviews alongside the
+  lead's review ([#124](https://github.com/vectorviolet/chokepoint/pull/124)).
 - An illustrated devlog and architecture decision records, with generated indexes checked in CI
   ([#68](https://github.com/vectorviolet/chokepoint/pull/68),
   [#76](https://github.com/vectorviolet/chokepoint/pull/76)).
