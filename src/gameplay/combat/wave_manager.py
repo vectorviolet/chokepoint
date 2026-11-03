@@ -32,8 +32,8 @@ class WaveManager:
         self._queue_index: int = 0
         self._spawn_interval_ms: int = self.SPAWN_INTERVAL_MS
         # Called once per wave, the moment it is cleared: its spawn queue
-        # has run out and no enemy is left. The game's auto-pause hangs off
-        # it; the menu demo leaves it unset.
+        # has run out and no enemy is left. The game's victory check and
+        # auto-pause hang off it; the menu demo leaves it unset.
         self.on_wave_cleared: Callable[[], None] | None = None
         self._clear_announced: bool = False
 

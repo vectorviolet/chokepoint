@@ -90,6 +90,12 @@ class GameSaveMixin:
 
         self._victory_popup_open = False
         self._gameover_popup_open = False
+        if self.wave_manager._clear_announced:
+            # Saved with its wave already cleared, so the wave-cleared hook
+            # won't fire for it: if that was round WIN_WAVE and the run isn't
+            # won yet (a save from before the popup moved to the clear), the
+            # popup opens now, before the next round can start.
+            self._open_victory_if_won()
         self.tower_controller.buying_tower_type = 0
         self.kill_feedback.clear()
         self.place_sell_feedback.clear()
@@ -167,7 +173,8 @@ class GameSaveMixin:
         wm._last_spawn_time = now
         wm._level_finish_time = now if saved.get("level_finish_pending") else None
         # A run saved after its wave was cleared continues paused at that
-        # point already: auto-pause mustn't stop it again once it's started.
+        # point already: the wave-cleared hook (auto-pause, and the victory
+        # check, which _load_game makes itself) mustn't fire again for it.
         wm._clear_announced = wm._level_finish_time is not None and not self.enemies
 
     # ── new game ─────────────────────────────────────────────────────────────

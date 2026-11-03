@@ -757,7 +757,7 @@ panels:
         color: white
         parent: victory_panel_bg
         position: [CENTER, 140]
-        text: "Round 25 cleared"
+        text: ""  # set by Game from WIN_WAVE (VICTORY_SUBTITLE)
 
       victory_buttons:
         parent: victory_panel_bg
