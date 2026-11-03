@@ -189,6 +189,22 @@ class Bomb(RotatableObject):
         if self._velocity.length_squared() > 0:
             self.rotate_to_delta(self._velocity)
 
+    @classmethod
+    def landing_offset(cls, drop_velocity: Vector2, game_speed: float) -> Vector2:
+        """The farthest a bomb dropped with `drop_velocity` drifts before it
+        lands, while the game speed doesn't exceed `game_speed` (update():
+        each tick it moves by velocity * speed, then drag scales the
+        velocity by DRAG**speed).
+
+        The geometric series' limit, velocity * speed / (1 - DRAG**speed).
+        A fall at exactly `game_speed` comes within 0.1 px of it (the ticks
+        after FALL_DURATION_MS would add the rest). Any slower tick, or a
+        speed change mid-fall, covers less: speed / (1 - DRAG**speed) grows
+        with the speed. So it is an upper bound however game time rounds
+        into ticks."""
+        assert game_speed > 0  # bombs only fall while the game runs
+        return drop_velocity * game_speed / (1 - cls.DRAG**game_speed)
+
     def _scale_sprite(self) -> None:
         renderer = self._sprite_renderer()
         src = renderer.image

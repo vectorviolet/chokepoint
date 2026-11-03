@@ -1,5 +1,6 @@
 from pygame.math import Vector2
 
+from app.game_events import SPEED_BUTTON_STATES
 from gameplay.combat.enemy import Enemy
 from gameplay.combat.tank import Tank
 from gameplay.combat.wave_manager import TANK_TYPES
@@ -209,7 +210,7 @@ class GameSaveMixin:
             "pause" if self.game_state.is_started else None
         )
         panel["speed_toggle_button"].set_state(
-            {1: None, 2: "x2_active", 4: "x4_active"}.get(self.game_state.speed)
+            SPEED_BUTTON_STATES.get(self.game_state.speed)
         )
         self._refresh_auto_pause_button()
         self._refresh_keep_placing_button()

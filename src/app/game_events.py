@@ -1,5 +1,11 @@
 import pygame
 
+from util.constants import GAME_SPEEDS
+
+# The speed button's state at each game speed (None: its x1 look).
+SPEED_BUTTON_STATES: dict[int, str | None] = {1: None, 2: "x2_active", 4: "x4_active"}
+assert set(SPEED_BUTTON_STATES) == set(GAME_SPEEDS)  # one look per speed
+
 
 class GameEventsMixin:
     """Per-panel input dispatch for Game.
@@ -296,13 +302,12 @@ class GameEventsMixin:
         button = panel["speed_toggle_button"]
         if not self._activate(button, event):
             return
-        speeds: dict[int, tuple[int, str | None]] = {
-            1: (2, "x2_active"),
-            2: (4, "x4_active"),
-        }
-        next_speed, next_state = speeds.get(self.game_state.speed, (1, None))
+        # x1 -> x2 -> x4 -> x1; an unknown speed goes back to x1.
+        speed = self.game_state.speed
+        index = GAME_SPEEDS.index(speed) if speed in GAME_SPEEDS else -1
+        next_speed = GAME_SPEEDS[(index + 1) % len(GAME_SPEEDS)]
         self.game_state.speed = next_speed
-        button.set_state(next_state)
+        button.set_state(SPEED_BUTTON_STATES[next_speed])
 
     def _toggle_music(self) -> None:
         """The menus' music button and the pause menu's Music: one switch,

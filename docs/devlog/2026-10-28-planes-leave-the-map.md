@@ -37,14 +37,17 @@ planes' draw layer, above enemies and bomb explosions, so they don't jump under 
 
 ## Bombs near the edge
 
-**Pending owner decision.** While its sprite slides off, does the plane keep bombing? A bomb keeps
+While its sprite slides off, does the plane keep bombing? A bomb keeps
 the plane's speed with drag 0.94 per tick, so it lands about `speed / (1 - drag)` ≈ 17 × speed px
 ahead of where it was dropped. The options are:
 
 - **(a)** Keep bombing until the plane is removed. Some bombs land off the map.
-- **(b)** Stop once the plane's center is past the edge. This is what PR #66 does for now. The last
+- **(b)** Stop once the plane's center is past the edge. This is what PR #66 did until PR #97. The last
   bombs can still land up to about 17 × speed px past the edge.
 - **(c)** Drop only bombs whose predicted landing point is on the map.
+
+**Decided:** (c), by the owner on 2026-11-03 ([#94](https://github.com/vectorviolet/chokepoint/issues/94),
+PR #97; see [Planes drop only bombs that land on the map](2026-11-03-bombs-land-on-the-map.md)).
 
 ## Rejected alternatives
 
