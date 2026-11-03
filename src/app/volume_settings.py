@@ -6,6 +6,8 @@ its objects in config/panels.yaml and its default in config/settings.yaml)."""
 import math
 from dataclasses import dataclass
 
+from pygamine import clamp01
+
 
 @dataclass(frozen=True)
 class VolumeSetting:
@@ -37,4 +39,4 @@ def saved_volume(saved: dict, key: str, default: float) -> float:
         return default
     if math.isnan(value):
         return default
-    return max(0.0, min(1.0, float(value)))
+    return clamp01(float(value))

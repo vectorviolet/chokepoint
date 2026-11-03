@@ -30,9 +30,8 @@ class Projectile(RotatableObject):
             self._attach_trail_flame(tower)
 
     def _attach_trail_flame(self, tower) -> None:
-        renderer = self._sprite_renderer()
-        missile = renderer.image
-        assert missile is not None
+        renderer = self._renderer
+        missile = self._sprite_image()
         flame_key = f"muzzle_flash_3_lvl{min(tower.level, 2)}"
         flame_src = tower.assets.get_image(flame_key)
         flame_w = max(1, int(missile.get_width() * self.FLAME_SCALE))
@@ -206,9 +205,8 @@ class Bomb(RotatableObject):
         return drop_velocity * game_speed / (1 - cls.DRAG**game_speed)
 
     def _scale_sprite(self) -> None:
-        renderer = self._sprite_renderer()
-        src = renderer.image
-        assert src is not None
+        renderer = self._renderer
+        src = self._sprite_image()
         scaled_size = (
             max(1, int(src.get_width() * self.SPRITE_SCALE)),
             max(1, int(src.get_height() * self.SPRITE_SCALE)),

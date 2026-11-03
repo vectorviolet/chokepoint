@@ -16,7 +16,7 @@ like the in-world HP bars).
 """
 
 import pygame
-from pygamine import PanelManager
+from pygamine import PanelManager, clamp01
 
 from ui import hp_bar
 from util.constants import TICKS_PER_SECOND, TILE_SIZE
@@ -194,7 +194,7 @@ class TowerInfoPanel:
         tower = self.tower
         if tower is None or tower.hp is None or not tower.max_hp:
             return
-        ratio = max(0.0, min(1.0, tower.hp / tower.max_hp))
+        ratio = clamp01(tower.hp / tower.max_hp)
         bar = self._hp_bar.rect
         fill = (bar.x, bar.y, round(bar.width * ratio), bar.height)
         pygame.draw.rect(surface, hp_bar.health_color(ratio), fill)

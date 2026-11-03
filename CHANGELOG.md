@@ -144,6 +144,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#73](https://github.com/vectorviolet/chokepoint/pull/73)).
 - A click placed a tower on the tile under last frame's cursor, which was wrong after a scroll and
   crashed before the first frame ([#91](https://github.com/vectorviolet/chokepoint/pull/91)).
+- Planes drop only bombs that land on the map; the last bombs used to land past the right edge
+  ([#97](https://github.com/vectorviolet/chokepoint/pull/97),
+  [devlog](docs/devlog/2026-11-03-bombs-land-on-the-map.md)).
 
 ### Development
 
@@ -182,6 +185,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   [9f67bda](https://github.com/vectorviolet/chokepoint/commit/9f67bda)).
 - Dependencies: Pillow 13.0.0 ([#80](https://github.com/vectorviolet/chokepoint/pull/80)),
   setuptools locked at 84.2.1 ([5a3828a](https://github.com/vectorviolet/chokepoint/commit/5a3828a)).
+- pygamine updated to 0.28.0: sprites and the window are used without Optional checks
+  (`require_image()`, the renderer StateObject keeps, the non-Optional window), and the 0-1 clamps
+  use `clamp01()` ([#PR](https://github.com/vectorviolet/chokepoint/pull/PR)).
 
 ## [0.3.1] – 2026-10-25
 

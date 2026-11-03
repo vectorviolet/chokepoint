@@ -7,7 +7,6 @@ from pygame.math import Vector2
 
 from pygamine import angle_of_delta
 from pygamine import ImagePath, PathLike
-from pygamine import SpriteRenderer2D
 from pygamine import StateObject
 
 
@@ -130,17 +129,10 @@ class RotatableObject(StateObject):
         self.rect.center = self.position
         self.is_rotated = True
 
-    def _sprite_renderer(self) -> SpriteRenderer2D:
-        """The sprite renderer every RotatableObject is built with."""
-        renderer = self.get_component(SpriteRenderer2D)
-        assert renderer is not None
-        return renderer
-
     def _sprite_image(self) -> pygame.Surface:
-        """The unrotated sprite: every RotatableObject is built with one."""
-        image = self._sprite_renderer().image
-        assert image is not None
-        return image
+        """The unrotated sprite: every RotatableObject is built with one, in
+        the SpriteRenderer2D that StateObject keeps as `_renderer`."""
+        return self._renderer.require_image()
 
     @override
     def draw(self, surface: pygame.Surface) -> None:
