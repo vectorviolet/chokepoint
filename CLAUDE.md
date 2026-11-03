@@ -104,6 +104,12 @@ made it, rejected alternatives, result). Architecture and system choices get an 
 `docs/decisions/` (`NNNN-title.md`). Images are PNGs of this game in `docs/devlog/img/`, at most
 1280 px wide. Templates are in both READMEs. `CHANGELOG.md` stays short.
 
+Every PR also adds one short line under `## [Unreleased]` in `CHANGELOG.md`, linking the PR and
+its devlog entry if it has one: user-visible changes under Added / Changed / Removed / Fixed (Keep a
+Changelog order), tooling, CI and docs under "Development", the last section. Append the line at the
+end of its subsection; when two PRs both add lines, the second to merge resolves the conflict while
+rebasing on `main`, which is expected.
+
 The index tables in `docs/devlog/README.md` and `docs/decisions/README.md` are generated: add your
 entry file (with its `<!-- index | refs: #N, PR #M -->` line under the title), run
 `uv run python scripts/gen_devlog_index.py`, and commit the README with it. Never edit a table by
