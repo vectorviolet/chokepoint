@@ -1,5 +1,6 @@
-"""The battle's layers (#55, #60, #84): ground towers, then enemies (a hit
-one's flash right over it), then bomb explosions and hit sparks, then
+"""The battle's layers (#55, #60, #84, #85): a destroyed tower's rubble
+under everything, then ground towers, then enemies (a hit one's flash right
+over it), then bomb and death explosions and hit sparks, then
 planes (they fly), then HP bars on top; a plane's falling bombs under the
 plane, and a departed plane's bombs still in the planes' layer. Checked in
 the real game (saves in a temporary directory) and in the menu demo, by
@@ -51,6 +52,7 @@ def stage(battle, tower_config, assets):
     battle.enemies.clear()
     battle.bomb_impacts.clear()
     battle.hit_feedback.clear()
+    battle.death_feedback.clear()
 
     tower = TowerFactory.create(
         GROUND_TYPE, 10, 10, tower_config, assets, None, map_width=3008
@@ -69,13 +71,16 @@ def stage(battle, tower_config, assets):
     battle.towers.extend([tower, plane])
     battle.enemies.append(enemy)
     battle.bomb_impacts.bomb_landed((700, 700), 96)
+    battle.death_feedback.enemy_died((700, 700), is_tank=False)
+    battle.death_feedback.tower_destroyed((700, 700))
     return tower, plane, bomb, enemy
 
 
 def record_layers(battle, camera, monkeypatch):
     """Draw the battle once; return what was drawn, in order: entities
-    drawn through the camera, "explosions", ("flash", target) per hit
-    flash, "sparks", and ("hp", position) per bar."""
+    drawn through the camera, "decals", "explosions", "blasts",
+    ("flash", target) per hit flash, "sparks", and ("hp", position) per
+    bar."""
     drawn = []
     camera_draw = camera.draw
 
@@ -107,6 +112,19 @@ def record_layers(battle, camera, monkeypatch):
         drawn.append("sparks")
         return sparks_draw(self, surface, cam)
 
+    deaths = type(battle.death_feedback)
+    decals_draw, blasts_draw = deaths.draw_decals, deaths.draw_blasts
+
+    def spy_decals_draw(self, surface, cam):
+        drawn.append("decals")
+        return decals_draw(self, surface, cam)
+
+    def spy_blasts_draw(self, surface, cam):
+        drawn.append("blasts")
+        return blasts_draw(self, surface, cam)
+
+    monkeypatch.setattr(deaths, "draw_decals", spy_decals_draw)
+    monkeypatch.setattr(deaths, "draw_blasts", spy_blasts_draw)
     monkeypatch.setattr(hits, "draw_flash", spy_flash_draw)
     monkeypatch.setattr(hits, "draw_sparks", spy_sparks_draw)
     monkeypatch.setattr(camera, "draw", spy_camera_draw)
@@ -252,3 +270,31 @@ def test_a_planes_bombs_fall_under_it(battle, tower_config, assets, monkeypatch)
 
     assert index_of(drawn, bomb) < index_of(drawn, plane)
     assert sum(x is bomb for x in drawn) == 1  # drawn once, not again on top
+
+
+def test_rubble_goes_under_towers_and_enemies(
+    battle, tower_config, assets, monkeypatch
+):
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    decals = drawn.index("decals")
+    assert decals < index_of(drawn, tower)
+    assert decals < index_of(drawn, enemy)
+
+
+def test_death_blasts_go_with_the_bomb_explosions(
+    battle, tower_config, assets, monkeypatch
+):
+    tower, plane, bomb, enemy = stage(battle, tower_config, assets)
+    battle.target_hit(enemy, (650, 700))
+
+    drawn = record_layers(battle, battle.camera, monkeypatch)
+
+    blasts = drawn.index("blasts")
+    assert index_of(drawn, tower) < blasts
+    assert index_of(drawn, enemy) < blasts
+    assert drawn.index("explosions") + 1 == blasts  # right with them
+    assert blasts < drawn.index("sparks") < index_of(drawn, plane)
+    assert blasts < index_of(drawn, ("hp", tuple(enemy.position)))

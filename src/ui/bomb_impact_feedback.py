@@ -50,6 +50,84 @@ class _Explosion:
     born_ms: float  # on the feedback's own real-time clock
 
 
+class SfxRateCap:
+    """Plays one sound through the SFX pool, at most once per
+    SOUND_MIN_GAP_MS and SOUNDS_PER_WINDOW times within SOUND_WINDOW_MS of
+    the caller's real-time clock. Shared by the bomb impacts and the death
+    effects (ui.death_feedback), each with its own cap."""
+
+    def __init__(self, play_sfx: Callable[[str], object] | None, sound) -> None:
+        """play_sfx: GameAudio.play_sfx, or None for no sound at all (the
+        menu demo); sound: the sound file's path, or None."""
+        self._play_sfx = play_sfx
+        self._sound = str(sound) if sound is not None else None
+        self._starts: deque[float] = deque()  # real time, oldest first
+
+    def clear(self) -> None:
+        self._starts.clear()
+
+    def play(self, now_ms: float) -> bool:
+        """Plays the sound unless it's over the cap at `now_ms`. True if it
+        started."""
+        if self._play_sfx is None or self._sound is None:
+            return False
+        starts = self._starts
+        while starts and now_ms - starts[0] >= SOUND_WINDOW_MS:
+            starts.popleft()
+        if starts and now_ms - starts[-1] < SOUND_MIN_GAP_MS:
+            return False
+        if len(starts) >= SOUNDS_PER_WINDOW:
+            return False
+        if self._play_sfx(self._sound) is None:  # None: the pool dropped it
+            return False
+        starts.append(now_ms)
+        return True
+
+
+class ExplosionFrames:
+    """The explosion animation -- smoke with the fireball on top -- built
+    once per world size from the explosion_* and black_smoke_* images."""
+
+    def __init__(self, assets) -> None:
+        self._explosion_images = [
+            assets.get_image(f"explosion_{i}") for i in range(EXPLOSION_FRAMES)
+        ]
+        self._smoke_images = [
+            assets.get_image(f"black_smoke_{i}") for i in range(TOTAL_FRAMES)
+        ]
+        self._frames_by_size: dict[int, list[pygame.Surface]] = {}
+
+    def frames(self, size: int) -> list[pygame.Surface]:
+        """TOTAL_FRAMES frames, `size` px square."""
+        frames = self._frames_by_size.get(size)
+        if frames is None:
+            target = (size, size)
+            frames = []
+            for i in range(TOTAL_FRAMES):
+                frame = pygame.Surface(target, pygame.SRCALPHA)
+                smoke = pygame.transform.smoothscale(self._smoke_images[i], target)
+                frame.blit(smoke, (0, 0))
+                if i < EXPLOSION_FRAMES:
+                    fire = pygame.transform.smoothscale(
+                        self._explosion_images[i], target
+                    )
+                    frame.blit(fire, (0, 0))
+                frames.append(frame)
+            self._frames_by_size[size] = frames
+        return frames
+
+
+def draw_explosion(
+    surface: pygame.Surface, camera, frame: pygame.Surface, position
+) -> None:
+    """One explosion frame centered on `position` (world), through the
+    camera (follows zoom and scroll)."""
+    size = max(1, round(frame.get_width() * camera.scale))
+    scaled = pygame.transform.scale(frame, (size, size))
+    screen = camera.world_to_screen(position)
+    surface.blit(scaled, scaled.get_rect(center=(screen.x, screen.y)))
+
+
 class BombImpactFeedback:
     def __init__(
         self,
@@ -60,22 +138,14 @@ class BombImpactFeedback:
         """assets: the AssetManager (explosion_* and black_smoke_* images).
         play_sfx: plays a sound file at the SFX volume (GameAudio.play_sfx),
         or None for no sound at all (the menu demo)."""
-        self._explosion_images = [
-            assets.get_image(f"explosion_{i}") for i in range(EXPLOSION_FRAMES)
-        ]
-        self._smoke_images = [
-            assets.get_image(f"black_smoke_{i}") for i in range(TOTAL_FRAMES)
-        ]
-        self._frames_by_size: dict[int, list[pygame.Surface]] = {}
-        self._play_sfx = play_sfx
-        self._sound = str(sound) if sound is not None else None
+        self._frames_cache = ExplosionFrames(assets)
+        self._sound_cap = SfxRateCap(play_sfx, sound)
         self.explosions: list[_Explosion] = []
         self.now_ms = 0.0  # real time, advanced by update()
-        self._sound_starts: deque[float] = deque()  # real time, oldest first
 
     def clear(self) -> None:
         self.explosions.clear()
-        self._sound_starts.clear()
+        self._sound_cap.clear()
 
     # ── events ────────────────────────────────────────────────────────────────
 
@@ -84,21 +154,7 @@ class BombImpactFeedback:
         if len(self.explosions) >= MAX_EXPLOSIONS:
             self.explosions.pop(0)
         self.explosions.append(_Explosion(Vector2(world_pos), radius, self.now_ms))
-        self._maybe_play_sound()
-
-    def _maybe_play_sound(self) -> None:
-        if self._play_sfx is None or self._sound is None:
-            return
-        now_ms = self.now_ms
-        starts = self._sound_starts
-        while starts and now_ms - starts[0] >= SOUND_WINDOW_MS:
-            starts.popleft()
-        if starts and now_ms - starts[-1] < SOUND_MIN_GAP_MS:
-            return
-        if len(starts) >= SOUNDS_PER_WINDOW:
-            return
-        if self._play_sfx(self._sound) is not None:  # None: the pool dropped it
-            starts.append(now_ms)
+        self._sound_cap.play(self.now_ms)
 
     # ── update / draw ─────────────────────────────────────────────────────────
 
@@ -124,26 +180,7 @@ class BombImpactFeedback:
         for explosion in self.explosions:
             frames = self._frames(self.world_size(explosion.radius))
             frame = frames[self.frame_index(explosion)]
-            size = max(1, round(frame.get_width() * camera.scale))
-            scaled = pygame.transform.scale(frame, (size, size))
-            screen = camera.world_to_screen(explosion.position)
-            surface.blit(scaled, scaled.get_rect(center=(screen.x, screen.y)))
+            draw_explosion(surface, camera, frame, explosion.position)
 
     def _frames(self, size: int) -> list[pygame.Surface]:
-        """Smoke with the fireball on top, built once per world size."""
-        frames = self._frames_by_size.get(size)
-        if frames is None:
-            target = (size, size)
-            frames = []
-            for i in range(TOTAL_FRAMES):
-                frame = pygame.Surface(target, pygame.SRCALPHA)
-                smoke = pygame.transform.smoothscale(self._smoke_images[i], target)
-                frame.blit(smoke, (0, 0))
-                if i < EXPLOSION_FRAMES:
-                    fire = pygame.transform.smoothscale(
-                        self._explosion_images[i], target
-                    )
-                    frame.blit(fire, (0, 0))
-                frames.append(frame)
-            self._frames_by_size[size] = frames
-        return frames
+        return self._frames_cache.frames(size)

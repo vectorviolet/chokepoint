@@ -25,6 +25,7 @@ from domain.game_state import GameState, TowerConfig
 from gameplay.battle import BattleSimulation
 from gameplay.path_geometry import tiles_near_path
 from ui.bomb_impact_feedback import BombImpactFeedback
+from ui.death_feedback import DeathFeedback
 from ui.hit_feedback import HitFeedback
 from gameplay.combat.wave_manager import WaveManager
 from pygamine import Camera
@@ -101,6 +102,9 @@ class MenuDemo(BattleSimulation):
             rng=random.Random(self._rng.random())
         )
 
+        # Death explosions and rubble, silent like the bombs.
+        self.death_feedback: DeathFeedback = DeathFeedback(assets, play_sfx=None)
+
         self.view = Rect(0, 0, *size)
         self.camera = Camera(self.view, tilemap.map_width, tilemap.map_height)
         self._candidate_tiles = self._tiles_along_path()
@@ -121,6 +125,7 @@ class MenuDemo(BattleSimulation):
         dt = frame_ms / 1000
         self.bomb_impacts.update(frame_ms)
         self.hit_feedback.update(frame_ms)
+        self.death_feedback.update(frame_ms)
         if self._fading_out:
             self._fade = min(1.0, self._fade + dt / FADE_S)
             if self._fade >= 1.0:
@@ -184,6 +189,7 @@ class MenuDemo(BattleSimulation):
             self._tick()
         self.bomb_impacts.clear()  # bombs that landed while pre-warming
         self.hit_feedback.clear()  # and hits
+        self.death_feedback.clear()  # and deaths
 
         self._camera_target = self._pick_camera_target()
         self._camera_pos = Vector2(self._target_position())

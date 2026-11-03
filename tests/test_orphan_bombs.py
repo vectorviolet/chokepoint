@@ -43,7 +43,7 @@ def played(game, monkeypatch):
         calls.append(path)
         return object()
 
-    monkeypatch.setattr(game.bomb_impacts, "_play_sfx", spy)
+    monkeypatch.setattr(game.bomb_impacts._sound_cap, "_play_sfx", spy)
     return calls
 
 

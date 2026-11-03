@@ -81,6 +81,10 @@ images:
   black_smoke_11:    {folder: effects/smoke, name: blackSmoke11}
   black_smoke_12:    {folder: effects/smoke, name: blackSmoke12}
 
+  # ── Death effects: a destroyed tower's scorched rubble (#85) ──────────
+  scorch_decal:      {folder: effects/decals, name: scorch_01}
+  rubble_decal:      {folder: effects/decals, name: dirt_03}
+
 
   # ── Enemy sprites ─────────────────────────────────────────────────────
   enemy_1:           {folder: enemies, name: E1}
@@ -134,4 +138,6 @@ sounds:
   tower_placed:      {folder: sfx, name: impactPlank_medium_001}
   tower_sold:        {folder: sfx, name: impactMetal_light_000}
   bomb_impact:       {folder: sfx, name: explosionCrunch_002}
+  enemy_destroyed:   {folder: sfx, name: explosionCrunch_000}
+  heavy_destroyed:   {folder: sfx, name: lowFrequency_explosion_001}
   denied:            {folder: sfx, name: error_008}

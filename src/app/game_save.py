@@ -101,6 +101,7 @@ class GameSaveMixin:
         self.place_sell_feedback.clear()
         self.bomb_impacts.clear()
         self.hit_feedback.clear()
+        self.death_feedback.clear()
         self._clear_orphan_shots()  # shots in flight aren't saved
         self.life_lost_feedback.clear()
         self._sync_game_ui()
@@ -200,6 +201,7 @@ class GameSaveMixin:
         self.place_sell_feedback.clear()
         self.bomb_impacts.clear()
         self.hit_feedback.clear()
+        self.death_feedback.clear()
         self._clear_orphan_shots()  # shots in flight aren't saved
         self.life_lost_feedback.clear()
 

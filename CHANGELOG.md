@@ -79,6 +79,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - Hit enemies and towers flash white for a moment, with a small spark where the shot landed
   ([#104](https://github.com/vectorviolet/chokepoint/pull/104),
   [devlog](docs/devlog/2026-11-03-hit-feedback.md)).
+- Killed enemies explode (tanks bigger) and destroyed towers explode and leave scorched rubble
+  that fades out ([#PR_NUM](https://github.com/vectorviolet/chokepoint/pull/PR_NUM),
+  [devlog](docs/devlog/2026-11-03-death-effects.md)).
 
 ### Changed
 
