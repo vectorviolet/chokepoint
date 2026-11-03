@@ -9,6 +9,9 @@ This file is the short list of what changed. The [devlog](docs/devlog/README.md)
 illustrated history of features and design decisions (options, choice and why), and
 [docs/decisions](docs/decisions/README.md) has the architecture decision records.
 
+Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, Fixed, Security).
+"Development" is this project's extra last section, for tooling, CI and docs changes.
+
 ## [Unreleased]
 
 Lines link their PR, or the commit for changes pushed straight to `main` before PRs were required.
@@ -35,9 +38,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#53](https://github.com/vectorviolet/chokepoint/pull/53),
   [devlog](docs/devlog/2026-10-27-auto-pause.md)).
 - A keep-placing toggle (HUD button or Shift press) that keeps the tower type selected after each
-  placement; it replaces holding Shift for the same thing
-  ([#48](https://github.com/vectorviolet/chokepoint/pull/48),
+  placement ([#48](https://github.com/vectorviolet/chokepoint/pull/48),
   [#72](https://github.com/vectorviolet/chokepoint/pull/72),
+  [devlog](docs/devlog/2026-10-27-shift-placement.md),
   [devlog](docs/devlog/2026-10-28-placement-toggle.md)).
 - A master volume slider in Settings, above SFX and BGM
   ([#73](https://github.com/vectorviolet/chokepoint/pull/73),
@@ -105,11 +108,20 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   [28c9257](https://github.com/vectorviolet/chokepoint/commit/28c9257)).
 - pygamine updated from 0.20.1 to 0.27.0: VectorViolet splash and logos, splash fades, the sound
   channel pool, master volume
-  ([fbebe72](https://github.com/vectorviolet/chokepoint/commit/fbebe72),
+  ([eaee5ec](https://github.com/vectorviolet/chokepoint/commit/eaee5ec),
+  [fbebe72](https://github.com/vectorviolet/chokepoint/commit/fbebe72),
   [4d75a5b](https://github.com/vectorviolet/chokepoint/commit/4d75a5b),
   [6a104ff](https://github.com/vectorviolet/chokepoint/commit/6a104ff),
   [#41](https://github.com/vectorviolet/chokepoint/pull/41),
   [#73](https://github.com/vectorviolet/chokepoint/pull/73)).
+
+### Removed
+
+- The in-game music button; music is toggled from the pause menu and the menus
+  ([#42](https://github.com/vectorviolet/chokepoint/pull/42)).
+- 1,148 asset files nothing referenced, and a credits image that carried LinkedIn's logo
+  ([25f075e](https://github.com/vectorviolet/chokepoint/commit/25f075e),
+  [eaee5ec](https://github.com/vectorviolet/chokepoint/commit/eaee5ec)).
 
 ### Fixed
 
@@ -130,19 +142,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   [devlog](docs/devlog/2026-10-27-music-state-bug.md)).
 - Skipping the splash with Space, Enter or a click also pressed PLAY
   ([#73](https://github.com/vectorviolet/chokepoint/pull/73)).
-- A sliver of the Level counter stayed on screen after Tab hid the HUD
-  ([#46](https://github.com/vectorviolet/chokepoint/pull/46),
-  [devlog](docs/devlog/2026-10-26-level-counter-sliver.md)).
 - A click placed a tower on the tile under last frame's cursor, which was wrong after a scroll and
   crashed before the first frame ([#91](https://github.com/vectorviolet/chokepoint/pull/91)).
-
-### Removed
-
-- The in-game music button; music is toggled from the pause menu and the menus
-  ([#42](https://github.com/vectorviolet/chokepoint/pull/42)).
-- 1,148 asset files nothing referenced, and a credits image that carried LinkedIn's logo
-  ([25f075e](https://github.com/vectorviolet/chokepoint/commit/25f075e),
-  [eaee5ec](https://github.com/vectorviolet/chokepoint/commit/eaee5ec)).
 
 ### Development
 
@@ -151,16 +152,19 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   [#76](https://github.com/vectorviolet/chokepoint/pull/76)).
 - Tools: a load benchmark ([#39](https://github.com/vectorviolet/chokepoint/pull/39)), a play-test
   save script ([#64](https://github.com/vectorviolet/chokepoint/pull/64),
-  [devlog](docs/devlog/2026-10-27-playtest-save.md)), a headless balance simulator with strategy
-  bots ([#79](https://github.com/vectorviolet/chokepoint/pull/79),
-  [devlog](docs/devlog/2026-10-29-balance-simulator.md)), a generated stats reference in
+  [devlog](docs/devlog/2026-10-27-playtest-save.md),
+  [ADR 0006](docs/decisions/0006-playtest-save-from-game-code.md)), a headless balance simulator
+  with strategy bots ([#79](https://github.com/vectorviolet/chokepoint/pull/79),
+  [devlog](docs/devlog/2026-10-29-balance-simulator.md),
+  [ADR 0007](docs/decisions/0007-headless-balance-simulator.md)), a generated stats reference in
   `docs/stats/` ([#86](https://github.com/vectorviolet/chokepoint/pull/86),
   [devlog](docs/devlog/2026-11-02-stats-reference.md)) and a README capture script
   ([#81](https://github.com/vectorviolet/chokepoint/pull/81),
   [#88](https://github.com/vectorviolet/chokepoint/pull/88)).
 - Code checks in CI: ruff ([01f45c8](https://github.com/vectorviolet/chokepoint/commit/01f45c8)),
   mypy with naming and type fixes ([#91](https://github.com/vectorviolet/chokepoint/pull/91),
-  [devlog](docs/devlog/2026-11-02-type-checking.md)) and codespell with American English
+  [devlog](docs/devlog/2026-11-02-type-checking.md),
+  [ADR 0008](docs/decisions/0008-mypy-lenient-start.md)) and codespell with American English
   everywhere ([#92](https://github.com/vectorviolet/chokepoint/pull/92),
   [devlog](docs/devlog/2026-11-03-american-english.md)).
 - CI runs on the merge queue, publishes the coverage badge to a `badges` branch and runs push
