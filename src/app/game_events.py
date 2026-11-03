@@ -119,6 +119,18 @@ class GameEventsMixin:
         self._refresh_window_mode_label()
         self._refresh_window_size_label()
 
+    def _toggle_skip_intro(self, _step: int) -> None:
+        self.skip_intro = not self.skip_intro  # read at the next launch
+        self._refresh_toggle_labels()
+
+    def _toggle_pause_on_focus_loss(self, _step: int) -> None:
+        self.pause_on_focus_loss = not self.pause_on_focus_loss
+        self._refresh_toggle_labels()
+
+    def _toggle_reduce_flashing(self, _step: int) -> None:
+        self.reduce_flashing = not self.reduce_flashing
+        self._refresh_toggle_labels()
+
     def _on_volume_changed(self, volume, value: float) -> None:
         """A Settings volume slider moved (`volume`: a VolumeSetting row)."""
         getattr(self.audio, volume.setter)(value)

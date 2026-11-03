@@ -85,6 +85,7 @@ class MenuDemo(BattleSimulation):
         tower_config: TowerConfig,
         size: tuple[int, int],
         rng: random.Random | None = None,
+        reduce_flashing: bool = False,
     ) -> None:
         self.tilemap = tilemap
         self._assets = assets
@@ -93,19 +94,25 @@ class MenuDemo(BattleSimulation):
         # Explosions where the bombs land, silent like the rest of the demo.
         explosion_frames = ExplosionFrames(assets)  # bombs' and deaths'
         self.bomb_impacts: BombImpactFeedback = BombImpactFeedback(
-            assets, play_sfx=None, frames=explosion_frames
+            assets,
+            play_sfx=None,
+            frames=explosion_frames,
+            reduce_flashing=reduce_flashing,
         )
         self._rng = rng or random.Random()
         # Hit flashes and sparks, as in the game (they have no sound). Their
         # own stream, seeded from the demo's: a seeded demo shows the same
         # sparks, and hits never shift the run's own random choices.
         self.hit_feedback: HitFeedback = HitFeedback(
-            rng=random.Random(self._rng.random())
+            rng=random.Random(self._rng.random()), reduce_flashing=reduce_flashing
         )
 
         # Death explosions and rubble, silent like the bombs.
         self.death_feedback: DeathFeedback = DeathFeedback(
-            assets, play_sfx=None, frames=explosion_frames
+            assets,
+            play_sfx=None,
+            frames=explosion_frames,
+            reduce_flashing=reduce_flashing,
         )
 
         self.view = Rect(0, 0, *size)

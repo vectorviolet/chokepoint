@@ -5,7 +5,7 @@ in config/panels.yaml; the rows of a tab are objects whose `parent:` is that
 group, so showing or hiding the group shows or hides the rows (a hidden
 object takes no events and isn't drawn). Layout lives in panels.yaml only.
 
-To fill a tab that has no rows yet (GAME, CONTROLS): copy a row in
+To fill a tab that has no rows yet (CONTROLS): copy a row in
 panels.yaml with `parent: <key>_tab`, list the row's `<` / `>` buttons in
 that tab's `rows` below (each with the Game method that handles it), and set
 `shown=True`. Its tab button then appears and the tab opens like the others.
@@ -52,10 +52,25 @@ SETTINGS_TABS = (
             SettingsRow("window_size_next_button", "_cycle_window_size", 1),
             SettingsRow("window_mode_back_button", "_cycle_window_mode", -1),
             SettingsRow("window_mode_next_button", "_cycle_window_mode", 1),
+            SettingsRow("reduce_flashing_back_button", "_toggle_reduce_flashing", -1),
+            SettingsRow("reduce_flashing_next_button", "_toggle_reduce_flashing", 1),
         ),
     ),
     SettingsTab("audio", shown=True),
-    SettingsTab("game", shown=False),
+    SettingsTab(
+        "game",
+        shown=True,
+        rows=(
+            SettingsRow("skip_intro_back_button", "_toggle_skip_intro", -1),
+            SettingsRow("skip_intro_next_button", "_toggle_skip_intro", 1),
+            SettingsRow(
+                "pause_on_focus_loss_back_button", "_toggle_pause_on_focus_loss", -1
+            ),
+            SettingsRow(
+                "pause_on_focus_loss_next_button", "_toggle_pause_on_focus_loss", 1
+            ),
+        ),
+    ),
     SettingsTab("controls", shown=False),
 )
 

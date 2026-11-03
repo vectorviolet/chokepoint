@@ -113,6 +113,7 @@ def make_game(**overrides):
     game._construction_complete = True
     game._last_frame_ticks = None
     game._tick_backlog_ms = 0.0
+    game._window_focused = True
     game.life_lost_feedback = SimpleNamespace(lives_lost=Spy(), update=Spy())
     game.tower_info = SimpleNamespace(show=Spy(), draw_hp_fill=Spy())
     game.buy_tooltip = SimpleNamespace(update=Spy())

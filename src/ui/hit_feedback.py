@@ -12,6 +12,9 @@ was hit.
   less if the shot is closer; its center if the bomb landed right on it).
   Drawn procedurally, no asset.
 
+With `reduce_flashing` on (the accessibility toggle) the flash is not
+drawn; the spark stays.
+
 Both are cosmetic and run on real time (frame_ms), like PlaceSellFeedback
 and BombImpactFeedback: they play out while the game is paused and x2/x4
 speed doesn't hurry them. Nothing here touches gameplay: the battle tells
@@ -99,7 +102,12 @@ def impact_point(target_pos, hit_from) -> Vector2:
 
 
 class HitFeedback:
-    def __init__(self, rng: random.Random | None = None) -> None:
+    def __init__(
+        self, rng: random.Random | None = None, reduce_flashing: bool = False
+    ) -> None:
+        # reduce_flashing: no white flash (the spark stays). Set by the owner
+        # from the Settings toggle, and takes effect on the next draw.
+        self.reduce_flashing = reduce_flashing
         self._rng = rng or random.Random()
         self._hits: dict[int, _Hit] = {}  # id(target) -> its latest hit
         self._silhouettes: OrderedDict[pygame.Surface, pygame.Surface] = OrderedDict()
@@ -161,7 +169,7 @@ class HitFeedback:
     def draw_flash(self, surface: pygame.Surface, camera, target: Flashable) -> None:
         """Right after `target` is drawn: its white silhouette while it's
         flashing, through the camera (follows zoom and scroll)."""
-        if not self.is_flashing(target):
+        if self.reduce_flashing or not self.is_flashing(target):
             return
         for drawn, center in target.flash_parts():
             white = self._silhouette(drawn)
