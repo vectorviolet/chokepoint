@@ -23,6 +23,9 @@ class GameEventsMixin:
         (the caller then decides, e.g. a refused purchase plays "denied").
         A button that isn't active (hidden with its tab or panel) never is."""
         if not button.active:
+            # A press that began while the button was shown must not complete
+            # later, when it's shown again: forget it.
+            button._pressed = False
             return False
         activated = button.is_clicked(event, self.mouse.position) or (
             event.type == pygame.KEYUP
@@ -80,19 +83,18 @@ class GameEventsMixin:
             self._handle_settings_tab_event(panel, event)
 
     def _handle_settings_tab_event(self, panel, event) -> None:
-        """The tab buttons (shown ones only), then the rows of the open tab."""
+        """The tab buttons, then the rows' buttons, through SETTINGS_TABS.
+        Every tab's buttons are asked, so a hidden one forgets a stale press;
+        `_activate` only lets the shown ones through."""
         for tab in SETTINGS_TABS:
-            if tab.shown and self._activate(panel[tab.button], event):
+            if self._activate(panel[tab.button], event):
                 self._show_settings_tab(tab.key)
                 return
-        if self._activate(panel["window_size_back_button"], event):
-            self._cycle_window_size(-1)
-        elif self._activate(panel["window_size_next_button"], event):
-            self._cycle_window_size(1)
-        elif self._activate(panel["window_mode_back_button"], event):
-            self._cycle_window_mode(-1)
-        elif self._activate(panel["window_mode_next_button"], event):
-            self._cycle_window_mode(1)
+        for tab in SETTINGS_TABS:
+            for row in tab.rows:
+                if self._activate(panel[row.button], event):
+                    getattr(self, row.handler)(row.arg)
+                    return
 
     def _open_settings(self, return_panel: str) -> None:
         """Opens Settings on its first tab; Back leads to `return_panel`."""

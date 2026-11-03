@@ -169,10 +169,14 @@ highlights its button; Settings opens on DISPLAY (`Game._open_settings`). The ke
 (`menu_controllers["settings"]`) is rebuilt on each tab change: tab buttons, the open tab's row
 buttons, Back, Reset (sliders can't take focus). Reset to default covers every tab.
 
-To fill GAME or CONTROLS: add the rows to its group in panels.yaml, add their handling and a
-reset line (in `Game._reset_settings`, saving in `_save_settings`), put the rows' `<` / `>` buttons
-in that tab's `buttons` tuple in `SETTINGS_TABS`, and set `shown=True` (the tab button appears).
-No other positions are needed.
+To fill GAME or CONTROLS (a row is two edits: its objects and its entry): copy a row in panels.yaml into
+the tab's group (`parent: <key>_tab`), and add one `SettingsRow(button, handler, arg)` per `<` / `>`
+button to that tab's `rows` in `SETTINGS_TABS` (the Game method that handles it, called as
+`handler(arg)`; the same list gives the keyboard focus order and the click dispatch), then set
+the tab's `shown=True` (its button appears). A new setting also needs its reset line in
+`Game._reset_settings` and its saving in `_save_settings`. `link_hierarchy()` (run once per panel
+load) makes a parent's `active` cover its `parent:` children, which the panel loader doesn't do
+itself.
 
 ### Towers
 

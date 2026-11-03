@@ -29,8 +29,8 @@ The owner decided the layout (issue #114). Claude chose how it is built:
 - Each tab is a button (`tab_<key>_button`) and a group object (`<key>_tab`) in
   `config/panels.yaml`; a tab's rows are objects with `parent: <key>_tab`. No positions in code.
 - `src/app/settings_tabs.py` lists the tabs. GAME and CONTROLS have no rows yet, so their
-  buttons stay hidden (`shown=False`); a later card adds rows to the group, lists the row's
-  `<` / `>` buttons and sets `shown=True`.
+  buttons stay hidden (`shown=False`); a later card adds rows to the group, adds one `SettingsRow` per `<` / `>`
+  button (button, handler, argument) and sets `shown=True`.
 - The open tab's button uses the yellow `btn_active` look (an existing asset, like the speed
   button's x2 state). Settings always opens on DISPLAY.
 - The keyboard (up/down, Enter or Space) cycles the tab buttons, the open tab's `<` / `>`
@@ -47,7 +47,7 @@ The owner decided the layout (issue #114). Claude chose how it is built:
   dead end for the player.
 - Editing pygamine so a `parent:` in the YAML switches visibility: the loader only uses it to
   place objects. This PR links the objects to their parents in the game instead
-  (`SettingsTabs._link_hierarchy`), and leaves pygamine alone.
+  (`settings_tabs.link_hierarchy`, once per panel load), and leaves pygamine alone.
 
 ## Result
 

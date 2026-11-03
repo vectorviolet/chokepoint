@@ -149,3 +149,62 @@ def test_volumes_save_and_load(game):
     game._leave_settings()
     again = Game()
     assert again.audio.sfx_volume() == pytest.approx(0.3)
+
+
+def press_and_release(game, obj):
+    """The two halves of a click, with the mouse over `obj`."""
+    game.mouse.position = obj.rect.center
+    down = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=obj.rect.center)
+    up = pygame.event.Event(pygame.MOUSEBUTTONUP, button=1, pos=obj.rect.center)
+    return down, up
+
+
+def test_a_press_on_a_button_that_gets_hidden_does_not_complete_later(game):
+    p = panel(game)
+    steps = []
+    game.cycle_resolution = steps.append
+    down, up = press_and_release(game, p["window_size_next_button"])
+    game.handle_event(down)  # pressed while DISPLAY is shown
+    game._show_settings_tab("audio")
+    game.handle_event(up)  # released while it's hidden: forgotten
+    game._show_settings_tab("display")
+    game.handle_event(up)  # a lone release over it must do nothing
+    assert steps == []
+
+
+def test_hover_of_a_hidden_tabs_buttons_is_cleared(game):
+    p = panel(game)
+    button = p["window_mode_next_button"]
+    button.handle_event(
+        pygame.event.Event(pygame.MOUSEMOTION, pos=button.rect.center),
+        button.rect.center,
+    )
+    assert button._hovered
+    game._show_settings_tab("audio")
+    assert not button._hovered
+
+
+@pytest.mark.parametrize("tab", ["display", "audio"])
+def test_a_canvas_rebuild_keeps_the_keyboard_focus(game, tab):
+    game._show_settings_tab(tab)
+    controller = game.menu_controllers["settings"]
+    target = controller.buttons[-1]  # Reset, on both tabs
+    controller.buttons[0].focused = False
+    target.focused = True
+    name = game.settings_tabs.name_of(target)
+    game._reflow_panels(game.window.get_size())
+    rebuilt = game.panel_manager["settings"][name]
+    assert rebuilt is not target
+    assert game.menu_controllers["settings"].focused is rebuilt
+    assert sum(b.focused for b in game.menu_controllers["settings"].buttons) == 1
+    assert game.settings_tabs.active == tab
+
+
+def test_focus_on_a_row_button_survives_a_rebuild(game):
+    p = panel(game)
+    controller = game.menu_controllers["settings"]
+    controller.buttons[0].focused = False
+    p["window_size_next_button"].focused = True
+    game._reflow_panels(game.window.get_size())
+    new = game.panel_manager["settings"]["window_size_next_button"]
+    assert game.menu_controllers["settings"].focused is new

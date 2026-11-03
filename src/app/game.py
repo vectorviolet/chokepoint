@@ -7,7 +7,7 @@ from pygame import Rect
 
 from app.game_events import GameEventsMixin
 from app.game_save import GameSaveMixin
-from app.settings_tabs import DEFAULT_TAB, SettingsTabs
+from app.settings_tabs import DEFAULT_TAB, SettingsTabs, link_hierarchy
 from app.volume_settings import VOLUME_SETTINGS, VolumeSetting, saved_volume
 from pygamine import Application
 from pygamine import AssetManager
@@ -102,8 +102,6 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     enemies and waves, and drawing them) is BattleSimulation's, shared with
     the main menu's live background.
     """
-
-    settings_tabs: SettingsTabs  # set by _bind_settings_ui()
 
     # ── construction ──────────────────────────────────────────────────────────
 
@@ -254,6 +252,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.pause_panel = PausePanel(self.panel_manager)
         self._resume_on_unpause = False  # was the run going when the menu opened?
         self._settings_return_panel = "main_menu"  # where Settings' Back leads
+        self._settings_tab = DEFAULT_TAB  # the open Settings tab (kept over resizes)
         self.buy_tooltip = BuyTooltip(
             self.panel_manager, self.size, load_tower_tooltips()
         )
@@ -309,9 +308,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._refresh_window_size_label()
         self._refresh_window_mode_label()
         settings_panel = self.panel_manager["settings"]
-        # The open tab survives a rebuild of the panel (a canvas resize).
-        active = self.settings_tabs.active if hasattr(self, "settings_tabs") else None
-        self.settings_tabs = SettingsTabs(settings_panel, active or DEFAULT_TAB)
+        self.settings_tabs = SettingsTabs(settings_panel, self._settings_tab)
         for volume in VOLUME_SETTINGS:
             slider = settings_panel[volume.slider]
             slider.set_value(getattr(self.audio, volume.getter)())
@@ -319,7 +316,16 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self._refresh_volume_label(volume)
         self._refresh_music_toggles()
 
-    def _build_menu_controllers(self) -> None:
+    def _menu_controller(self, buttons: list) -> MenuController:
+        """Keyboard navigation over `buttons` with the menus' switch sounds."""
+        return MenuController(
+            buttons,
+            self.audio,
+            self.assets.sound_path("switch_up"),
+            self.assets.sound_path("switch_down"),
+        )
+
+    def _build_menu_controllers(self, settings_focus: str | None = None) -> None:
         """(Re-)builds the keyboard-nav controllers from the current panel
         objects -- they hold direct button references, so a canvas resize
         (which rebuilds those objects) must rebuild these too."""
@@ -332,20 +338,15 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             for n in ("continue_game", "new_game", "back")
         ]
         self.menu_controllers = {
-            "main_menu": MenuController(
-                main_menu_buttons,
-                self.audio,
-                self.assets.sound_path("switch_up"),
-                self.assets.sound_path("switch_down"),
-            ),
-            "play_menu": MenuController(
-                play_menu_buttons,
-                self.audio,
-                self.assets.sound_path("switch_up"),
-                self.assets.sound_path("switch_down"),
-            ),
+            "main_menu": self._menu_controller(main_menu_buttons),
+            "play_menu": self._menu_controller(play_menu_buttons),
         }
-        self._build_settings_controller()
+        # `settings_focus`: the Settings button (by name) that had the focus
+        # before a rebuild of the panel objects.
+        focus = (
+            self.panel_manager["settings"][settings_focus] if settings_focus else None
+        )
+        self._build_settings_controller(focus)
 
     def _build_settings_controller(self, focus=None) -> None:
         """The Settings keyboard controller over the open tab's focus order
@@ -355,16 +356,16 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if previous is not None:
             for button in previous.buttons:
                 button.focused = False
-        controller = MenuController(
-            self.settings_tabs.focus_order(),
-            self.audio,
-            self.assets.sound_path("switch_up"),
-            self.assets.sound_path("switch_down"),
-        )
+        controller = self._menu_controller(self.settings_tabs.focus_order())
         if focus is not None and focus in controller.buttons:
             controller.buttons[0].focused = False
             focus.focused = True
         self.menu_controllers["settings"] = controller
+
+    def _focused_settings_button(self) -> str | None:
+        """Name of the Settings button the keyboard focus is on, if any."""
+        focused = self.menu_controllers["settings"].focused
+        return None if focused is None else self.settings_tabs.name_of(focused)
 
     def _show_settings_tab(self, key: str, *, focus_tab: bool = False) -> None:
         """Opens Settings tab `key`; the keyboard focus stays on the button it
@@ -372,6 +373,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         controller = self.menu_controllers["settings"]
         focus = controller.focused
         self.settings_tabs.select(key)
+        self._settings_tab = key
         if focus_tab:
             focus = self.panel_manager["settings"][self.settings_tabs.tab(key).button]
         self._build_settings_controller(focus)
@@ -401,6 +403,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         loader.register("scrolling_panel", make_scrolling_panel_factory(self.assets))
 
         loader.load("config/panels.yaml")
+        link_hierarchy(self.panel_manager["settings"])
         self.panel_manager["game"]["victory_subtitle_text"].set_text(VICTORY_SUBTITLE)
         self._bind_popup_objects()
 
@@ -596,6 +599,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         valid. GameHUD is re-bound rather than reconstructed so its
         already-registered GameState listeners aren't duplicated (GameState
         has no listener-removal mechanism)."""
+        # The rebuilt objects replace the focused one: keep it by name.
+        settings_focus = self._focused_settings_button()
         self._load_panel_layout(Transform((0, 0), new_size))
         self.hud.rebind_panel(self.panel_manager)
         self.tower_info.rebind(self.panel_manager)
@@ -603,7 +608,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.buy_tooltip.rebind(self.panel_manager, new_size)
         self.hud_slide.rebind(self.panel_manager, new_size)
         self._bind_settings_ui()
-        self._build_menu_controllers()
+        self._build_menu_controllers(settings_focus)
         self._sync_game_ui()
         self.menu_demo.resize(new_size)
         self.menu_overlay = pygame.Surface(new_size, pygame.SRCALPHA)

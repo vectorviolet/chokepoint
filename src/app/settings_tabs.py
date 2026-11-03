@@ -7,21 +7,32 @@ object takes no events and isn't drawn). Layout lives in panels.yaml only.
 
 To fill a tab that has no rows yet (GAME, CONTROLS): copy a row in
 panels.yaml with `parent: <key>_tab`, list the row's `<` / `>` buttons in
-that tab's `buttons` below (so the keyboard can focus them), and set
+that tab's `rows` below (each with the Game method that handles it), and set
 `shown=True`. Its tab button then appears and the tab opens like the others.
 """
 
 from dataclasses import dataclass
 
+import pygame
+
 DEFAULT_TAB = "display"
+
+
+@dataclass(frozen=True)
+class SettingsRow:
+    """A keyboard-focusable, clickable button of a tab's row and what it does."""
+
+    button: str  # its object in the settings panel
+    handler: str  # name of the Game method called as handler(arg)
+    arg: int  # e.g. the step of a `<` (-1) or `>` (1) button
 
 
 @dataclass(frozen=True)
 class SettingsTab:
     key: str
     shown: bool  # False: no rows yet, so the tab button stays hidden
-    # The tab's keyboard-focusable buttons, top to bottom (sliders are mouse-only).
-    buttons: tuple[str, ...] = ()
+    # The tab's buttons, top to bottom (the sliders are mouse-only).
+    rows: tuple[SettingsRow, ...] = ()
 
     @property
     def button(self) -> str:
@@ -36,11 +47,11 @@ SETTINGS_TABS = (
     SettingsTab(
         "display",
         shown=True,
-        buttons=(
-            "window_size_back_button",
-            "window_size_next_button",
-            "window_mode_back_button",
-            "window_mode_next_button",
+        rows=(
+            SettingsRow("window_size_back_button", "_cycle_window_size", -1),
+            SettingsRow("window_size_next_button", "_cycle_window_size", 1),
+            SettingsRow("window_mode_back_button", "_cycle_window_mode", -1),
+            SettingsRow("window_mode_next_button", "_cycle_window_mode", 1),
         ),
     ),
     SettingsTab("audio", shown=True),
@@ -48,25 +59,31 @@ SETTINGS_TABS = (
     SettingsTab("controls", shown=False),
 )
 
+# Not part of a tab: always there, last in the keyboard order.
+FIXED_BUTTONS = ("back", "reset")
+
+_OFFSCREEN = (-1, -1)
+
+
+def link_hierarchy(panel) -> None:
+    """The panel loader's `parent:` only places an object relative to its
+    parent's rectangle; it doesn't make the parent's `active` switch cover
+    it. Link each object of the freshly loaded `panel` to its placement
+    parent, so hiding a tab's group (or a button) also hides everything inside
+    it. Run once per panel load."""
+    for obj in panel.values():
+        parent = obj.rect.parent
+        if parent is not None:
+            obj.set_parent(parent.game_object)
+
 
 class SettingsTabs:
     """Which tab of the settings panel is open, and what that shows."""
 
-    def __init__(self, panel, active: str = DEFAULT_TAB) -> None:
+    def __init__(self, panel, active: str) -> None:
         self.panel = panel
         self.active = active
-        self._link_hierarchy()
         self.select(active)
-
-    def _link_hierarchy(self) -> None:
-        """The panel loader's `parent:` only places an object relative to its
-        parent's rectangle; it doesn't make the parent's `active` switch cover
-        it. Link each object to its placement parent, so hiding a tab's group
-        (or a button) also hides everything inside it."""
-        for obj in self.panel.values():
-            parent = obj.rect.parent
-            if parent is not None:
-                obj.set_parent(parent.game_object)
 
     def tab(self, key: str) -> SettingsTab:
         return next(t for t in SETTINGS_TABS if t.key == key)
@@ -82,10 +99,28 @@ class SettingsTabs:
             button = self.panel[tab.button]
             button.active = tab.shown
             button.set_state("selected" if is_open else None)
+            if not is_open:
+                for row in tab.rows:
+                    self._clear_hover(self.panel[row.button])
+
+    @staticmethod
+    def _clear_hover(button) -> None:
+        """A hidden button gets no mouse events, so tell it the mouse left;
+        otherwise it would still show its hover look when its tab reopens."""
+        button.handle_event(
+            pygame.event.Event(pygame.MOUSEMOTION, pos=_OFFSCREEN), _OFFSCREEN
+        )
 
     def focus_order(self) -> list:
         """Buttons the keyboard cycles: the shown tab buttons, the open tab's
         row buttons, then Back and Reset (rows of other tabs never)."""
         tabs = [self.panel[t.button] for t in SETTINGS_TABS if t.shown]
-        rows = [self.panel[name] for name in self.tab(self.active).buttons]
-        return [*tabs, *rows, self.panel["back"], self.panel["reset"]]
+        rows = [self.panel[row.button] for row in self.tab(self.active).rows]
+        return [*tabs, *rows, *(self.panel[name] for name in FIXED_BUTTONS)]
+
+    def name_of(self, button) -> str:
+        """The panel name of one of the buttons in `focus_order()`."""
+        names = [t.button for t in SETTINGS_TABS if t.shown]
+        names += [row.button for row in self.tab(self.active).rows]
+        names += FIXED_BUTTONS
+        return next(name for name in names if self.panel[name] is button)

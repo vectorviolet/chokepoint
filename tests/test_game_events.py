@@ -201,6 +201,8 @@ class FakeGame(GameEventsMixin):
                     "window_mode_next_button": FakeButton(),
                     "tab_display_button": FakeButton(),
                     "tab_audio_button": FakeButton(),
+                    "tab_game_button": FakeButton(),
+                    "tab_controls_button": FakeButton(),
                     "music_toggle_icon": FakeButton(),
                 },
                 "game": make_game_panel(),
