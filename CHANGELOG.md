@@ -147,6 +147,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - Planes drop only bombs that land on the map; the last bombs used to land past the right edge
   ([#97](https://github.com/vectorviolet/chokepoint/pull/97),
   [devlog](docs/devlog/2026-11-03-bombs-land-on-the-map.md)).
+- The victory popup opened as round 26 started, with "Round 26" on the HUD behind it; it now opens
+  as round 25 is cleared ([#105](https://github.com/vectorviolet/chokepoint/pull/105),
+  [devlog](docs/devlog/2026-11-03-victory-on-clear.md)).
 
 ### Development
 

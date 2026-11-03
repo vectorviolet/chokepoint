@@ -76,6 +76,9 @@ _VICTORY_POPUP_OBJECTS = (
     "victory_main_menu_text",
 )
 
+# The victory popup's subtitle, built from WIN_WAVE so it can't drift from it.
+VICTORY_SUBTITLE = f"Round {WIN_WAVE} cleared"
+
 _GAMEOVER_POPUP_OBJECTS = (
     "gameover_overlay",
     "gameover_panel_bg",
@@ -166,7 +169,6 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             start_money=gameplay["starting_money"],
             start_lives=gameplay["starting_lives"],
         )
-        self.game_state.add_level_listener(self._on_level_changed)
         self._victory_popup_open = False
         self._gameover_popup_open = False
         self._last_frame_ticks: int | None = None  # wall clock of the previous update()
@@ -348,6 +350,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         loader.register("scrolling_panel", make_scrolling_panel_factory(self.assets))
 
         loader.load("config/panels.yaml")
+        self.panel_manager["game"]["victory_subtitle_text"].set_text(VICTORY_SUBTITLE)
 
     def _refresh_window_size_label(self) -> None:
         w, h = self.resolution
@@ -448,17 +451,26 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.wave_manager.on_wave_cleared = self._on_wave_cleared
 
     def _on_wave_cleared(self) -> None:
-        """Auto-pause: the run stops as each wave is cleared, as if the
-        start/pause button had been pressed; pressing start again lets the
-        wave manager carry on to the next wave as usual."""
-        if self.auto_pause:
+        """Clearing round WIN_WAVE wins the run: the victory popup opens
+        there, before the next round starts, so the HUD still shows that
+        round behind it. Otherwise auto-pause: the run stops as each wave is
+        cleared, as if the start/pause button had been pressed. Either way,
+        starting again lets the wave manager carry on to the next wave as
+        usual."""
+        if not self._open_victory_if_won() and self.auto_pause:
             self._set_started(False)
 
     # ── victory popup ─────────────────────────────────────────────────────────
 
-    def _on_level_changed(self, level: int) -> None:
-        if level == WIN_WAVE + 1 and not self.game_state.has_won:
-            self._trigger_victory()
+    def _open_victory_if_won(self) -> bool:
+        """Opens the victory popup if round WIN_WAVE has just been cleared
+        and the run isn't won yet; says whether it did. Called when a wave
+        is cleared, and on load for a run saved with that wave already
+        cleared (the hook won't fire again for it)."""
+        if self.game_state.level != WIN_WAVE or self.game_state.has_won:
+            return False
+        self._trigger_victory()
+        return True
 
     def _trigger_victory(self) -> None:
         self.game_state.has_won = True
