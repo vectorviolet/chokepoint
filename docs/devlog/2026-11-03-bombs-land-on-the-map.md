@@ -1,7 +1,7 @@
 # Planes drop only bombs that land on the map
-<!-- index | refs: #94, #59 -->
+<!-- index | refs: #94, #59, PR #97 -->
 
-**Date:** 2026-11-03 · **Area:** Feel, gameplay · **Issue:** [#94](https://github.com/vectorviolet/chokepoint/issues/94)
+**Date:** 2026-11-03 · **Area:** Feel, gameplay · **Issue:** [#94](https://github.com/vectorviolet/chokepoint/issues/94) · **PR:** [#97](https://github.com/vectorviolet/chokepoint/pull/97)
 
 ## Context
 
