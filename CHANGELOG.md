@@ -9,6 +9,176 @@ This file is the short list of what changed. The [devlog](docs/devlog/README.md)
 illustrated history of features and design decisions (options, choice and why), and
 [docs/decisions](docs/decisions/README.md) has the architecture decision records.
 
+## [Unreleased]
+
+Lines link their PR, or the commit for changes pushed straight to `main` before PRs were required.
+
+### Added
+
+- Clicking a tower opens an info panel with its level, kills, money earned, range, damage, fire
+  rate and HP, and previews of what the next upgrade changes
+  ([#28](https://github.com/vectorviolet/chokepoint/pull/28),
+  [devlog](docs/devlog/2026-10-26-tower-info-panel.md)).
+- Clicking a flying plane opens the same panel with its kills, splash, speed, damage and bomb rate
+  ([#58](https://github.com/vectorviolet/chokepoint/pull/58),
+  [devlog](docs/devlog/2026-10-27-plane-info-panel.md)).
+- Clicking an enemy shows its HP as numbers next to its HP bar
+  ([#47](https://github.com/vectorviolet/chokepoint/pull/47),
+  [devlog](docs/devlog/2026-10-27-enemy-hp-on-click.md)).
+- Tooltips on the tower buy buttons: name, one strength and one weakness
+  ([#36](https://github.com/vectorviolet/chokepoint/pull/36),
+  [devlog](docs/devlog/2026-10-26-buy-button-tooltips.md)).
+- A pause menu on Esc or the HUD menu button: Back, Settings, Music on/off and Main menu
+  ([#42](https://github.com/vectorviolet/chokepoint/pull/42),
+  [devlog](docs/devlog/2026-10-26-pause-menu.md)).
+- An optional auto-pause between waves, an hourglass toggle in the HUD saved in the settings
+  ([#53](https://github.com/vectorviolet/chokepoint/pull/53),
+  [devlog](docs/devlog/2026-10-27-auto-pause.md)).
+- A keep-placing toggle (HUD button or Shift press) that keeps the tower type selected after each
+  placement; it replaces holding Shift for the same thing
+  ([#48](https://github.com/vectorviolet/chokepoint/pull/48),
+  [#72](https://github.com/vectorviolet/chokepoint/pull/72),
+  [devlog](docs/devlog/2026-10-28-placement-toggle.md)).
+- A master volume slider in Settings, above SFX and BGM
+  ([#73](https://github.com/vectorviolet/chokepoint/pull/73),
+  [devlog](docs/devlog/2026-10-28-master-volume.md)).
+- The heavy cannon has a blind spot: it can't hit enemies within 1.5 tiles, shown as a hole in its
+  range ring and a row in the info panel
+  ([#56](https://github.com/vectorviolet/chokepoint/pull/56),
+  [devlog](docs/devlog/2026-10-27-cannon-blind-spot.md)).
+- Life lost feedback: a bell and a red pulse at the screen edges when an enemy gets through
+  ([#24](https://github.com/vectorviolet/chokepoint/pull/24)).
+- Kill reward feedback: a floating "+$N" and coins flying to the money counter
+  ([2a98c51](https://github.com/vectorviolet/chokepoint/commit/2a98c51)).
+- A sound and a small effect when a tower is placed (dust) or sold (coins)
+  ([#41](https://github.com/vectorviolet/chokepoint/pull/41),
+  [devlog](docs/devlog/2026-10-26-place-sell-effects.md)).
+- An explosion and a sound where each plane bomb lands, sized to its splash
+  ([#49](https://github.com/vectorviolet/chokepoint/pull/49),
+  [devlog](docs/devlog/2026-10-27-bomb-impacts-and-draw-order.md)).
+- Tab hides the whole in-game HUD; a money or lives counter that changes peeks back for a moment
+  ([c4f07cf](https://github.com/vectorviolet/chokepoint/commit/c4f07cf),
+  [1bc4c4f](https://github.com/vectorviolet/chokepoint/commit/1bc4c4f)).
+- A live battle plays behind the main menu
+  ([e7cb023](https://github.com/vectorviolet/chokepoint/commit/e7cb023)).
+- The credits screen has titled sections, the developer's name with GitHub and itch.io rows, and the
+  VectorViolet lockup ([eaee5ec](https://github.com/vectorviolet/chokepoint/commit/eaee5ec),
+  [83fd685](https://github.com/vectorviolet/chokepoint/commit/83fd685),
+  [2a4f791](https://github.com/vectorviolet/chokepoint/commit/2a4f791),
+  [a9f56b8](https://github.com/vectorviolet/chokepoint/commit/a9f56b8),
+  [88b08ea](https://github.com/vectorviolet/chokepoint/commit/88b08ea)).
+- `CREDITS.md` (replacing `ASSETS.md`) lists every asset's author and license, generated from
+  `assets/SOURCES.yaml`; builds ship it with the license texts of every bundled library
+  ([0bf865a](https://github.com/vectorviolet/chokepoint/commit/0bf865a),
+  [7965095](https://github.com/vectorviolet/chokepoint/commit/7965095),
+  [f89057a](https://github.com/vectorviolet/chokepoint/commit/f89057a),
+  [823faca](https://github.com/vectorviolet/chokepoint/commit/823faca)).
+
+### Changed
+
+- The progression counter reads "Round" instead of "Level", which now means tower upgrades only;
+  the README has new screenshots and a GIF
+  ([#81](https://github.com/vectorviolet/chokepoint/pull/81),
+  [#88](https://github.com/vectorviolet/chokepoint/pull/88),
+  [devlog](docs/devlog/2026-10-30-round-counter.md)).
+- Ground towers turn their barrels smoothly toward their target instead of snapping (cosmetic only)
+  ([#89](https://github.com/vectorviolet/chokepoint/pull/89),
+  [devlog](docs/devlog/2026-11-02-smooth-turret-turning.md)).
+- A tower you can't afford can't be picked: its buy button is grayed out, and a click plays a
+  "denied" sound and blinks the money counter. Blocked tiles tint the tower preview red, and the
+  bought plane upgrade shows as maxed ([#72](https://github.com/vectorviolet/chokepoint/pull/72),
+  [devlog](docs/devlog/2026-10-28-placement-toggle.md)).
+- Planes are drawn above soldiers, tanks and explosions
+  ([#61](https://github.com/vectorviolet/chokepoint/pull/61),
+  [devlog](docs/devlog/2026-10-27-bomb-impacts-and-draw-order.md)).
+- Bombs deal their damage where they land, and sounds no longer cut each other off (a pool of
+  sound channels) ([#41](https://github.com/vectorviolet/chokepoint/pull/41),
+  [#49](https://github.com/vectorviolet/chokepoint/pull/49),
+  [ADR 0001](docs/decisions/0001-sfx-channel-pool.md),
+  [ADR 0002](docs/decisions/0002-bombs-damage-at-landing.md)).
+- Faster tower targeting with a spatial grid; the targets chosen are unchanged
+  ([#51](https://github.com/vectorviolet/chokepoint/pull/51),
+  [ADR 0004](docs/decisions/0004-grid-targeting.md)).
+- The PLAY and SETTINGS titles use the logo green, and the MAX label, heart and sell images were
+  replaced with licensed ones ([ce3b40f](https://github.com/vectorviolet/chokepoint/commit/ce3b40f),
+  [3c52f32](https://github.com/vectorviolet/chokepoint/commit/3c52f32),
+  [28c9257](https://github.com/vectorviolet/chokepoint/commit/28c9257)).
+- pygamine updated from 0.20.1 to 0.27.0: VectorViolet splash and logos, splash fades, the sound
+  channel pool, master volume
+  ([fbebe72](https://github.com/vectorviolet/chokepoint/commit/fbebe72),
+  [4d75a5b](https://github.com/vectorviolet/chokepoint/commit/4d75a5b),
+  [6a104ff](https://github.com/vectorviolet/chokepoint/commit/6a104ff),
+  [#41](https://github.com/vectorviolet/chokepoint/pull/41),
+  [#73](https://github.com/vectorviolet/chokepoint/pull/73)).
+
+### Fixed
+
+- No enemies spawned after continuing a saved run between waves
+  ([#26](https://github.com/vectorviolet/chokepoint/pull/26)).
+- An explicit 0 in the config (spawn interval, tank stats) was replaced by the default
+  ([#27](https://github.com/vectorviolet/chokepoint/pull/27)).
+- Shots in flight vanished when their tank died or escaped, or their tower was sold or destroyed;
+  plane bombs vanished when their plane left the map
+  ([#52](https://github.com/vectorviolet/chokepoint/pull/52),
+  [#65](https://github.com/vectorviolet/chokepoint/pull/65),
+  [ADR 0003](docs/decisions/0003-shots-outlive-their-source.md)).
+- Planes disappeared with half their sprite still on the map
+  ([#66](https://github.com/vectorviolet/chokepoint/pull/66),
+  [devlog](docs/devlog/2026-10-28-planes-leave-the-map.md)).
+- Music turned off in the settings came back on after the splash
+  ([#57](https://github.com/vectorviolet/chokepoint/pull/57),
+  [devlog](docs/devlog/2026-10-27-music-state-bug.md)).
+- Skipping the splash with Space, Enter or a click also pressed PLAY
+  ([#73](https://github.com/vectorviolet/chokepoint/pull/73)).
+- A sliver of the Level counter stayed on screen after Tab hid the HUD
+  ([#46](https://github.com/vectorviolet/chokepoint/pull/46),
+  [devlog](docs/devlog/2026-10-26-level-counter-sliver.md)).
+- A click placed a tower on the tile under last frame's cursor, which was wrong after a scroll and
+  crashed before the first frame ([#91](https://github.com/vectorviolet/chokepoint/pull/91)).
+
+### Removed
+
+- The in-game music button; music is toggled from the pause menu and the menus
+  ([#42](https://github.com/vectorviolet/chokepoint/pull/42)).
+- 1,148 asset files nothing referenced, and a credits image that carried LinkedIn's logo
+  ([25f075e](https://github.com/vectorviolet/chokepoint/commit/25f075e),
+  [eaee5ec](https://github.com/vectorviolet/chokepoint/commit/eaee5ec)).
+
+### Development
+
+- An illustrated devlog and architecture decision records, with generated indexes checked in CI
+  ([#68](https://github.com/vectorviolet/chokepoint/pull/68),
+  [#76](https://github.com/vectorviolet/chokepoint/pull/76)).
+- Tools: a load benchmark ([#39](https://github.com/vectorviolet/chokepoint/pull/39)), a play-test
+  save script ([#64](https://github.com/vectorviolet/chokepoint/pull/64),
+  [devlog](docs/devlog/2026-10-27-playtest-save.md)), a headless balance simulator with strategy
+  bots ([#79](https://github.com/vectorviolet/chokepoint/pull/79),
+  [devlog](docs/devlog/2026-10-29-balance-simulator.md)), a generated stats reference in
+  `docs/stats/` ([#86](https://github.com/vectorviolet/chokepoint/pull/86),
+  [devlog](docs/devlog/2026-11-02-stats-reference.md)) and a README capture script
+  ([#81](https://github.com/vectorviolet/chokepoint/pull/81),
+  [#88](https://github.com/vectorviolet/chokepoint/pull/88)).
+- Code checks in CI: ruff ([01f45c8](https://github.com/vectorviolet/chokepoint/commit/01f45c8)),
+  mypy with naming and type fixes ([#91](https://github.com/vectorviolet/chokepoint/pull/91),
+  [devlog](docs/devlog/2026-11-02-type-checking.md)) and codespell with American English
+  everywhere ([#92](https://github.com/vectorviolet/chokepoint/pull/92),
+  [devlog](docs/devlog/2026-11-03-american-english.md)).
+- CI runs on the merge queue, publishes the coverage badge to a `badges` branch and runs push
+  builds on `main` only; the smoke test no longer writes to the real saves folder; the pygamine
+  sync script checks out the pinned engine commit
+  ([#35](https://github.com/vectorviolet/chokepoint/pull/35),
+  [#74](https://github.com/vectorviolet/chokepoint/pull/74),
+  [#77](https://github.com/vectorviolet/chokepoint/pull/77),
+  [#78](https://github.com/vectorviolet/chokepoint/pull/78)).
+- Assets regrouped by function, sounds split into `music/` and `sfx/`, every asset's source in
+  `assets/SOURCES.yaml`, and `docs/ROADMAP.md` added
+  ([77666fd](https://github.com/vectorviolet/chokepoint/commit/77666fd),
+  [88581eb](https://github.com/vectorviolet/chokepoint/commit/88581eb),
+  [823faca](https://github.com/vectorviolet/chokepoint/commit/823faca),
+  [9f67bda](https://github.com/vectorviolet/chokepoint/commit/9f67bda)).
+- Dependencies: Pillow 13.0.0 ([#80](https://github.com/vectorviolet/chokepoint/pull/80)),
+  setuptools locked at 84.2.1 ([5a3828a](https://github.com/vectorviolet/chokepoint/commit/5a3828a)).
+
 ## [0.3.1] – 2026-10-25
 
 ### Removed
