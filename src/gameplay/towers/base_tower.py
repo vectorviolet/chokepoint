@@ -50,6 +50,8 @@ class BaseTower(RotatableObject):
         # Lifetime record shown in the tower info panel (and saved): enemies
         # this tower dealt the killing blow to, and the kill money they paid.
         self.kills: int = 0
+        # Whether its destruction was shown (ctx.tower_destroyed) already.
+        self.destruction_reported = False
         self.money_earned: int = 0
         # Enemy HP this tower's shots/bombs took (overkill not counted).
         # Statistics only (the balance simulator reads it); not saved.
@@ -134,12 +136,18 @@ class BaseTower(RotatableObject):
         cosmetic) only when the damage was applied. `hit_from` is where the
         shot was (world), for the hit's spark; without one the spark shows
         on its center. A tower without HP (a plane) takes no damage and
-        shows no hit."""
+        shows no hit. The hit that takes its HP to 0 or below reports it
+        destroyed (`ctx.tower_destroyed`, cosmetic) right then, before the
+        battle removes it on its next tick."""
         if self.hp is None:
             return
+        was_standing = self.hp > 0
         self.hp -= damage
-        # Cosmetic: the flash and spark.
+        # Cosmetic: the flash and spark, and its death effect.
         ctx.target_hit(self, self.position if hit_from is None else hit_from)
+        if was_standing and self.hp <= 0:
+            self.destruction_reported = True
+            ctx.tower_destroyed(self)
 
     # ── action hit-rects (screen space, zoom-aware) ───────────────────────────
 
@@ -237,13 +245,8 @@ class BaseTower(RotatableObject):
 
     # ── polymorphic interface ─────────────────────────────────────────────────
 
-    @property
-    def is_destroyed(self) -> bool:
-        """Its HP ran out (a plane, without HP, never is)."""
-        return self.hp is not None and self.hp <= 0
-
     def should_remove(self) -> bool:
-        return self.is_destroyed
+        return self.hp is not None and self.hp <= 0
 
     def get_blocking_position(self) -> tuple | None:
         return self.row, self.col

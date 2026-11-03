@@ -66,6 +66,10 @@ class SfxRateCap:
     def clear(self) -> None:
         self._starts.clear()
 
+    def played_within(self, now_ms: float, gap_ms: float) -> bool:
+        """Whether the sound started less than `gap_ms` before `now_ms`."""
+        return bool(self._starts) and now_ms - self._starts[-1] < gap_ms
+
     def play(self, now_ms: float) -> bool:
         """Plays the sound unless it's over the cap at `now_ms`. True if it
         started."""
@@ -122,8 +126,7 @@ def draw_explosion(
 ) -> None:
     """One explosion frame centered on `position` (world), through the
     camera (follows zoom and scroll)."""
-    size = max(1, round(frame.get_width() * camera.scale))
-    scaled = pygame.transform.scale(frame, (size, size))
+    scaled = camera.scale_image(frame)  # the frame itself at zoom 1.0
     screen = camera.world_to_screen(position)
     surface.blit(scaled, scaled.get_rect(center=(screen.x, screen.y)))
 
@@ -134,11 +137,14 @@ class BombImpactFeedback:
         assets,
         play_sfx: Callable[[str], object] | None,
         sound=None,
+        *,
+        frames: ExplosionFrames,
     ) -> None:
         """assets: the AssetManager (explosion_* and black_smoke_* images).
         play_sfx: plays a sound file at the SFX volume (GameAudio.play_sfx),
-        or None for no sound at all (the menu demo)."""
-        self._frames_cache = ExplosionFrames(assets)
+        or None for no sound at all (the menu demo). frames: the owner's
+        ExplosionFrames, shared with its DeathFeedback."""
+        self._frames_cache = frames
         self._sound_cap = SfxRateCap(play_sfx, sound)
         self.explosions: list[_Explosion] = []
         self.now_ms = 0.0  # real time, advanced by update()

@@ -24,7 +24,7 @@ from pygame.math import Vector2
 from domain.game_state import GameState, TowerConfig
 from gameplay.battle import BattleSimulation
 from gameplay.path_geometry import tiles_near_path
-from ui.bomb_impact_feedback import BombImpactFeedback
+from ui.bomb_impact_feedback import BombImpactFeedback, ExplosionFrames
 from ui.death_feedback import DeathFeedback
 from ui.hit_feedback import HitFeedback
 from gameplay.combat.wave_manager import WaveManager
@@ -91,8 +91,9 @@ class MenuDemo(BattleSimulation):
         self._tower_config = tower_config
         self._audio = _SilentAudio()
         # Explosions where the bombs land, silent like the rest of the demo.
+        explosion_frames = ExplosionFrames(assets)  # bombs' and deaths'
         self.bomb_impacts: BombImpactFeedback = BombImpactFeedback(
-            assets, play_sfx=None
+            assets, play_sfx=None, frames=explosion_frames
         )
         self._rng = rng or random.Random()
         # Hit flashes and sparks, as in the game (they have no sound). Their
@@ -103,7 +104,9 @@ class MenuDemo(BattleSimulation):
         )
 
         # Death explosions and rubble, silent like the bombs.
-        self.death_feedback: DeathFeedback = DeathFeedback(assets, play_sfx=None)
+        self.death_feedback: DeathFeedback = DeathFeedback(
+            assets, play_sfx=None, frames=explosion_frames
+        )
 
         self.view = Rect(0, 0, *size)
         self.camera = Camera(self.view, tilemap.map_width, tilemap.map_height)

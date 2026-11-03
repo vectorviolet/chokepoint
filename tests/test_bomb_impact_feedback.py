@@ -26,6 +26,7 @@ from ui.bomb_impact_feedback import (
     SOUNDS_PER_WINDOW,
     TOTAL_FRAMES,
     BombImpactFeedback,
+    ExplosionFrames,
 )
 from gameplay.towers import PLANE_TYPE
 
@@ -52,7 +53,7 @@ def sfx():
 
 @pytest.fixture
 def feedback(assets, sfx):
-    return BombImpactFeedback(assets, sfx, SOUND)
+    return BombImpactFeedback(assets, sfx, SOUND, frames=ExplosionFrames(assets))
 
 
 class OffsetCamera:
@@ -66,6 +67,9 @@ class OffsetCamera:
     def world_to_screen(self, pos):
         self.seen.append(Vector2(pos))
         return Vector2(pos) - Vector2(1000, 1000)
+
+    def scale_image(self, image):
+        return pygame.transform.scale_by(image, self.scale)
 
 
 # ── BombImpactFeedback ────────────────────────────────────────────────────────
@@ -173,7 +177,7 @@ def test_a_sound_dropped_by_a_full_pool_does_not_count(feedback, sfx):
 
 
 def test_without_play_sfx_impacts_are_silent(assets):
-    silent = BombImpactFeedback(assets, play_sfx=None)
+    silent = BombImpactFeedback(assets, play_sfx=None, frames=ExplosionFrames(assets))
 
     silent.bomb_landed((0, 0), 96)
 

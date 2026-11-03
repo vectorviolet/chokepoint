@@ -156,6 +156,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - The victory popup opened as round 26 started, with "Round 26" on the HUD behind it; it now opens
   as round 25 is cleared ([#105](https://github.com/vectorviolet/chokepoint/pull/105),
   [devlog](docs/devlog/2026-11-03-victory-on-clear.md)).
+- Death effects: a tower's blast and rubble show even if it is sold the same moment; enemy kills no
+  longer silence or cut short a falling tower's explosion
+  ([#112](https://github.com/vectorviolet/chokepoint/pull/112)).
 
 ### Development
 

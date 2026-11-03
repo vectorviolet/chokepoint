@@ -37,7 +37,7 @@ from pygamine import GameAudio
 from gameplay.combat.enemy import Enemy
 from ui.game_hud import GameHUD
 from ui.hud_slide import HudSlide
-from ui.bomb_impact_feedback import BombImpactFeedback
+from ui.bomb_impact_feedback import BombImpactFeedback, ExplosionFrames
 from ui.death_feedback import DeathFeedback
 from ui.hit_feedback import HitFeedback
 from ui.kill_feedback import KillFeedback
@@ -208,8 +208,13 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.assets.sound_path("tower_sold"),
             rng=rng(),
         )
+        # One explosion animation cache for the bombs and the deaths.
+        explosion_frames = ExplosionFrames(self.assets)
         self.bomb_impacts: BombImpactFeedback = BombImpactFeedback(
-            self.assets, self.audio.play_sfx, self.assets.sound_path("bomb_impact")
+            self.assets,
+            self.audio.play_sfx,
+            self.assets.sound_path("bomb_impact"),
+            frames=explosion_frames,
         )
         self.hit_feedback: HitFeedback = HitFeedback(rng=rng())
         self.death_feedback: DeathFeedback = DeathFeedback(
@@ -217,6 +222,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.audio.play_sfx,
             self.assets.sound_path("enemy_destroyed"),
             self.assets.sound_path("heavy_destroyed"),
+            frames=explosion_frames,
         )
         self.tower_controller = TowerPlacementController(
             self.towers,

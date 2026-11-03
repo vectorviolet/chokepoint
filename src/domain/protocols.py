@@ -39,6 +39,11 @@ class IGameContext(Protocol):
         `hit_from` (world); shows the hit. Cosmetic only."""
         ...
 
+    def tower_destroyed(self, tower) -> None:
+        """`tower`'s HP just ran out (the battle removes it on its next
+        tick); shows its death effect. Cosmetic only."""
+        ...
+
 
 @runtime_checkable
 class ArmedEnemy(Protocol):

@@ -55,6 +55,7 @@ class FakeContext:
         self.killed = []
         self.bombs_landed = []
         self.hits = []  # (target, hit_from) per target_hit()
+        self.destroyed = []  # towers per tower_destroyed()
 
     def increase_money(self, amount: int) -> None:
         self.money_earned += amount
@@ -68,6 +69,9 @@ class FakeContext:
 
     def target_hit(self, target, hit_from) -> None:
         self.hits.append((target, hit_from))
+
+    def tower_destroyed(self, tower) -> None:
+        self.destroyed.append(tower)
 
 
 @pytest.fixture(autouse=True)

@@ -231,6 +231,9 @@ class FakeCtx:
     def target_hit(self, target, hit_from):
         pass
 
+    def tower_destroyed(self, tower):
+        pass
+
 
 def test_the_numbers_show_current_and_max_hp(assets):
     enemy = make_enemy(assets, ENEMY_POS)
