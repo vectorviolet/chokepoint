@@ -39,7 +39,7 @@ run with several tower types and levels; they are not a fresh $200 start.
 <details>
 <summary>Display and audio settings</summary>
 
-![Window size and mode controls with master, SFX and music volume sliders](docs/screenshots/05_settings.png)
+![Settings screen on the Display tab: window size and mode controls](docs/screenshots/05_settings.png)
 
 </details>
 
@@ -104,8 +104,8 @@ A workflow also mirrors them to the project wiki.
 | Leave the victory / game-over popup | Esc or the window's close button: back to the main menu (a won run is saved; a lost one isn't) |
 | Save the run and return to the main menu | Main menu inside the pause menu |
 
-The pause menu also provides Settings and a music toggle. Settings includes window size/mode
-and separate master, music and SFX volume sliders. Leaving Settings returns to the menu it
+The pause menu also provides Settings and a music toggle. Settings has tabs: Display has the window size and mode, Audio has
+separate master, music and SFX volume sliders. Leaving Settings returns to the menu it
 was opened from.
 
 ## Download

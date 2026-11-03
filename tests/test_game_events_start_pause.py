@@ -16,6 +16,7 @@ class FakeButton:
     def __init__(self):
         self.state = "unset"
         self.clicked = False
+        self.active = True
 
     def is_clicked(self, event, mouse_pos) -> bool:
         return self.clicked

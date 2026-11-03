@@ -7,6 +7,7 @@ from pygame import Rect
 
 from app.game_events import GameEventsMixin
 from app.game_save import GameSaveMixin
+from app.settings_tabs import DEFAULT_TAB, SettingsTabs
 from app.volume_settings import VOLUME_SETTINGS, VolumeSetting, saved_volume
 from pygamine import Application
 from pygamine import AssetManager
@@ -101,6 +102,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     enemies and waves, and drawing them) is BattleSimulation's, shared with
     the main menu's live background.
     """
+
+    settings_tabs: SettingsTabs  # set by _bind_settings_ui()
 
     # ── construction ──────────────────────────────────────────────────────────
 
@@ -306,6 +309,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._refresh_window_size_label()
         self._refresh_window_mode_label()
         settings_panel = self.panel_manager["settings"]
+        # The open tab survives a rebuild of the panel (a canvas resize).
+        active = self.settings_tabs.active if hasattr(self, "settings_tabs") else None
+        self.settings_tabs = SettingsTabs(settings_panel, active or DEFAULT_TAB)
         for volume in VOLUME_SETTINGS:
             slider = settings_panel[volume.slider]
             slider.set_value(getattr(self.audio, volume.getter)())
@@ -339,6 +345,36 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 self.assets.sound_path("switch_down"),
             ),
         }
+        self._build_settings_controller()
+
+    def _build_settings_controller(self, focus=None) -> None:
+        """The Settings keyboard controller over the open tab's focus order
+        (tabs, that tab's row buttons, Back, Reset). Rebuilt on every tab
+        change; `focus` (a button) keeps the focus where it was."""
+        previous = self.menu_controllers.get("settings")
+        if previous is not None:
+            for button in previous.buttons:
+                button.focused = False
+        controller = MenuController(
+            self.settings_tabs.focus_order(),
+            self.audio,
+            self.assets.sound_path("switch_up"),
+            self.assets.sound_path("switch_down"),
+        )
+        if focus is not None and focus in controller.buttons:
+            controller.buttons[0].focused = False
+            focus.focused = True
+        self.menu_controllers["settings"] = controller
+
+    def _show_settings_tab(self, key: str, *, focus_tab: bool = False) -> None:
+        """Opens Settings tab `key`; the keyboard focus stays on the button it
+        was on if that is still in the new order (or moves to the tab button)."""
+        controller = self.menu_controllers["settings"]
+        focus = controller.focused
+        self.settings_tabs.select(key)
+        if focus_tab:
+            focus = self.panel_manager["settings"][self.settings_tabs.tab(key).button]
+        self._build_settings_controller(focus)
 
     def load_panels(self, window_transform) -> None:
         self.assets.load_manifest("config/assets.yaml")

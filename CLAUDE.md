@@ -158,6 +158,22 @@ YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size
 
 `nine_slice` uses `core.image.nine_slice_scale()` — `corner` is the corner region size **in source pixels**. Only edges/center are stretched; corners are pixel-perfect.
 
+### Settings tabs
+
+The Settings panel has tabs (DISPLAY, AUDIO, GAME, CONTROLS) listed in `SETTINGS_TABS`
+(`src/app/settings_tabs.py`). In `config/panels.yaml` each tab has a button `tab_<key>_button` and
+a group object `<key>_tab`; a tab's rows are objects with `parent: <key>_tab` (copy an existing
+`<` / value / `>` selector row or slider row). `SettingsTabs` shows only the open tab's group (a
+hidden object takes no events and isn't drawn; `_activate()` refuses inactive buttons) and
+highlights its button; Settings opens on DISPLAY (`Game._open_settings`). The keyboard controller
+(`menu_controllers["settings"]`) is rebuilt on each tab change: tab buttons, the open tab's row
+buttons, Back, Reset (sliders can't take focus). Reset to default covers every tab.
+
+To fill GAME or CONTROLS: add the rows to its group in panels.yaml, add their handling and a
+reset line (in `Game._reset_settings`, saving in `_save_settings`), put the rows' `<` / `>` buttons
+in that tab's `buttons` tuple in `SETTINGS_TABS`, and set `shown=True` (the tab button appears).
+No other positions are needed.
+
 ### Towers
 
 `BaseTower` (abstract) → `GroundTower` (types 1–3) or `PlaneTower` (type 4). `TowerFactory.create()` returns the right subclass. Stats come from `config/towers.yaml` via `TowerConfig` (indexed `[type-1][level-1]`).

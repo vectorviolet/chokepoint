@@ -16,6 +16,16 @@ object_templates:
     asset: btn
     hover: btn_hover
     nine_slice: 10
+  # Settings tab button: the open tab shows the yellow "active" look.
+  settings_tab_button:
+    size: [300, 70]
+    asset: btn
+    hover: btn_hover
+    nine_slice: 10
+    states:
+      selected:
+        asset: btn_active
+        hover: btn_active
   music_toggle_icon:
     parent: music_toggle_button
     position: [CENTER, CENTER]
@@ -331,26 +341,68 @@ panels:
         position: [CENTER, 320]
         text: "SETTINGS"
 
-      graphics_column:
-        position: [160, 400]
-        size: [700, 350]
-      audio_column:
-        position: [1060, 400]
-        size: [700, 510]
+      # Tabs: a button per tab in the row below the title, and one group
+      # (`<tab>_tab`) holding that tab's rows. Rows are added by copying an
+      # existing row with `parent:` set to its tab's group; see "Settings tabs"
+      # in CLAUDE.md and src/app/settings_tabs.py.
+      tab_display_button:
+        extends: settings_tab_button
+        position: [300, 420]
+      tab_display_button_text:
+        extends: button_text
+        parent: tab_display_button
+        font_size: 36
+        text: "DISPLAY"
+      tab_audio_button:
+        extends: settings_tab_button
+        position: [640, 420]
+      tab_audio_button_text:
+        extends: button_text
+        parent: tab_audio_button
+        font_size: 36
+        text: "AUDIO"
+      tab_game_button:
+        extends: settings_tab_button
+        position: [980, 420]
+      tab_game_button_text:
+        extends: button_text
+        parent: tab_game_button
+        font_size: 36
+        text: "GAME"
+      tab_controls_button:
+        extends: settings_tab_button
+        position: [1320, 420]
+      tab_controls_button_text:
+        extends: button_text
+        parent: tab_controls_button
+        font_size: 36
+        text: "CONTROLS"
+
+      display_tab:
+        position: [610, 500]
+        size: [700, 300]
+      audio_tab:
+        position: [610, 500]
+        size: [700, 340]
+      game_tab:
+        position: [610, 500]
+        size: [700, 300]
+      controls_tab:
+        position: [610, 500]
+        size: [700, 300]
 
       window_size_label_text:
         type: text
         font: comic_neue
         font_size: 28
         color: white
-        parent: graphics_column
-        position: [CENTER, 60]
+        parent: display_tab
+        position: [CENTER, 0]
         text: "WINDOW SIZE"
-
       window_size_back_button:
         extends: btn-sm
-        parent: graphics_column
-        position: [0, 120]
+        parent: display_tab
+        position: [0, 60]
       window_size_back_button_text:
         extends: button_text
         parent: window_size_back_button
@@ -362,13 +414,13 @@ panels:
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
-        parent: graphics_column
-        position: [CENTER, 112]
+        parent: display_tab
+        position: [CENTER, 52]
         text: "1920x1080"
       window_size_next_button:
         extends: btn-sm
-        parent: graphics_column
-        position: [636, 120]
+        parent: display_tab
+        position: [636, 60]
       window_size_next_button_text:
         extends: button_text
         parent: window_size_next_button
@@ -379,14 +431,13 @@ panels:
         font: comic_neue
         font_size: 28
         color: white
-        parent: graphics_column
-        position: [CENTER, 220]
+        parent: display_tab
+        position: [CENTER, 110]
         text: "WINDOW MODE"
-
       window_mode_back_button:
         extends: btn-sm
-        parent: graphics_column
-        position: [0, 280]
+        parent: display_tab
+        position: [0, 170]
       window_mode_back_button_text:
         extends: button_text
         parent: window_mode_back_button
@@ -398,13 +449,13 @@ panels:
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
-        parent: graphics_column
-        position: [CENTER, 272]
+        parent: display_tab
+        position: [CENTER, 162]
         text: "FULLSCREEN"
       window_mode_next_button:
         extends: btn-sm
-        parent: graphics_column
-        position: [636, 280]
+        parent: display_tab
+        position: [636, 170]
       window_mode_next_button_text:
         extends: button_text
         parent: window_mode_next_button
@@ -415,21 +466,21 @@ panels:
         font: comic_neue
         font_size: 28
         color: white
-        parent: audio_column
-        position: [CENTER, 60]
+        parent: audio_tab
+        position: [CENTER, 0]
         text: "MASTER VOLUME"
       master_volume_value_text:
         type: text
         font: comic_neue
         font_size: 28
         color: white
-        parent: audio_column
-        position: [CENTER, 98]
+        parent: audio_tab
+        position: [CENTER, 38]
         text: "100%"
       master_volume_slider:
         type: slider
-        parent: audio_column
-        position: [CENTER, 134]
+        parent: audio_tab
+        position: [CENTER, 74]
         size: [440, 28]
         value: 1.0
 
@@ -438,21 +489,21 @@ panels:
         font: comic_neue
         font_size: 28
         color: white
-        parent: audio_column
-        position: [CENTER, 220]
+        parent: audio_tab
+        position: [CENTER, 100]
         text: "SFX VOLUME"
       sfx_volume_value_text:
         type: text
         font: comic_neue
         font_size: 28
         color: white
-        parent: audio_column
-        position: [CENTER, 258]
+        parent: audio_tab
+        position: [CENTER, 138]
         text: "100%"
       sfx_volume_slider:
         type: slider
-        parent: audio_column
-        position: [CENTER, 294]
+        parent: audio_tab
+        position: [CENTER, 174]
         size: [440, 28]
         value: 1.0
 
@@ -461,21 +512,21 @@ panels:
         font: comic_neue
         font_size: 28
         color: white
-        parent: audio_column
-        position: [CENTER, 380]
+        parent: audio_tab
+        position: [CENTER, 200]
         text: "BGM VOLUME"
       music_volume_value_text:
         type: text
         font: comic_neue
         font_size: 28
         color: white
-        parent: audio_column
-        position: [CENTER, 418]
+        parent: audio_tab
+        position: [CENTER, 238]
         text: "100%"
       music_volume_slider:
         type: slider
-        parent: audio_column
-        position: [CENTER, 454]
+        parent: audio_tab
+        position: [CENTER, 274]
         size: [440, 28]
         value: 1.0
 
