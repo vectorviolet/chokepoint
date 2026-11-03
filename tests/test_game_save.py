@@ -99,6 +99,9 @@ class FakeGame(GameSaveMixin):
         self.bomb_impacts = SimpleNamespace(
             clear=lambda: self.calls.append("bomb_impacts.clear")
         )
+        self.hit_feedback = SimpleNamespace(
+            clear=lambda: self.calls.append("hit_feedback.clear")
+        )
         self.life_lost_feedback = SimpleNamespace(
             clear=lambda: self.calls.append("life_lost_feedback.clear")
         )
@@ -300,6 +303,7 @@ def test_load_game_restores_full_state(tower_config, assets):
     assert "life_lost_feedback.clear" in game.calls
     assert "place_sell_feedback.clear" in game.calls
     assert "bomb_impacts.clear" in game.calls
+    assert "hit_feedback.clear" in game.calls
 
 
 def test_restore_towers_only_reloads_the_image_above_level_one(tower_config, assets):
@@ -397,6 +401,7 @@ def test_start_new_game_resets_everything_to_starting_values(tower_config, asset
     assert "life_lost_feedback.clear" in game.calls
     assert "place_sell_feedback.clear" in game.calls
     assert "bomb_impacts.clear" in game.calls
+    assert "hit_feedback.clear" in game.calls
 
 
 # ── sync UI ──────────────────────────────────────────────────────────────────

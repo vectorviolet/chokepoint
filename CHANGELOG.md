@@ -76,6 +76,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   [7965095](https://github.com/vectorviolet/chokepoint/commit/7965095),
   [f89057a](https://github.com/vectorviolet/chokepoint/commit/f89057a),
   [823faca](https://github.com/vectorviolet/chokepoint/commit/823faca)).
+- Hit enemies and towers flash white for a moment, with a small spark where the shot landed
+  ([#NNN](https://github.com/vectorviolet/chokepoint/pull/NNN),
+  [devlog](docs/devlog/2026-11-03-hit-feedback.md)).
 
 ### Changed
 

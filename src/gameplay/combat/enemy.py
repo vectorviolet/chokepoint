@@ -55,12 +55,17 @@ class Enemy(RotatableObject):
         if self in ctx.enemies:
             ctx.enemies.remove(self)
 
-    def decrease_hp(self, damage: int, ctx: "IGameContext", source=None) -> None:
+    def decrease_hp(
+        self, damage: int, ctx: "IGameContext", source=None, hit_from=None
+    ) -> None:
         """`source` is the tower whose shot/bomb dealt the damage; it is
         credited with the HP this hit took (overkill not counted) and, if
-        this hit kills, with the kill and its money."""
+        this hit kills, with the kill and its money. `hit_from` is where the
+        shot was (world), for the hit's spark; None: no direction (a bomb
+        landed on top of it)."""
         if self not in ctx.enemies:
             return
+        ctx.target_hit(self, hit_from)  # cosmetic: the flash and spark
         if source is not None:
             source.record_damage(min(damage, max(0, self.hp)))
         self.hp -= damage

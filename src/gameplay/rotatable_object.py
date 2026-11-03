@@ -86,6 +86,9 @@ class RotatableObject(StateObject):
         self.rotated_image: pygame.Surface | None = None
         self.is_rotated = False
         self.sprite_orientation = sprite_orientation
+        # Degrees (counter-clockwise, as pygame.transform.rotate) the drawn
+        # image is rotated by from the source, while is_rotated.
+        self.rotation: float = 0.0
         # The (source image, rotation step) rotate_to_angle_cached() drew.
         self._rotation_key: tuple[pygame.Surface, int] | None = None
 
@@ -107,6 +110,7 @@ class RotatableObject(StateObject):
     def rotate_to_angle(self, angle: float) -> None:
         source = self._sprite_image()
         rotation = self.sprite_orientation - angle
+        self.rotation = rotation
         self.rotated_image = pygame.transform.rotate(source, rotation)
         self.rect.size = self.rotated_image.get_size()
         self.rect.center = self.position
@@ -127,6 +131,7 @@ class RotatableObject(StateObject):
         ):
             return
         self._rotation_key = (source, rotation)
+        self.rotation = rotation
         self.rotated_image = cached_rotation(source, rotation)
         self.rect.size = self.rotated_image.get_size()
         self.rect.center = self.position
@@ -135,6 +140,14 @@ class RotatableObject(StateObject):
     def _sprite_image(self) -> pygame.Surface:
         """The unrotated sprite: every RotatableObject is built with one."""
         return self._sprite.require_image()
+
+    def flash_parts(self) -> list[tuple[pygame.Surface, int, Vector2]]:
+        """What a hit flash covers (ui.hit_feedback): (unrotated source
+        image, rotation rounded to ANGLE_STEP, world center) per drawn part.
+        The rounding keeps the flash's rotated silhouettes cacheable; it's
+        within a degree of the drawn sprite."""
+        rotation = quantise_angle(self.rotation) if self.is_rotated else 0
+        return [(self._sprite_image(), rotation, Vector2(self.rect.center))]
 
     @override
     def draw(self, surface: pygame.Surface) -> None:

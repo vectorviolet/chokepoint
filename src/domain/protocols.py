@@ -34,6 +34,11 @@ class IGameContext(Protocol):
         shows its explosion and plays its sound."""
         ...
 
+    def target_hit(self, target, hit_from) -> None:
+        """`target` (an enemy or a tower) took a hit from a shot at
+        `hit_from` (world, or None); shows the hit. Cosmetic only."""
+        ...
+
 
 @runtime_checkable
 class ArmedEnemy(Protocol):

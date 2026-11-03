@@ -102,6 +102,10 @@ class GroundTower(BaseTower):
         if target is not None and self._is_attack_ready():
             self._shoot(target)
 
+    def flash_parts(self) -> list[tuple[pygame.Surface, int, Vector2]]:
+        """A hit flashes the platform and the turret on it."""
+        return self.platform.flash_parts() + super().flash_parts()
+
     # ── private ───────────────────────────────────────────────────────────────
 
     def _turn_barrel(self, elapsed_ms: float) -> None:

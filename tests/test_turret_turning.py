@@ -31,7 +31,7 @@ class FakeEnemy:
         self.hp = hp
         self.hits: list[int] = []
 
-    def decrease_hp(self, damage, ctx=None, source=None) -> None:
+    def decrease_hp(self, damage, ctx=None, source=None, hit_from=None) -> None:
         self.hp -= damage
         self.hits.append(damage)
 

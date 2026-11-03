@@ -141,6 +141,7 @@ hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what a
 | `life_lost_feedback` | `LifeLostFeedback` | A bell (its own reserved mixer channel 2, outside pygamine's SFX pool, at master × SFX volume: `GameAudio.effective_sfx_volume()`) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
 | `place_sell_feedback` | `PlaceSellFeedback` | Placing a tower: a thud and a dust puff on its tile; selling: a coin clink and coins bursting from the tile. Sounds via `audio.play_sfx` (the SFX pool); effects in world space through the camera, on real time (cosmetic: they play out while paused and ignore x2/x4), capped at `MAX_EFFECTS`. Told by the placement controller (`feedback=`); the menu demo has none |
 | `bomb_impacts` | `BombImpactFeedback` | Where a plane's bomb lands: an explosion sized to its splash radius (smoke + fireball, drawn over ground towers and enemies but under planes and HP bars, through the camera) and an impact sound via `audio.play_sfx`, capped at one per 150 ms and 3 per second. The bomb deals its damage at impact on game time and calls `ctx.bomb_landed()`; the explosion is cosmetic and runs on real time (plays out while paused, ignores x2/x4), at most `MAX_EXPLOSIONS`. The menu demo has its own, silent |
+| `hit_feedback` | `HitFeedback` | A hit enemy or tower (`ctx.target_hit()`, called from `Enemy.decrease_hp` and `TankBullet`) flashes white for `FLASH_MS` (a white silhouette of each of its `flash_parts()`, cached per source image, drawn right over it) with a small procedural spark at the impact point (the target's edge facing the shot). Rate-capped per target (`HIT_MIN_INTERVAL_MS`) so gunfire doesn't strobe, at most `MAX_EFFECTS` at once. Cosmetic, on real time (plays out while paused, ignores x2/x4), no sound. The menu demo has its own |
 
 ### Panel / UI system
 
@@ -171,11 +172,11 @@ Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py
 
 ### Projectiles / IGameContext
 
-`Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.towers`, `.speed`, `.time_ms`, `.map_width`, `.map_height`, `.increase_money()` and `.bomb_landed()`. This avoids circular imports — projectiles never import `Game`.
+`Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.towers`, `.speed`, `.time_ms`, `.map_width`, `.map_height`, `.increase_money()`, `.bomb_landed()` and `.target_hit()`. This avoids circular imports — projectiles never import `Game`.
 
 ### Rendering order (game panel)
 
-Tilemap → ground towers + their bullets → orphan tower shots and bombs (their tower or plane is gone) → enemies + their bullets → orphan tank shells → bomb explosions → planes (they fly; each draws its own: shadow → falling bombs → selected plane's splash ring → plane, so bombs are under it) → HP bars (towers', then enemies', so neither fire nor a plane hides one) → border lines → HUD → tower placement overlay (cursor + range ring). The selected enemy's HP numbers are drawn after the battle, so they stay above planes too
+Tilemap → ground towers + their bullets → orphan tower shots and bombs (their tower or plane is gone) → enemies + their bullets (a hit tower's or enemy's white flash right over its sprite, under its shots) → orphan tank shells → bomb explosions → hit sparks → planes (they fly; each draws its own: shadow → falling bombs → selected plane's splash ring → plane, so bombs are under it) → HP bars (towers', then enemies', so neither fire nor a plane hides one) → border lines → HUD → tower placement overlay (cursor + range ring). The selected enemy's HP numbers are drawn after the battle, so they stay above planes too
 
 The battle part (`BattleSimulation._draw_battle`) is shared by the game and the menu demo; `tests/test_draw_order.py` checks it.
 

@@ -228,6 +228,9 @@ class FakeCtx:
     def enemy_killed(self, enemy):
         self.killed.append(enemy)
 
+    def target_hit(self, target, hit_from):
+        pass
+
 
 def test_the_numbers_show_current_and_max_hp(assets):
     enemy = make_enemy(assets, ENEMY_POS)
