@@ -169,8 +169,6 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 
 ### Development
 
-- A CodeRabbit config (`.coderabbit.yaml`) for a trial of automated PR reviews alongside the
-  lead's review ([#124](https://github.com/vectorviolet/chokepoint/pull/124)).
 - An illustrated devlog and architecture decision records, with generated indexes checked in CI
   ([#68](https://github.com/vectorviolet/chokepoint/pull/68),
   [#76](https://github.com/vectorviolet/chokepoint/pull/76)).
@@ -213,6 +211,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#103](https://github.com/vectorviolet/chokepoint/pull/103),
   [devlog](docs/devlog/2026-11-03-watch-the-bots-play.md)).
 - Dependabot opens one grouped PR a week with `uv.lock` updates (`.github/dependabot.yml`).
+- A CodeRabbit config (`.coderabbit.yaml`) for a trial of automated PR reviews alongside the
+  lead's review ([#124](https://github.com/vectorviolet/chokepoint/pull/124)).
 
 ## [0.3.1] – 2026-10-25
 
