@@ -183,7 +183,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - Dependencies: Pillow 13.0.0 ([#80](https://github.com/vectorviolet/chokepoint/pull/80)),
   setuptools locked at 84.2.1 ([5a3828a](https://github.com/vectorviolet/chokepoint/commit/5a3828a)).
 - `balance_sim.py --watch --strategy <name>` plays one bot's run in a game window, in real time
-  ([#PRNUM](https://github.com/vectorviolet/chokepoint/pull/PRNUM),
+  ([#103](https://github.com/vectorviolet/chokepoint/pull/103),
   [devlog](docs/devlog/2026-11-03-watch-the-bots-play.md)).
 
 ## [0.3.1] – 2026-10-25

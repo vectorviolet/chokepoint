@@ -1,7 +1,7 @@
 # Watch the balance bots play
-<!-- index | refs: #100, PR #PRNUM -->
+<!-- index | refs: #100, PR #103 -->
 
-**Date:** 2026-11-03 · **Area:** Tooling, balance · **Issue:** [#100](https://github.com/vectorviolet/chokepoint/issues/100) · **PR:** [#PRNUM](https://github.com/vectorviolet/chokepoint/pull/PRNUM)
+**Date:** 2026-11-03 · **Area:** Tooling, balance · **Issue:** [#100](https://github.com/vectorviolet/chokepoint/issues/100) · **PR:** [#103](https://github.com/vectorviolet/chokepoint/pull/103)
 
 ## Context
 
