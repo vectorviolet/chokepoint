@@ -24,7 +24,9 @@ so this matters (see CLAUDE.md).
 
 --watch (issue #100) plays one --strategy in a game window instead, drawn
 by the game with its HUD, in real time (scripts/balance_watch.py). The run
-is the same as headless, step for step; it writes no CSV or report.
+is the same as headless, step for step, while the speed stays at
+--game-speed (+/- in the window change the timing, so results can differ
+from then on); it writes no CSV or report.
 """
 
 from __future__ import annotations
@@ -146,13 +148,14 @@ class Sim:
         controller.buying_tower_type = tower_type
         # A click on the tile's center, with the camera brought over it.
         camera = self.game.camera
-        view = Vector2(camera._offset), camera.scale
+        # center_on() moves only the offset, never the zoom.
+        view = Vector2(camera._offset) if self.keep_camera else None
         center = (col * TILE_SIZE + HALF_TILE, row * TILE_SIZE + HALF_TILE)
         camera.center_on(center)
         controller._handle_tower_purchase(tuple(camera.world_to_screen(center)))
         controller.buying_tower_type = 0
-        if self.keep_camera:
-            camera._offset, camera.scale = view
+        if view is not None:
+            camera._offset.update(view)
         if len(towers) == before:
             return False
         # The controller puts a ground tower first and a plane last.

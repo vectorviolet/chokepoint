@@ -281,7 +281,10 @@ def test_watched_run_matches_headless_and_shows_its_summary(sim, monkeypatch):
     camera = watcher.game.camera
     view = (pygame.Vector2(camera._offset), camera.scale)
     summaries = []
-    monkeypatch.setattr(watcher, "_draw_summary", lambda canvas: summaries.append(1))
+    real_render = watcher._render_summary
+    monkeypatch.setattr(
+        watcher, "_render_summary", lambda: summaries.append(1) or real_render()
+    )
     watcher.handle_event(_key(pygame, pygame.K_f, "f"))
     for _ in range(2_000):
         watcher.frame()
@@ -291,8 +294,13 @@ def test_watched_run_matches_headless_and_shows_its_summary(sim, monkeypatch):
     # The bot bought towers, but the camera stayed where the viewer left it.
     assert watcher.run.sim.bought
     assert (pygame.Vector2(camera._offset), camera.scale) == view
-    watcher.frame()
-    assert summaries
+    for _ in range(3):
+        watcher.frame()
+    assert summaries == [1]  # built once, then reused
+    # Nothing left to pause or fast-forward.
+    watcher.handle_event(_key(pygame, pygame.K_SPACE, " "))
+    watcher.handle_event(_key(pygame, pygame.K_f, "f"))
+    assert not watcher.paused and not watcher.fast_forward
     headless = sim.run_strategy("gun_spam", waves=1)
     assert watcher.run.result.rows == headless.rows
     assert watcher.run.result.ticks == headless.ticks

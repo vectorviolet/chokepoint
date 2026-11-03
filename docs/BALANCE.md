@@ -22,8 +22,10 @@ game window and plays that one strategy from wave 1 with the game's screen and H
 at `--game-speed` (x4 by default). Space pauses and resumes, + and - change the speed (x1, x2,
 x4), F toggles fast-forward and Esc or closing the window quits; the camera scrolls and zooms as in
 the game. When the run ends, a summary stays on screen (strategy, waves cleared, lives, money
-spent). A watched run plays exactly as the headless one, writes no CSV or report and also sends
-its saves to a temporary folder.
+spent). While the speed stays at `--game-speed`, a watched run plays exactly as the headless one;
+changing it with + or - changes each tick's motion and timing, so from then on the run can differ.
+A watched run writes no CSV or report and also sends its saves to a temporary folder.
+
 The default run takes **8 to 11 minutes** on the machine below, depending on what else it is
 doing: 492 s on a quiet machine, 678 s for the run recorded here (gun_cannon 244 s, gun_spam
 157 s, missile 131 s, mixed 102 s, plane_spam 43 s, minimal 3 s). Late waves with hundreds of

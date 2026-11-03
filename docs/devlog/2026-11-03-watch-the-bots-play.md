@@ -26,7 +26,7 @@ How to show a run:
 
 - **The real game window, driven by the simulator's own steps** (`--watch`): the game's `update()`
   and draw path, with every game tick handed to the simulator's step, so the bot plays exactly as
-  it does headless.
+  it does headless (while the speed stays at `--game-speed`).
 - **A recording**: render frames headless and save a video. Out of scope in the issue.
 - **An overlay of the bot's plan** (next purchase, saved money). Out of scope in the issue.
 
@@ -45,9 +45,11 @@ How it is built (Claude):
   bot's half-second look at its money and the stall watchdog. Headless runs call it in a tight
   loop; a watched game's `_tick()` calls it, so `Game.update()` paces it in real time (one tick
   per `TICK_MS`, each moving game time on by `TICK_MS` times the speed). Fast-forward ticks for
-  50 ms of real time between drawn frames, with no frame cap. Headless output is byte for byte
-  what it was (6 strategies over 8 and 30 waves, diffed before and after), and a test checks that
-  a watched run's rows equal the headless ones.
+  50 ms of real time between drawn frames, with no frame cap (the game's cap again while paused
+  or once the run has ended). Headless output is byte for byte what it was (6 strategies over 8
+  and 30 waves, diffed before and after), and a test checks that a watched run's rows equal the
+  headless ones. That holds while the speed stays at `--game-speed`: + or - changes each tick's
+  motion and timing, so from then on a watched run can differ from the headless one.
 - The bot buys by "clicking" a tile after centering the camera on it. In a watched run the camera
   goes back where the viewer left it after each purchase, so the view never jumps.
 - The window is windowed (Chokepoint's default after a fresh install is fullscreen; the
