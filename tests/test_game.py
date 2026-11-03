@@ -427,6 +427,8 @@ class FakeTower:
         self._blocking_pos = blocking_pos
         self.bullets = [FakeBullet()]
         self.update_calls = []
+        self.hp = None  # no HP: nothing to report destroyed
+        self.destruction_reported = False
 
     def should_remove(self):
         return self._removed

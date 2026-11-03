@@ -26,6 +26,7 @@ from ui.bomb_impact_feedback import (
     SOUND_MIN_GAP_MS,
     SOUND_WINDOW_MS,
     SOUNDS_PER_WINDOW,
+    ExplosionFrames,
 )
 from ui.death_feedback import (
     DECAL_FADE_MS,
@@ -73,6 +74,10 @@ class Camera:
         return pygame.transform.scale_by(image, self.scale)
 
 
+def all_blasts(feedback):
+    return [*feedback.enemy_blasts, *feedback.tower_blasts]
+
+
 @pytest.fixture
 def sfx():
     return SfxSpy()
@@ -80,7 +85,7 @@ def sfx():
 
 @pytest.fixture
 def feedback(assets, sfx):
-    return DeathFeedback(assets, sfx, SMALL, BIG)
+    return DeathFeedback(assets, sfx, SMALL, BIG, frames=ExplosionFrames(assets))
 
 
 # ── the effects ───────────────────────────────────────────────────────────────
@@ -90,7 +95,7 @@ def test_an_enemy_explodes_small_and_a_tank_big(feedback):
     feedback.enemy_died((100, 100), is_tank=False)
     feedback.enemy_died((300, 100), is_tank=True)
 
-    assert [(tuple(b.position), b.size) for b in feedback.blasts] == [
+    assert [(tuple(b.position), b.size) for b in all_blasts(feedback)] == [
         ((100, 100), ENEMY_BLAST_SIZE),
         ((300, 100), TANK_BLAST_SIZE),
     ]
@@ -101,7 +106,7 @@ def test_an_enemy_explodes_small_and_a_tank_big(feedback):
 def test_a_destroyed_tower_explodes_and_leaves_rubble(feedback):
     feedback.tower_destroyed((640, 320))
 
-    assert [(tuple(b.position), b.size) for b in feedback.blasts] == [
+    assert [(tuple(b.position), b.size) for b in all_blasts(feedback)] == [
         ((640, 320), TOWER_BLAST_SIZE)
     ]
     assert [tuple(d.position) for d in feedback.decals] == [(640, 320)]
@@ -111,9 +116,9 @@ def test_blasts_play_out_in_life_ms_of_real_time(feedback):
     feedback.enemy_died((0, 0), is_tank=False)
 
     feedback.update(LIFE_MS - 1)
-    assert feedback.blasts
+    assert all_blasts(feedback)
     feedback.update(1)
-    assert feedback.blasts == []
+    assert all_blasts(feedback) == []
 
 
 def test_the_rubble_holds_then_fades_out(feedback):
@@ -137,8 +142,8 @@ def test_at_most_max_effects_blasts_the_oldest_makes_room(feedback):
     for i in range(MAX_EFFECTS + 3):
         feedback.enemy_died((i, 0), is_tank=False)
 
-    assert len(feedback.blasts) == MAX_EFFECTS
-    assert feedback.blasts[0].position.x == 3  # the three oldest went
+    assert len(all_blasts(feedback)) == MAX_EFFECTS
+    assert all_blasts(feedback)[0].position.x == 3  # the three oldest went
 
 
 def test_at_most_max_decals_the_oldest_makes_room(feedback):
@@ -159,7 +164,7 @@ def test_clear_drops_everything(feedback):
     feedback.tower_destroyed((0, 0))
     feedback.clear()
 
-    assert feedback.blasts == [] and feedback.decals == []
+    assert all_blasts(feedback) == [] and feedback.decals == []
 
 
 # ── sounds ────────────────────────────────────────────────────────────────────
@@ -179,7 +184,7 @@ def test_enemy_death_sounds_are_rate_capped_like_bomb_impacts(feedback, sfx):
     feedback.update(SOUND_MIN_GAP_MS - 1)
     feedback.enemy_died((0, 0), is_tank=False)  # too soon: silent
     assert sfx.played == [SMALL]
-    assert len(feedback.blasts) == 2  # but it still explodes
+    assert len(all_blasts(feedback)) == 2  # but it still explodes
 
     # A kill every frame for a second plays SOUNDS_PER_WINDOW sounds.
     feedback.clear()
@@ -188,6 +193,43 @@ def test_enemy_death_sounds_are_rate_capped_like_bomb_impacts(feedback, sfx):
         feedback.enemy_died((0, 0), is_tank=False)
         feedback.update(10)
     assert len(sfx.played) == SOUNDS_PER_WINDOW
+
+
+def test_a_tank_sound_is_skipped_right_after_a_towers(feedback, sfx):
+    feedback.tower_destroyed((0, 0))
+    feedback.update(SOUND_MIN_GAP_MS - 1)
+    feedback.enemy_died((0, 0), is_tank=True)  # the same file: not on top
+
+    assert sfx.played == [BIG]
+    assert len(feedback.enemy_blasts) == 1  # but it still explodes
+
+    feedback.update(1)
+    feedback.enemy_died((0, 0), is_tank=True)  # the gap has passed
+    assert sfx.played == [BIG, BIG]
+
+
+def test_a_tower_sound_plays_even_right_after_a_tanks(feedback, sfx):
+    feedback.enemy_died((0, 0), is_tank=True)
+    feedback.tower_destroyed((0, 0))  # never silenced by enemies
+
+    assert sfx.played == [BIG, BIG]
+
+
+def test_blasts_draw_oldest_first_across_enemies_and_towers(feedback, monkeypatch):
+    drawn = []
+    monkeypatch.setattr(
+        "ui.death_feedback.draw_explosion",
+        lambda surface, camera, frame, position: drawn.append(tuple(position)),
+    )
+    feedback.tower_destroyed((1, 1))
+    feedback.update(10)
+    feedback.enemy_died((2, 2), is_tank=False)
+    feedback.update(10)
+    feedback.tower_destroyed((3, 3))
+
+    feedback.draw_blasts(pygame.Surface((10, 10)), Camera())
+
+    assert drawn == [(1, 1), (2, 2), (3, 3)]
 
 
 def test_a_stream_of_kills_cannot_silence_a_falling_tower(feedback, sfx):
@@ -235,11 +277,11 @@ def test_a_sound_the_pool_dropped_does_not_count(feedback, sfx):
 
 
 def test_without_play_sfx_deaths_are_silent(assets):
-    feedback = DeathFeedback(assets, play_sfx=None)
+    feedback = DeathFeedback(assets, play_sfx=None, frames=ExplosionFrames(assets))
     feedback.enemy_died((0, 0), is_tank=True)
     feedback.tower_destroyed((0, 0))
 
-    assert len(feedback.blasts) == 2 and len(feedback.decals) == 1
+    assert len(all_blasts(feedback)) == 2 and len(feedback.decals) == 1
 
 
 # ── drawing ───────────────────────────────────────────────────────────────────
@@ -330,7 +372,7 @@ def ground_tower(game, tower_type=2, row=10, col=10):
 
 
 def blasts(battle):
-    return [(tuple(b.position), b.size) for b in battle.death_feedback.blasts]
+    return [(tuple(b.position), b.size) for b in all_blasts(battle.death_feedback)]
 
 
 def test_a_missile_kill_explodes_where_the_enemy_died(game):
@@ -423,6 +465,23 @@ def test_a_tower_explodes_once_however_many_shells_hit_it(game):
     assert len(game.death_feedback.decals) == 1
 
 
+def test_a_tower_loaded_at_zero_hp_explodes_once_when_removed(game):
+    game._start_new_game()  # a real wave manager, to save with
+    tower = ground_tower(game)
+    tower.hp = 0  # saved after its killing shell, before its removal
+    game._save_game()
+    game._load_game()
+    loaded = game.towers[0]
+    assert loaded.hp == 0
+
+    game._tick()
+    game._tick()
+
+    assert loaded not in game.towers
+    assert len(game.death_feedback.tower_blasts) == 1
+    assert len(game.death_feedback.decals) == 1
+
+
 def test_a_tower_sold_before_its_removal_still_explodes(game):
     """Its HP runs out and the player sells it in the same frame, before
     the tick that would remove it: its blast and rubble already show."""
@@ -497,7 +556,9 @@ def test_the_blast_outlives_the_enemy_and_does_not_hold_up_its_payout(game):
     assert game.game_state.money == money + enemy.kill_money
     assert tower.kills == 1
     assert not any(
-        vars(b).get(k) is enemy for b in game.death_feedback.blasts for k in vars(b)
+        vars(b).get(k) is enemy
+        for b in all_blasts(game.death_feedback)
+        for k in vars(b)
     )  # it holds a position, never the enemy
     game._draw_battle(pygame.Surface((1280, 720)), game.camera)
 
@@ -508,7 +569,7 @@ def test_death_effects_play_out_on_real_time_while_paused(game):
     game.game_state.is_started = False
 
     game._update_game(LIFE_MS)
-    assert game.death_feedback.blasts == []
+    assert all_blasts(game.death_feedback) == []
     game._update_game(DECAL_LIFE_MS - LIFE_MS)
     assert game.death_feedback.decals == []
 
@@ -523,7 +584,7 @@ def test_new_game_and_load_drop_the_effects(game, reset):
     else:
         game._start_new_game()
 
-    assert game.death_feedback.blasts == [] and game.death_feedback.decals == []
+    assert all_blasts(game.death_feedback) == [] and game.death_feedback.decals == []
 
 
 # ── the menu demo, and no gameplay change ────────────────────────────────────
@@ -536,7 +597,7 @@ def tilemap():
 
 def test_the_menu_demo_explodes_silently(tilemap, assets, tower_config):
     demo = MenuDemo(tilemap, assets, tower_config, (1280, 720), random.Random(1))
-    assert demo.death_feedback.blasts == []  # the pre-warm's are cleared
+    assert all_blasts(demo.death_feedback) == []  # the pre-warm's are cleared
     assert demo.death_feedback._small_cap._play_sfx is None
     assert demo.death_feedback._tank_cap._play_sfx is None
     assert demo.death_feedback._tower_cap._play_sfx is None
@@ -544,7 +605,7 @@ def test_the_menu_demo_explodes_silently(tilemap, assets, tower_config):
     for _ in range(600):
         demo._tick()
 
-    assert demo.death_feedback.blasts
+    assert all_blasts(demo.death_feedback)
     demo.draw(pygame.Surface((1280, 720)))
 
 
@@ -595,7 +656,7 @@ def test_the_battle_plays_out_the_same_without_it(
         without._tick()
 
     assert with_it.death_feedback is not None
-    assert with_it.death_feedback.blasts  # it was killing
+    assert all_blasts(with_it.death_feedback)  # it was killing
     assert destroyed  # and towers fell
     assert battle_outcome(with_it) == battle_outcome(without)
 

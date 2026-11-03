@@ -13,8 +13,10 @@ destroyed tower also leaves a scorched rubble decal that fades away.
 
 Sounds go through GameAudio.play_sfx (the SFX pool), rate-capped like the
 bomb impacts (SfxRateCap), with one cap each for soldiers, tanks and
-towers, so no stream of kills can silence a falling tower. A blast over
-its cap shows without a sound.
+towers, so no stream of kills can silence a falling tower. A tank's sound
+(the tower's file) is skipped when a tower's started within the minimum
+gap, so it never plays on top of itself. A blast over its cap shows
+without a sound.
 
 Everything here is cosmetic and runs on real time (frame_ms), like the
 bomb impacts: it plays out while the game is paused and x2/x4 speed
@@ -40,6 +42,7 @@ from util.constants import TILE_SIZE
 from ui.bomb_impact_feedback import (
     FRAME_MS,
     LIFE_MS,
+    SOUND_MIN_GAP_MS,
     TOTAL_FRAMES,
     ExplosionFrames,
     SfxRateCap,
@@ -84,6 +87,15 @@ class _Decal:
     born_ms: float
 
 
+def _born_ms(effect) -> float:
+    return effect.born_ms
+
+
+def _alive(effects: list, now_ms: float, life_ms: float) -> list:
+    """The effects that haven't played out `life_ms` after their birth."""
+    return [e for e in effects if now_ms - e.born_ms < life_ms]
+
+
 class DeathFeedback:
     def __init__(
         self,
@@ -91,15 +103,15 @@ class DeathFeedback:
         play_sfx: Callable[[str], object] | None,
         small_sound=None,
         big_sound=None,
-        frames: ExplosionFrames | None = None,
+        *,
+        frames: ExplosionFrames,
     ) -> None:
         """assets: the AssetManager (the explosion, smoke and decal images).
         play_sfx: plays a sound file at the SFX volume (GameAudio.play_sfx),
         or None for no sound at all (the menu demo). small_sound: a
         soldier's blast; big_sound: a tank's or a tower's. frames: the
-        owner's ExplosionFrames, shared with its BombImpactFeedback
-        (default: its own)."""
-        self._frames = frames or ExplosionFrames(assets)
+        owner's ExplosionFrames, shared with its BombImpactFeedback."""
+        self._frames = frames
         self._small_cap = SfxRateCap(play_sfx, small_sound)
         self._tank_cap = SfxRateCap(play_sfx, big_sound)
         self._tower_cap = SfxRateCap(play_sfx, big_sound)
@@ -127,11 +139,6 @@ class DeathFeedback:
             decals.append(decal)
         return decals
 
-    @property
-    def blasts(self) -> list[_Blast]:
-        """Every blast playing: enemies', then towers'."""
-        return [*self.enemy_blasts, *self.tower_blasts]
-
     def clear(self) -> None:
         self.enemy_blasts.clear()
         self.tower_blasts.clear()
@@ -148,7 +155,11 @@ class DeathFeedback:
         size = TANK_BLAST_SIZE if is_tank else ENEMY_BLAST_SIZE
         blast = _Blast(Vector2(position), size, self.now_ms)
         self._add(self.enemy_blasts, MAX_EFFECTS, blast)
-        (self._tank_cap if is_tank else self._small_cap).play(self.now_ms)
+        if not is_tank:
+            self._small_cap.play(self.now_ms)
+        elif not self._tower_cap.played_within(self.now_ms, SOUND_MIN_GAP_MS):
+            # The same file as a tower's: never on top of it.
+            self._tank_cap.play(self.now_ms)
 
     def tower_destroyed(self, position) -> None:
         """A tower was destroyed at `position` (world): its blast and the
@@ -174,16 +185,9 @@ class DeathFeedback:
         speed, not stopped by pause). Drops what has played out."""
         self.now_ms += frame_ms
         now_ms = self.now_ms
-        if self.enemy_blasts:
-            self.enemy_blasts = [
-                b for b in self.enemy_blasts if now_ms - b.born_ms < LIFE_MS
-            ]
-        if self.tower_blasts:
-            self.tower_blasts = [
-                b for b in self.tower_blasts if now_ms - b.born_ms < LIFE_MS
-            ]
-        if self.decals:
-            self.decals = [d for d in self.decals if now_ms - d.born_ms < DECAL_LIFE_MS]
+        self.enemy_blasts = _alive(self.enemy_blasts, now_ms, LIFE_MS)
+        self.tower_blasts = _alive(self.tower_blasts, now_ms, LIFE_MS)
+        self.decals = _alive(self.decals, now_ms, DECAL_LIFE_MS)
 
     def frame_index(self, blast: _Blast) -> int:
         elapsed = max(0.0, self.now_ms - blast.born_ms)
@@ -210,7 +214,9 @@ class DeathFeedback:
             surface.blit(image, image.get_rect(center=(screen.x, screen.y)))
 
     def draw_blasts(self, surface: pygame.Surface, camera) -> None:
-        """With the bomb explosions, through the camera."""
-        for blast in (*self.enemy_blasts, *self.tower_blasts):
+        """With the bomb explosions, through the camera. Oldest first
+        across both lists, so a newer blast is on top."""
+        both = sorted((*self.enemy_blasts, *self.tower_blasts), key=_born_ms)
+        for blast in both:
             frame = self._frames.frames(blast.size)[self.frame_index(blast)]
             draw_explosion(surface, camera, frame, blast.position)

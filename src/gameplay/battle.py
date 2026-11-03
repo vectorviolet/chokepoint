@@ -204,6 +204,10 @@ class BattleSimulation:
         kept: list[BaseTower] = []
         for tower in self.towers:
             if tower.should_remove():
+                if tower.hp is not None and not tower.destruction_reported:
+                    # Out of HP without its blast shown (loaded at 0 HP).
+                    tower.destruction_reported = True
+                    self.tower_destroyed(tower)
                 self._tower_removed(tower, kept[-1] if kept else None)
                 if self.game_state.selected_tower is tower:
                     # A plane that left the map or a destroyed tower: its

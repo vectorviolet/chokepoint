@@ -50,6 +50,8 @@ class BaseTower(RotatableObject):
         # Lifetime record shown in the tower info panel (and saved): enemies
         # this tower dealt the killing blow to, and the kill money they paid.
         self.kills: int = 0
+        # Whether its destruction was shown (ctx.tower_destroyed) already.
+        self.destruction_reported = False
         self.money_earned: int = 0
         # Enemy HP this tower's shots/bombs took (overkill not counted).
         # Statistics only (the balance simulator reads it); not saved.
@@ -144,6 +146,7 @@ class BaseTower(RotatableObject):
         # Cosmetic: the flash and spark, and its death effect.
         ctx.target_hit(self, self.position if hit_from is None else hit_from)
         if was_standing and self.hp <= 0:
+            self.destruction_reported = True
             ctx.tower_destroyed(self)
 
     # ── action hit-rects (screen space, zoom-aware) ───────────────────────────
