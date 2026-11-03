@@ -187,7 +187,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   setuptools locked at 84.2.1 ([5a3828a](https://github.com/vectorviolet/chokepoint/commit/5a3828a)).
 - pygamine updated to 0.28.0: sprites and the window are used without Optional checks
   (`require_image()`, the renderer StateObject keeps, the non-Optional window), and the 0-1 clamps
-  use `clamp01()` ([#PR](https://github.com/vectorviolet/chokepoint/pull/PR)).
+  use `clamp01()` ([#101](https://github.com/vectorviolet/chokepoint/pull/101)).
 
 ## [0.3.1] – 2026-10-25
 
