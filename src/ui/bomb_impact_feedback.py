@@ -14,6 +14,10 @@ lands (gameplay.combat.projectile.Bomb). Everything here is cosmetic:
   SOUND_MIN_GAP_MS, and at most SOUNDS_PER_WINDOW within SOUND_WINDOW_MS.
   An impact over the cap shows its explosion without a sound.
 
+With the reduce-flashing flag on (`reduce_flashing`, set by the owner from
+the Settings toggle) the fireball is drawn at REDUCED_FIREBALL_ALPHA; the
+smoke is unchanged.
+
 At most MAX_EXPLOSIONS play at once; past that the oldest one (closest to
 its end) makes room. The menu demo shows the explosions without sound
 (play_sfx=None).
@@ -37,6 +41,9 @@ LIFE_MS = FRAME_MS * TOTAL_FRAMES
 # reads as "the blast covers the splash circle".
 SIZE_FACTOR = 1.0
 MAX_EXPLOSIONS = 24
+# "Reduce flashing" draws the fireball at this opacity (255: solid); the smoke
+# keeps its own.
+REDUCED_FIREBALL_ALPHA = 128
 
 SOUND_MIN_GAP_MS = 150  # real time between two impact sounds starting
 SOUND_WINDOW_MS = 1000
@@ -99,10 +106,19 @@ class ExplosionFrames:
         self._smoke_images = [
             assets.get_image(f"black_smoke_{i}") for i in range(TOTAL_FRAMES)
         ]
+        # Built on first use, for one variant at a time (`_reduced`): asking
+        # for the other drops these, so the memory doesn't double.
+        self._reduced = False
         self._frames_by_size: dict[int, list[pygame.Surface]] = {}
 
-    def frames(self, size: int) -> list[pygame.Surface]:
-        """TOTAL_FRAMES frames, `size` px square."""
+    def frames(self, size: int, reduced: bool = False) -> list[pygame.Surface]:
+        """TOTAL_FRAMES frames, `size` px square. `reduced`: the fireball at
+        REDUCED_FIREBALL_ALPHA (the smoke unchanged). Only the variant asked
+        for last is kept; the bomb impacts and the deaths sharing this object
+        always ask with the same flag."""
+        if reduced != self._reduced:
+            self._frames_by_size.clear()
+            self._reduced = reduced
         frames = self._frames_by_size.get(size)
         if frames is None:
             target = (size, size)
@@ -115,6 +131,8 @@ class ExplosionFrames:
                     fire = pygame.transform.smoothscale(
                         self._explosion_images[i], target
                     )
+                    if reduced:
+                        fire.set_alpha(REDUCED_FIREBALL_ALPHA)
                     frame.blit(fire, (0, 0))
                 frames.append(frame)
             self._frames_by_size[size] = frames
@@ -139,12 +157,15 @@ class BombImpactFeedback:
         sound=None,
         *,
         frames: ExplosionFrames,
+        reduce_flashing: bool = False,
     ) -> None:
         """assets: the AssetManager (explosion_* and black_smoke_* images).
         play_sfx: plays a sound file at the SFX volume (GameAudio.play_sfx),
         or None for no sound at all (the menu demo). frames: the owner's
-        ExplosionFrames, shared with its DeathFeedback."""
+        ExplosionFrames, shared with its DeathFeedback. reduce_flashing: the
+        fireball is drawn dimmer."""
         self._frames_cache = frames
+        self.reduce_flashing = reduce_flashing
         self._sound_cap = SfxRateCap(play_sfx, sound)
         self.explosions: list[_Explosion] = []
         self.now_ms = 0.0  # real time, advanced by update()
@@ -189,4 +210,4 @@ class BombImpactFeedback:
             draw_explosion(surface, camera, frame, explosion.position)
 
     def _frames(self, size: int) -> list[pygame.Surface]:
-        return self._frames_cache.frames(size)
+        return self._frames_cache.frames(size, self.reduce_flashing)

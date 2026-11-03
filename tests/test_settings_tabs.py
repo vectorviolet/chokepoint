@@ -70,9 +70,8 @@ def test_hidden_tabs_have_no_visible_button(game):
     p = panel(game)
     for tab in SETTINGS_TABS:
         assert p[tab.button].active == tab.shown
-    assert not p["tab_game_button"].active
     assert not p["tab_controls_button"].active
-    click(game, p["tab_game_button"])  # nothing there to click
+    click(game, p["tab_controls_button"])  # nothing there to click
     assert game.settings_tabs.active == "display"
 
 
@@ -105,14 +104,23 @@ def test_visible_rows_still_work(game):
 def test_focus_order_covers_tabs_and_open_tab_rows_only(game):
     p = panel(game)
     buttons = game.menu_controllers["settings"].buttons
-    assert buttons[:2] == [p["tab_display_button"], p["tab_audio_button"]]
+    assert buttons[:3] == [
+        p["tab_display_button"],
+        p["tab_audio_button"],
+        p["tab_game_button"],
+    ]
     assert p["window_size_next_button"] in buttons
-    assert p["tab_game_button"] not in buttons
+    assert p["skip_intro_next_button"] not in buttons  # the GAME tab's row
+    assert p["tab_controls_button"] not in buttons
     assert p["back"] in buttons and p["reset"] in buttons
     click(game, p["tab_audio_button"])
     buttons = game.menu_controllers["settings"].buttons
     assert p["window_size_next_button"] not in buttons
-    assert buttons[:2] == [p["tab_display_button"], p["tab_audio_button"]]
+    assert buttons[:3] == [
+        p["tab_display_button"],
+        p["tab_audio_button"],
+        p["tab_game_button"],
+    ]
 
 
 def test_keyboard_moves_focus_and_selects_a_tab(game):

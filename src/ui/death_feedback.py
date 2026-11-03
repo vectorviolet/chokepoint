@@ -105,13 +105,17 @@ class DeathFeedback:
         big_sound=None,
         *,
         frames: ExplosionFrames,
+        reduce_flashing: bool = False,
     ) -> None:
         """assets: the AssetManager (the explosion, smoke and decal images).
         play_sfx: plays a sound file at the SFX volume (GameAudio.play_sfx),
         or None for no sound at all (the menu demo). small_sound: a
         soldier's blast; big_sound: a tank's or a tower's. frames: the
-        owner's ExplosionFrames, shared with its BombImpactFeedback."""
+        owner's ExplosionFrames, shared with its BombImpactFeedback.
+        reduce_flashing: the blasts' fireballs are drawn dimmer (the smoke
+        and the rubble decal unchanged)."""
         self._frames = frames
+        self.reduce_flashing = reduce_flashing
         self._small_cap = SfxRateCap(play_sfx, small_sound)
         self._tank_cap = SfxRateCap(play_sfx, big_sound)
         self._tower_cap = SfxRateCap(play_sfx, big_sound)
@@ -218,5 +222,7 @@ class DeathFeedback:
         across both lists, so a newer blast is on top."""
         both = sorted((*self.enemy_blasts, *self.tower_blasts), key=_born_ms)
         for blast in both:
-            frame = self._frames.frames(blast.size)[self.frame_index(blast)]
+            frame = self._frames.frames(blast.size, self.reduce_flashing)[
+                self.frame_index(blast)
+            ]
             draw_explosion(surface, camera, frame, blast.position)

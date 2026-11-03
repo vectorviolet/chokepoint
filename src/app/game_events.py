@@ -119,6 +119,10 @@ class GameEventsMixin:
         self._refresh_window_mode_label()
         self._refresh_window_size_label()
 
+    def _toggle_setting(self, key: str) -> None:
+        """A `< ON/OFF >` row's button (either arrow): flips toggle `key`."""
+        self.set_toggle(key, not self.toggles[key])
+
     def _on_volume_changed(self, volume, value: float) -> None:
         """A Settings volume slider moved (`volume`: a VolumeSetting row)."""
         getattr(self.audio, volume.setter)(value)

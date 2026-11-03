@@ -82,6 +82,13 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - Killed enemies explode (tanks bigger) and destroyed towers explode and leave scorched rubble
   that fades out ([#109](https://github.com/vectorviolet/chokepoint/pull/109),
   [devlog](docs/devlog/2026-11-03-death-effects.md)).
+- Settings > GAME has "Skip intro" (off by default; the game opens straight to the main menu on the
+  next launch) and "Pause on focus loss" (on by default; a battle opens the pause menu when the
+  window loses focus), and Settings > DISPLAY has "Reduce flashing" (off by default; no white hit
+  flash and dimmer explosion fireballs). The map no longer scrolls at the screen edge while the
+  window is unfocused
+  ([#125](https://github.com/vectorviolet/chokepoint/pull/125),
+  [devlog](docs/devlog/2026-11-04-settings-toggles.md)).
 
 ### Changed
 

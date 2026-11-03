@@ -117,6 +117,14 @@ class BattleSimulation:
     # While waves_only() is active: the enemies that reached the end.
     _escaped_unopposed: list | None = None
 
+    def set_reduce_flashing(self, on: bool) -> None:
+        """The "Reduce flashing" accessibility setting: tells the feedback
+        classes (no white hit flash, dimmer explosion fireballs). Applies on
+        the next draw."""
+        for feedback in (self.bomb_impacts, self.hit_feedback, self.death_feedback):
+            if feedback is not None:
+                feedback.reduce_flashing = on
+
     # ── IGameContext interface ────────────────────────────────────────────────
 
     @property
