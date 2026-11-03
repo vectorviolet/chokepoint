@@ -30,7 +30,6 @@ class Projectile(RotatableObject):
             self._attach_trail_flame(tower)
 
     def _attach_trail_flame(self, tower) -> None:
-        renderer = self._renderer
         missile = self._sprite_image()
         flame_key = f"muzzle_flash_3_lvl{min(tower.level, 2)}"
         flame_src = tower.assets.get_image(flame_key)
@@ -57,7 +56,9 @@ class Projectile(RotatableObject):
         composite.blit(flame, flame_rect)
         composite.blit(missile, missile_rect)
 
-        renderer.set_image(composite)
+        # Registered under the current state (not only shown by the renderer),
+        # so a later set_state() can't bring back the bare missile.
+        self.add_surface(self.state, composite)
         self.rect.size = composite.get_size()
         self.rect.center = self.position
 
@@ -205,13 +206,13 @@ class Bomb(RotatableObject):
         return drop_velocity * game_speed / (1 - cls.DRAG**game_speed)
 
     def _scale_sprite(self) -> None:
-        renderer = self._renderer
         src = self._sprite_image()
         scaled_size = (
             max(1, int(src.get_width() * self.SPRITE_SCALE)),
             max(1, int(src.get_height() * self.SPRITE_SCALE)),
         )
-        renderer.set_image(pygame.transform.smoothscale(src, scaled_size))
+        # Registered under the current state, like the missile's trail flame.
+        self.add_surface(self.state, pygame.transform.smoothscale(src, scaled_size))
         self.rect.size = scaled_size
         self.rect.center = self.position
 

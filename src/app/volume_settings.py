@@ -32,11 +32,16 @@ VOLUME_SETTINGS = tuple(
 
 def saved_volume(saved: dict, key: str, default: float) -> float:
     """The volume saved under `key`, clamped to 0-1. A missing key, or a value
-    that isn't a number (null, a string, true/false, NaN), gives `default`,
-    so a hand-edited or old settings file still loads."""
+    that isn't a number (null, a string, true/false, NaN, an integer too big
+    for a float), gives `default`, so a hand-edited or old settings file still
+    loads."""
     value = saved.get(key, default)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return default
-    if math.isnan(value):
+    try:
+        number = float(value)
+    except OverflowError:
         return default
-    return clamp01(float(value))
+    if math.isnan(number):
+        return default
+    return clamp01(number)

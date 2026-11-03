@@ -133,7 +133,7 @@ class KillFeedback:
             if t < 0:
                 pos = coin.start
             else:
-                pos = coin.start.lerp(target, _ease_in(min(1.0, t)))
+                pos = coin.start.lerp(target, _ease_in(clamp01(t)))
             surface.blit(self._coin, self._coin.get_rect(center=(pos.x, pos.y)))
 
     def draw_pop(self, surface: pygame.Surface, counter: pygame.Rect) -> None:
