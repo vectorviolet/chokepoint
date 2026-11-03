@@ -1,5 +1,6 @@
 import pygame
 
+from app.settings_tabs import DEFAULT_TAB, SETTINGS_TABS
 from util.constants import GAME_SPEEDS
 
 # The speed button's state at each game speed (None: its x1 look).
@@ -19,7 +20,14 @@ class GameEventsMixin:
     def _activate(self, button, event, *, sound: bool = True) -> bool:
         """True when the button was activated (click or focused-Space/Enter).
         Plays the button's click sound on success, unless `sound` is False
-        (the caller then decides, e.g. a refused purchase plays "denied")."""
+        (the caller then decides, e.g. a refused purchase plays "denied").
+        A button that isn't active (hidden with its tab or panel) never is."""
+        if not button.active:
+            # A press that began while the button was shown must not complete
+            # later, when it's shown again. is_clicked() with no cursor
+            # position never activates, and a mouse release clears the press.
+            button.is_clicked(event, None)
+            return False
         activated = button.is_clicked(event, self.mouse.position) or (
             event.type == pygame.KEYUP
             and event.key in (pygame.K_SPACE, pygame.K_RETURN)
@@ -48,8 +56,7 @@ class GameEventsMixin:
             ].reset()  # replay from the top
             self.panel_manager.current_panel = "credits"
         elif self._activate(panel["settings"], event):
-            self._settings_return_panel = "main_menu"
-            self.panel_manager.current_panel = "settings"
+            self._open_settings("main_menu")
         elif self._activate(panel["exit"], event):
             self.on_exit_request()
 
@@ -73,14 +80,28 @@ class GameEventsMixin:
             self._leave_settings()
         elif self._activate(panel["reset"], event):
             self._reset_settings()
-        elif self._activate(panel["window_size_back_button"], event):
-            self._cycle_window_size(-1)
-        elif self._activate(panel["window_size_next_button"], event):
-            self._cycle_window_size(1)
-        elif self._activate(panel["window_mode_back_button"], event):
-            self._cycle_window_mode(-1)
-        elif self._activate(panel["window_mode_next_button"], event):
-            self._cycle_window_mode(1)
+        else:
+            self._handle_settings_tab_event(panel, event)
+
+    def _handle_settings_tab_event(self, panel, event) -> None:
+        """The tab buttons, then the rows' buttons, through SETTINGS_TABS.
+        Every tab's buttons are asked, so a hidden one forgets a stale press;
+        `_activate` only lets the shown ones through."""
+        for tab in SETTINGS_TABS:
+            if self._activate(panel[tab.button], event):
+                self._show_settings_tab(tab.key)
+                return
+        for tab in SETTINGS_TABS:
+            for row in tab.rows:
+                if self._activate(panel[row.button], event):
+                    getattr(self, row.handler)(row.arg)
+                    return
+
+    def _open_settings(self, return_panel: str) -> None:
+        """Opens Settings on its first tab; Back leads to `return_panel`."""
+        self._settings_return_panel = return_panel
+        self.panel_manager.current_panel = "settings"
+        self._show_settings_tab(DEFAULT_TAB, focus_tab=True)
 
     def _leave_settings(self) -> None:
         """Settings' Back (and Esc there): save, then return to where the
@@ -139,8 +160,7 @@ class GameEventsMixin:
         if self._activate(panel["pause_back"], event):
             self._close_pause_menu()
         elif self._activate(panel["pause_settings"], event):
-            self._settings_return_panel = "game"
-            self.panel_manager.current_panel = "settings"
+            self._open_settings("game")
         elif self._activate(panel["pause_music"], event):
             self._toggle_music()
         elif self._activate(panel["pause_main_menu"], event):

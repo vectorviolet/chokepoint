@@ -120,6 +120,10 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   [6a104ff](https://github.com/vectorviolet/chokepoint/commit/6a104ff),
   [#41](https://github.com/vectorviolet/chokepoint/pull/41),
   [#73](https://github.com/vectorviolet/chokepoint/pull/73)).
+- Settings is split into tabs: Display (window size and mode) and Audio (the volume sliders), with
+  keyboard navigation across the tabs and rows
+  ([#121](https://github.com/vectorviolet/chokepoint/pull/121),
+  [devlog](docs/devlog/2026-11-03-settings-tabs.md)).
 
 ### Removed
 

@@ -555,7 +555,9 @@ def test_handle_event_dispatches_to_the_current_panels_handler():
 
 def test_handle_event_music_toggle_button_click_toggles_music():
     game = make_game()
-    game.panel_manager["main_menu"] = FakePanel(music_toggle_button=FakeGuiObject())
+    button = FakeGuiObject()
+    button.active = True  # shown (a hidden button is never activated)
+    game.panel_manager["main_menu"] = FakePanel(music_toggle_button=button)
     game.panel_manager.current_panel = "main_menu"
     game.mouse = SimpleNamespace(position=(5, 5))
     game.menu_controllers = {}

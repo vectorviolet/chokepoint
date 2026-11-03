@@ -24,6 +24,7 @@ class FakeButton:
         self.focused = focused
         self.on_click_sound = on_click_sound
         self.state = "unset"
+        self.active = True
 
     def is_clicked(self, event, mouse_pos) -> bool:
         return self.clicked
@@ -198,6 +199,10 @@ class FakeGame(GameEventsMixin):
                     "window_size_next_button": FakeButton(),
                     "window_mode_back_button": FakeButton(),
                     "window_mode_next_button": FakeButton(),
+                    "tab_display_button": FakeButton(),
+                    "tab_audio_button": FakeButton(),
+                    "tab_game_button": FakeButton(),
+                    "tab_controls_button": FakeButton(),
                     "music_toggle_icon": FakeButton(),
                 },
                 "game": make_game_panel(),
@@ -238,6 +243,9 @@ class FakeGame(GameEventsMixin):
 
     def _save_settings(self) -> None:
         self.calls.append("_save_settings")
+
+    def _show_settings_tab(self, key, *, focus_tab=False) -> None:
+        self.calls.append(("_show_settings_tab", key))
 
     def _reset_settings(self) -> None:
         self.calls.append("_reset_settings")
@@ -766,3 +774,12 @@ def test_the_game_panel_has_no_music_toggle():
     game._toggle_music()  # skips the game panel rather than failing on it
 
     assert "music_toggle_icon" not in game.panel_manager["game"]
+
+
+def test_settings_tab_click_opens_that_tab():
+    game = FakeGame()
+    game.panel_manager["settings"]["tab_audio_button"].clicked = True
+
+    game._handle_settings_event(click_up())
+
+    assert ("_show_settings_tab", "audio") in game.calls
