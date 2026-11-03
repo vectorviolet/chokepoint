@@ -242,3 +242,28 @@ def test_second_barrel_flash_is_visual_only(tower_config, assets, ctx):
     MuzzleFlash(target, tower, tower.position, deals_damage=False).update(ctx)
 
     assert target.hp == target.max_hp
+
+
+def test_the_missile_trail_flame_survives_a_state_refresh(tower_config, assets):
+    """The flame composite is registered under the missile's state, so
+    set_state() shows it again instead of the bare missile."""
+    from gameplay.combat.projectile import Projectile
+
+    tower = make_missile_tower(tower_config, assets)
+    missile = Projectile(make_enemy(assets, (1300, 1000)), tower)
+    with_flame = missile.require_image()
+
+    missile.set_state(missile.state)
+
+    assert missile.require_image() is with_flame
+    assert with_flame.get_width() > assets.get_image("bullet_2_lvl1").get_width()
+
+
+def test_a_bomb_keeps_its_scaled_sprite_after_a_state_refresh(tower_config, assets):
+    bomb = Bomb(make_plane(tower_config, assets), Vector2(0, 0))
+    scaled = bomb.require_image()
+
+    bomb.set_state(bomb.state)
+
+    assert bomb.require_image() is scaled
+    assert scaled.get_width() < assets.get_image("bullet_2_lvl1").get_width()

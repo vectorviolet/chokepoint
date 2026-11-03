@@ -7,6 +7,8 @@ import math
 
 from pygame.math import Vector2
 
+from pygamine import clamp01
+
 from util.constants import HALF_TILE, TILE_SIZE
 
 
@@ -16,11 +18,7 @@ def distance_to_path(point: Vector2, path: list[Vector2]) -> float:
     for a, b in zip(path, path[1:]):
         ab = b - a
         length_sq = ab.length_squared()
-        t = (
-            0.0
-            if length_sq == 0
-            else max(0.0, min(1.0, (point - a).dot(ab) / length_sq))
-        )
+        t = 0.0 if length_sq == 0 else clamp01((point - a).dot(ab) / length_sq)
         best = min(best, point.distance_to(a + ab * t))
     return best
 

@@ -25,6 +25,7 @@ from typing import Callable
 
 import pygame
 from pygame.math import Vector2
+from pygamine import clamp01
 
 # ── dust (placing) ────────────────────────────────────────────────────────────
 DUST_LIFE_MS = 450  # real time
@@ -205,7 +206,7 @@ class PlaceSellFeedback:
 
     @staticmethod
     def _progress(born_ms: float, life_ms: float, now_ms: float) -> float:
-        return min(1.0, max(0.0, (now_ms - born_ms) / life_ms))
+        return clamp01((now_ms - born_ms) / life_ms)
 
     @staticmethod
     def _blit(surface, camera, sprite, world_pos, world_size, alpha) -> None:

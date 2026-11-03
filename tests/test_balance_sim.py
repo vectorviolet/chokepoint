@@ -243,7 +243,7 @@ def _watcher(sim, monkeypatch, waves=1):
     )
     watcher = watch.Watcher(run, lambda: sim.watch_summary(run))
     # The mouse rests mid-window: no edge scrolling.
-    center = watcher.game._canvas.get_rect().center
+    center = watcher.game.window.get_rect().center
     monkeypatch.setattr(pygame.mouse, "get_pos", lambda: center)
     return watcher, pygame
 

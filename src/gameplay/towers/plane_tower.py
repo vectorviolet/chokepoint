@@ -96,9 +96,7 @@ class PlaneTower(BaseTower):
     def _fit_rect(self) -> None:
         """Sizes `rect` to the sprite: a plane never rotates, and only
         rotating sizes a RotatableObject's rect."""
-        image = self.image
-        assert image is not None  # load() just set it
-        self.rect.size = image.get_size()
+        self.rect.size = self.require_image().get_size()  # load() just set it
         self.rect.center = self.position
 
     def sprite_rect(self) -> pygame.Rect:

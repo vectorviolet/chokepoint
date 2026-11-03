@@ -169,7 +169,7 @@ class Watcher:
             self._finish()
         game.draw()
         if self._summary_panel is not None:
-            canvas = game._canvas
+            canvas = game.window
             canvas.blit(
                 self._summary_panel,
                 self._summary_panel.get_rect(center=canvas.get_rect().center),

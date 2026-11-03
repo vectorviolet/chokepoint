@@ -22,6 +22,7 @@ from dataclasses import dataclass
 
 import pygame
 from pygame.math import Vector2
+from pygamine import clamp01
 
 TEXT_LIFE_MS = 800  # game time
 TEXT_RISE = 48  # world px over the text's life
@@ -116,7 +117,7 @@ class KillFeedback:
     def draw_texts(self, surface: pygame.Surface, camera, now_ms: float) -> None:
         """Over the battle, through the camera (follows zoom and scroll)."""
         for text in self.texts:
-            t = min(1.0, max(0.0, (now_ms - text.born_ms) / TEXT_LIFE_MS))
+            t = clamp01((now_ms - text.born_ms) / TEXT_LIFE_MS)
             world = text.position - Vector2(0, TEXT_RISE * (1 - (1 - t) ** 2))
             screen = camera.world_to_screen(world)
             text.label.set_alpha(round(255 * (1 - t * t)))
@@ -132,7 +133,7 @@ class KillFeedback:
             if t < 0:
                 pos = coin.start
             else:
-                pos = coin.start.lerp(target, _ease_in(min(1.0, t)))
+                pos = coin.start.lerp(target, _ease_in(clamp01(t)))
             surface.blit(self._coin, self._coin.get_rect(center=(pos.x, pos.y)))
 
     def draw_pop(self, surface: pygame.Surface, counter: pygame.Rect) -> None:

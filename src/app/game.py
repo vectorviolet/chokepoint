@@ -596,15 +596,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     # ── render pipeline ───────────────────────────────────────────────────────
 
-    @property
-    def _canvas(self) -> pygame.Surface:
-        """The window to draw on, which Application sets up before any frame."""
-        assert self.window is not None
-        return self.window
-
     @override
     def draw(self):
-        canvas = self._canvas
+        canvas = self.window
         canvas.fill((0, 0, 0))
         if self.panel_manager.current_panel == "game":
             self._draw_game()
@@ -622,7 +616,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.panel_manager.draw(canvas)
 
     def _draw_game(self) -> None:
-        canvas = self._canvas
+        canvas = self.window
         old_clip = canvas.get_clip()
         canvas.set_clip(self.game_area)
         self._draw_battle(canvas, self.camera)
@@ -638,7 +632,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         """Coins fly to the money counter's resting place -- where it shows
         even while the HUD is hidden, since a kill brings it back -- and the
         counter, wherever it's drawn now, pops as they land."""
-        canvas = self._canvas
+        canvas = self.window
         panel = self.panel_manager["game"]
         self.kill_feedback.draw_coins(canvas, panel["coin_image"].rect.center)
         counter = panel["coin_text"].rect.move(self.hud_slide.offset("money"))
@@ -658,7 +652,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     def _draw_selected_tower_ui(self) -> None:
         if selected := self._selected_tower():
-            selected.draw_selected_ui(self._canvas, self.game_state, self.camera)
+            selected.draw_selected_ui(self.window, self.game_state, self.camera)
 
     # ── debug ─────────────────────────────────────────────────────────────────
 
@@ -672,7 +666,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.camera.info(),
             self.panel_manager["main_menu"]["play"].info(),
         ]
-        Debug.draw(self._canvas, pygame.font.SysFont("Consolas", 20), debug_info)
+        Debug.draw(self.window, pygame.font.SysFont("Consolas", 20), debug_info)
 
     # ── exit ──────────────────────────────────────────────────────────────────
 

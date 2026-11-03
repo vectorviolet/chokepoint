@@ -95,8 +95,17 @@ def test_old_settings_without_it_load_at_100_percent(game, make_game):
         ({"master_volume": True, "sfx_volume": False, "music_volume": {}}, 1.0),
         ({"master_volume": 3, "sfx_volume": 1.5, "music_volume": 7}, 1.0),
         ({"master_volume": -1, "sfx_volume": -0.5, "music_volume": -3}, 0.0),
+        # Too big for a float (float() raises OverflowError): like other bad values.
+        (
+            {
+                "master_volume": 10**400,
+                "sfx_volume": -(10**400),
+                "music_volume": 10**400,
+            },
+            1.0,
+        ),
     ],
-    ids=["null", "string", "other-types", "too-high", "too-low"],
+    ids=["null", "string", "other-types", "too-high", "too-low", "huge-int"],
 )
 def test_broken_saved_volumes_fall_back_or_are_clamped(make_game, saved, expected):
     make_game().settings_store.save({"music_on": True, **saved})
