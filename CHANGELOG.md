@@ -223,6 +223,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - Dependabot opens one grouped PR a week with `uv.lock` updates (`.github/dependabot.yml`).
 - A CodeRabbit config (`.coderabbit.yaml`) for a trial of automated PR reviews alongside the
   lead's review ([#124](https://github.com/vectorviolet/chokepoint/pull/124)).
+- CodeRabbit no longer posts its docstring-coverage pre-merge warning
+  ([#126](https://github.com/vectorviolet/chokepoint/pull/126)).
 
 ## [0.3.1] – 2026-10-25
 
