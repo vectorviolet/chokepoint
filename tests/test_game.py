@@ -18,7 +18,6 @@ from pygame import Rect
 
 from app.game import (
     Game,
-    VICTORY_SUBTITLE,
     WIN_WAVE,
     _VICTORY_POPUP_OBJECTS,
     _GAMEOVER_POPUP_OBJECTS,
@@ -196,17 +195,12 @@ def test_reaching_the_round_after_the_win_wave_does_not_trigger_victory():
     """The popup opened on clearing round WIN_WAVE; the next round starting
     is just a round starting."""
     game = make_game(auto_pause=False)
+    game.game_state.level = WIN_WAVE
 
     game.game_state.advance_level()  # no level listener opens it
-    game.game_state.level = WIN_WAVE
-    game.game_state.advance_level()
 
     assert game._victory_popup_open is False
     assert game.game_state.has_won is False
-
-
-def test_the_victory_subtitle_follows_win_wave():
-    assert VICTORY_SUBTITLE == f"Round {WIN_WAVE} cleared"
 
 
 def test_close_victory_popup_deactivates_every_victory_object():

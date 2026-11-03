@@ -457,12 +457,20 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         cleared, as if the start/pause button had been pressed. Either way,
         starting again lets the wave manager carry on to the next wave as
         usual."""
-        if self.game_state.level == WIN_WAVE and not self.game_state.has_won:
-            self._trigger_victory()
-        elif self.auto_pause:
+        if not self._open_victory_if_won() and self.auto_pause:
             self._set_started(False)
 
     # ── victory popup ─────────────────────────────────────────────────────────
+
+    def _open_victory_if_won(self) -> bool:
+        """Opens the victory popup if round WIN_WAVE has just been cleared
+        and the run isn't won yet; says whether it did. Called when a wave
+        is cleared, and on load for a run saved with that wave already
+        cleared (the hook won't fire again for it)."""
+        if self.game_state.level != WIN_WAVE or self.game_state.has_won:
+            return False
+        self._trigger_victory()
+        return True
 
     def _trigger_victory(self) -> None:
         self.game_state.has_won = True

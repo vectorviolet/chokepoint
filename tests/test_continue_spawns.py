@@ -170,6 +170,46 @@ def test_continuing_after_victory_goes_on_into_endless_mode(new_game, fake_ticks
     assert not game._victory_popup_open
 
 
+def test_a_save_with_the_win_wave_cleared_but_not_won_opens_the_popup_on_load(
+    new_game, fake_ticks
+):
+    """A save made in the end-of-round gap of round WIN_WAVE before the popup
+    moved to the clear: the wave is cleared, the run isn't won, and the
+    wave-cleared hook won't fire again for it."""
+    before = run_to_end_of_wave(new_game, fake_ticks, level=WIN_WAVE)
+    before.enemies.clear()  # cleared, but no tick has announced it yet
+    before.game_state.is_started = False
+    before._save_game()
+    assert not before.game_state.has_won
+
+    game = new_game()
+    game._load_game()
+
+    assert game._victory_popup_open
+    assert game.game_state.has_won
+    assert not game.game_state.is_started
+    assert game.game_state.level == WIN_WAVE
+    assert game.hud.level_text.text == f"Round {WIN_WAVE}"
+
+    game._close_victory_popup()  # what CONTINUE (ENDLESS) does
+    game._set_started(True)
+    play(game, fake_ticks, NEXT_WAVE_MS)
+
+    assert game.game_state.level == WIN_WAVE + 1
+    assert game.enemies
+    assert not game._victory_popup_open
+
+
+def test_the_victory_subtitle_is_built_from_win_wave(new_game):
+    game = new_game()
+    expected = f"Round {WIN_WAVE} cleared"
+    assert game.panel_manager["game"]["victory_subtitle_text"].text == expected
+
+    game.on_canvas_resized((1280, 720))  # panels are rebuilt from the YAML
+
+    assert game.panel_manager["game"]["victory_subtitle_text"].text == expected
+
+
 def test_continuing_between_endless_waves_starts_the_next_one(new_game, fake_ticks):
     level = WIN_WAVE + 4
     before = run_to_end_of_wave(new_game, fake_ticks, level=level)

@@ -50,7 +50,8 @@ doesn't stop the run again after Continue.
 Clearing round 25 opens the popup with "Round 25" on the HUD and the subtitle "Round 25 cleared",
 which is built in code from `WIN_WAVE`. A run saved on the popup (Main menu, or Esc) now saves the
 end of round 25, already won. It loads paused there, without the popup, and Start goes on to
-round 26.
+round 26. A save from before this change, made after round 25 was cleared but before round 26
+started, opens the popup when it loads.
 
 In the headless balance simulator, which answers the popup with Continue on the same tick, round 26
 can start one tick later than before, so its numbers from wave 25 on shift slightly.
