@@ -67,6 +67,9 @@ class OffsetCamera:
         self.seen.append(Vector2(pos))
         return Vector2(pos) - Vector2(1000, 1000)
 
+    def scale_image(self, image):
+        return pygame.transform.scale_by(image, self.scale)
+
 
 # ── BombImpactFeedback ────────────────────────────────────────────────────────
 

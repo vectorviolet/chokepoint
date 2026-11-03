@@ -19,6 +19,9 @@ class Enemy(RotatableObject):
     the last vertex (caller checks `reached_end()` to deduct a life).
     """
 
+    # Its death effect (ui.death_feedback): the big blast, or the small one.
+    big_death_blast = False
+
     def __init__(
         self,
         enemy_id: int,

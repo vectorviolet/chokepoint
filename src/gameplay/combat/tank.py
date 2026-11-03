@@ -43,6 +43,7 @@ def tank_weapon(stats) -> tuple[int, int, int]:
 
 
 class Tank(Enemy):
+    big_death_blast = True  # a tank explodes bigger than a soldier
     MUZZLE_TIP_FORWARD = 55  # px from tank center to muzzle tip along aim direction
 
     def __init__(

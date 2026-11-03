@@ -34,6 +34,7 @@ from ui.death_feedback import (
     ENEMY_BLAST_SIZE,
     MAX_DECALS,
     MAX_EFFECTS,
+    MAX_TOWER_BLASTS,
     TANK_BLAST_SIZE,
     TOWER_BLAST_SIZE,
     DeathFeedback,
@@ -190,14 +191,38 @@ def test_enemy_death_sounds_are_rate_capped_like_bomb_impacts(feedback, sfx):
 
 
 def test_a_stream_of_kills_cannot_silence_a_falling_tower(feedback, sfx):
+    """Soldiers and tanks fill their own caps; the tower's has its own."""
     for _ in range(SOUNDS_PER_WINDOW):
         feedback.enemy_died((0, 0), is_tank=False)
+        feedback.enemy_died((0, 0), is_tank=True)
         feedback.update(SOUND_MIN_GAP_MS)
-    feedback.enemy_died((0, 0), is_tank=False)  # the small cap is full
+    feedback.enemy_died((0, 0), is_tank=False)  # both enemy caps are full
+    feedback.enemy_died((0, 0), is_tank=True)
+    assert sfx.played == [SMALL, BIG] * SOUNDS_PER_WINDOW
 
     feedback.tower_destroyed((0, 0))
 
-    assert sfx.played == [SMALL] * SOUNDS_PER_WINDOW + [BIG]
+    assert sfx.played == [SMALL, BIG] * SOUNDS_PER_WINDOW + [BIG]
+
+
+def test_a_stream_of_kills_cannot_evict_a_towers_blast(feedback):
+    feedback.tower_destroyed((640, 320))
+    for i in range(MAX_EFFECTS + 5):  # past the enemies' cap
+        feedback.enemy_died((i, 0), is_tank=i % 2 == 0)
+
+    assert len(feedback.enemy_blasts) == MAX_EFFECTS
+    assert [(tuple(b.position), b.size) for b in feedback.tower_blasts] == [
+        ((640, 320), TOWER_BLAST_SIZE)
+    ]
+
+
+def test_at_most_max_tower_blasts_the_oldest_makes_room(feedback):
+    for i in range(MAX_TOWER_BLASTS + 2):
+        feedback.tower_destroyed((i * 64, 0))
+
+    assert len(feedback.tower_blasts) == MAX_TOWER_BLASTS
+    assert feedback.tower_blasts[0].position.x == 2 * 64
+    assert feedback.enemy_blasts == []
 
 
 def test_a_sound_the_pool_dropped_does_not_count(feedback, sfx):
@@ -353,7 +378,7 @@ def test_every_enemy_a_bomb_kills_explodes(game):
 def test_a_dead_tank_explodes_big_with_the_big_sound(game, monkeypatch):
     played = []
     monkeypatch.setattr(
-        game.death_feedback._big_cap, "_play_sfx", lambda p: played.append(p) or 1
+        game.death_feedback._tank_cap, "_play_sfx", lambda p: played.append(p) or 1
     )
     tower = ground_tower(game)
     tank = add_enemy(game, tower.position + Vector2(100, 0), hp=1, enemy_type=TANK)
@@ -374,14 +399,52 @@ def test_a_tower_destroyed_by_a_tank_explodes_and_leaves_rubble(game):
     tank.bullets.append(shell)
 
     shell.update(game)
-    assert blasts(game) == []  # not yet: it goes on the next tick
-    game._tick()
 
-    assert tower not in game.towers
+    # Shown on the hit that takes its HP to 0, before its removal.
+    assert tower in game.towers
     assert blasts(game) == [(tuple(tower.position), TOWER_BLAST_SIZE)]
     assert [tuple(d.position) for d in game.death_feedback.decals] == [
         tuple(tower.position)
     ]
+    game._tick()
+    assert tower not in game.towers
+    assert len(blasts(game)) == 1  # not again when it's removed
+
+
+def test_a_tower_explodes_once_however_many_shells_hit_it(game):
+    tower = ground_tower(game)
+    tower.hp = 1
+    tank = Tank(1, TANK, 1, [tower.position + Vector2(200, 0)], game.assets)
+
+    for _ in range(3):  # the killing shell, then two more on the wreck
+        tower.decrease_hp(tank.bullet_damage, game, tower.position)
+
+    assert len(game.death_feedback.tower_blasts) == 1
+    assert len(game.death_feedback.decals) == 1
+
+
+def test_a_tower_sold_before_its_removal_still_explodes(game):
+    """Its HP runs out and the player sells it in the same frame, before
+    the tick that would remove it: its blast and rubble already show."""
+    tower = ground_tower(game)
+    tower.hp = 1
+    tank = Tank(1, TANK, 1, [tower.position + Vector2(200, 0)], game.assets)
+    TankBullet(tank, tower, tower.position).update(game)
+    game.game_state.selected_tower = tower
+    controller = game.tower_controller
+    assert controller._handle_tower_actions(tower._sell_hit_rect(game.camera).center)
+
+    assert tower not in game.towers
+    assert blasts(game) == [(tuple(tower.position), TOWER_BLAST_SIZE)]
+    assert len(game.death_feedback.decals) == 1
+
+
+def test_a_tank_is_the_enemy_with_the_big_blast(assets):
+    tank = Tank(1, TANK, 1, [Vector2(0, 0)], assets)
+    soldier = Enemy(2, 1, 1, [Vector2(0, 0)], assets)
+
+    assert tank.big_death_blast is True
+    assert soldier.big_death_blast is False
 
 
 def test_a_plane_leaving_the_map_does_not_explode(game):
@@ -475,7 +538,8 @@ def test_the_menu_demo_explodes_silently(tilemap, assets, tower_config):
     demo = MenuDemo(tilemap, assets, tower_config, (1280, 720), random.Random(1))
     assert demo.death_feedback.blasts == []  # the pre-warm's are cleared
     assert demo.death_feedback._small_cap._play_sfx is None
-    assert demo.death_feedback._big_cap._play_sfx is None
+    assert demo.death_feedback._tank_cap._play_sfx is None
+    assert demo.death_feedback._tower_cap._play_sfx is None
 
     for _ in range(600):
         demo._tick()
@@ -534,3 +598,42 @@ def test_the_battle_plays_out_the_same_without_it(
     assert with_it.death_feedback.blasts  # it was killing
     assert destroyed  # and towers fell
     assert battle_outcome(with_it) == battle_outcome(without)
+
+
+def test_fading_never_touches_the_cached_decal(feedback):
+    feedback.tower_destroyed((100, 100))
+    feedback.update(DECAL_HOLD_MS + DECAL_FADE_MS / 2)
+    surface = pygame.Surface((200, 200))
+
+    feedback.draw_decals(surface, Camera())  # zoom 1.0: the cached image
+
+    cached = feedback._decal_images[feedback.decals[0].turn]
+    assert cached.get_alpha() in (None, 255)
+
+
+def test_a_blast_at_zoom_one_draws_its_frame_unscaled(feedback, monkeypatch):
+    scaled = []
+    monkeypatch.setattr(
+        pygame.transform, "scale", lambda *a, **k: scaled.append(a) or a[0]
+    )
+    feedback.enemy_died((100, 100), is_tank=False)
+
+    feedback.draw_blasts(pygame.Surface((200, 200)), Camera())
+
+    assert scaled == []
+
+
+@pytest.mark.parametrize("owner", ["game", "demo"])
+def test_bombs_and_deaths_share_one_explosion_cache(owner, request):
+    if owner == "game":
+        battle = request.getfixturevalue("game")
+    else:
+        battle = MenuDemo(
+            request.getfixturevalue("tilemap"),
+            request.getfixturevalue("assets"),
+            request.getfixturevalue("tower_config"),
+            (1280, 720),
+            random.Random(1),
+        )
+
+    assert battle.bomb_impacts._frames_cache is battle.death_feedback._frames

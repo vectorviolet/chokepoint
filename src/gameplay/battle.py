@@ -143,14 +143,19 @@ class BattleSimulation:
         self.increase_money(enemy.kill_money)
         self._on_enemy_killed(enemy)
         if self.death_feedback is not None:  # cosmetic: its explosion
-            self.death_feedback.enemy_died(
-                enemy.position, isinstance(enemy, ArmedEnemy)
-            )
+            self.death_feedback.enemy_died(enemy.position, enemy.big_death_blast)
 
     def bomb_landed(self, position, radius: float) -> None:
         """A bomb landed (its damage is already dealt): show its explosion."""
         if self.bomb_impacts is not None:
             self.bomb_impacts.bomb_landed(position, radius)
+
+    def tower_destroyed(self, tower) -> None:
+        """A tower's HP just ran out (it's removed on the next tick): show
+        its explosion and rubble now, so they show even if it's sold
+        first. Cosmetic only."""
+        if self.death_feedback is not None:
+            self.death_feedback.tower_destroyed(tower.position)
 
     def target_hit(self, target, hit_from) -> None:
         """An enemy or tower took a hit (its damage is dealt or about to be):
@@ -200,10 +205,6 @@ class BattleSimulation:
         for tower in self.towers:
             if tower.should_remove():
                 self._tower_removed(tower, kept[-1] if kept else None)
-                if self.death_feedback is not None and tower.is_destroyed:
-                    # Cosmetic: its explosion and rubble. Not a plane that
-                    # left the map (nor a sold tower: that's _tower_sold).
-                    self.death_feedback.tower_destroyed(tower.position)
                 if self.game_state.selected_tower is tower:
                     # A plane that left the map or a destroyed tower: its
                     # info panel closes.

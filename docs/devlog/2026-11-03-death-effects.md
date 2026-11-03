@@ -34,8 +34,9 @@ were the details:
   meant to be tinted. Tinted dark and stacked, they read as scorched rubble on sand and on grass.
 - **Sounds:** the bomb impact's own sound, or other explosions from the same Sci-Fi Sounds pack.
   Two others, one short and light, one low and heavy, tell a soldier from a tank or a tower.
-- **Rate cap:** one cap for every death sound, or one per size. One per size keeps a stream of
-  soldier kills from silencing a falling tower.
+- **Rate caps:** one cap for every death sound, or one each. One each for soldiers, tanks and
+  towers (and a separate list of tower blasts) keeps any stream of kills from silencing or
+  evicting a falling tower.
 
 ## Decision
 
@@ -50,11 +51,12 @@ change; the menu demo shows the explosions, silent. Claude chose the numbers wit
 | `ENEMY_BLAST_SIZE` | 56 world px | A soldier fills about half of its 64 px sprite; the blast covers it with a little spill |
 | `TANK_BLAST_SIZE` | 112 world px | Twice the soldier's: "bigger for tanks" |
 | `TOWER_BLAST_SIZE` | 128 world px | Two tiles across: a tower is the biggest loss |
-| `MAX_EFFECTS` | 32 | Blasts playing at once (0.7 s each); past that the oldest makes room |
+| `MAX_EFFECTS` | 32 | Enemy blasts playing at once (0.7 s each); past that the oldest makes room |
+| `MAX_TOWER_BLASTS` | 8 | Tower blasts, in their own list, so enemy kills never evict one |
 | `DECAL_SIZE`, `RUBBLE_SIZE` | 112, 80 world px | The scorch mark's art fills its middle; the rubble sits on the tile |
 | `DECAL_HOLD_MS` + `DECAL_FADE_MS` | 1.5 s + 2.5 s | "Fades over a few seconds": readable after the blast, gone in 4 s |
 | `MAX_DECALS` | 16 | Rubble at once; past that the oldest goes |
-| Sound caps | 150 ms gap, 3 per second | The bomb impacts' numbers (`SfxRateCap`), one cap for soldiers, one for tanks and towers |
+| Sound caps | 150 ms gap, 3 per second | The bomb impacts' numbers (`SfxRateCap`), one cap each for soldiers, tanks and towers |
 
 Sounds: soldiers `explosionCrunch_000` (short, light), tanks and towers
 `lowFrequency_explosion_001` (low, heavy), both from Kenney's Sci-Fi Sounds (CC0). The rubble's
@@ -75,12 +77,16 @@ capture, the menu demo tests) are unchanged.
 `ui.death_feedback.DeathFeedback`, owned by the game and by the menu demo (silent) like
 `bomb_impacts` and `hit_feedback`, cleared on new game, load and after the demo's pre-warm.
 `BombImpactFeedback`'s frame building and sound cap moved into `ExplosionFrames` and `SfxRateCap`
-(same module), which both use.
+(same module), which both use; the game and the menu demo each share one `ExplosionFrames`
+between their bomb impacts and death effects.
 
 - Every enemy kill goes through `BattleSimulation.enemy_killed` (shots, missiles, bomb splash,
-  planes, tanks), which tells it after the payout. A tank is told apart as an `ArmedEnemy`.
-- A destroyed tower is seen in `_update_towers` (`BaseTower.is_destroyed`: its HP ran out), so a
-  plane leaving the map and a tower sold between ticks show nothing.
+  planes, tanks), which tells it after the payout. A tank says so itself
+  (`big_death_blast = True` on `Tank`).
+- A tower is reported destroyed where its HP crosses 0: `BaseTower.decrease_hp` calls
+  `ctx.tower_destroyed(tower)`, once, as `Enemy.decrease_hp` calls `ctx.enemy_killed`. So the blast
+  and rubble show even if the tower is sold before the tick that removes it. A plane leaving the
+  map and a tower sold with HP left show nothing.
 - An effect keeps only a position and a time, never the dead entity: it outlives it and never holds
   up its removal or payout. A test runs the same seeded menu-demo battle (with a tank and frail
   towers, so towers fall) with and without it and compares money, lives, level, every enemy's and

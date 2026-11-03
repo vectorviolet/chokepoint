@@ -12,16 +12,17 @@ destroyed tower also leaves a scorched rubble decal that fades away.
   that escapes gets nothing: neither is told here.
 
 Sounds go through GameAudio.play_sfx (the SFX pool), rate-capped like the
-bomb impacts (SfxRateCap): one cap for the small blast (enemies), another
-for the big one (tanks and towers), so a stream of kills can't silence a
-falling tower. A blast over its cap shows without a sound.
+bomb impacts (SfxRateCap), with one cap each for soldiers, tanks and
+towers, so no stream of kills can silence a falling tower. A blast over
+its cap shows without a sound.
 
 Everything here is cosmetic and runs on real time (frame_ms), like the
 bomb impacts: it plays out while the game is paused and x2/x4 speed
 doesn't hurry it. An effect keeps only a position, never the dead entity,
 so it outlives it and never holds up its removal or payout. At most
-MAX_EFFECTS explosions and MAX_DECALS decals play at once; past that the
-oldest one makes room. The menu demo shows them without sound
+MAX_EFFECTS enemy blasts, MAX_TOWER_BLASTS tower blasts and MAX_DECALS
+decals play at once; past that the oldest of its kind makes room, so enemy
+kills never evict a tower's blast. The menu demo shows them without sound
 (play_sfx=None).
 """
 
@@ -33,6 +34,8 @@ from typing import Callable
 import pygame
 from pygame.math import Vector2
 from pygamine import clamp01
+
+from util.constants import TILE_SIZE
 
 from ui.bomb_impact_feedback import (
     FRAME_MS,
@@ -48,7 +51,8 @@ from ui.bomb_impact_feedback import (
 ENEMY_BLAST_SIZE = 56
 TANK_BLAST_SIZE = 112
 TOWER_BLAST_SIZE = 128
-MAX_EFFECTS = 32  # explosions playing at once
+MAX_EFFECTS = 32  # enemies' explosions playing at once
+MAX_TOWER_BLASTS = 8  # towers' explosions playing at once (their own list)
 
 DECAL_SIZE = 112  # world px: the scorch mark (its art fills the middle)
 RUBBLE_SIZE = 80  # world px: the rubble over it
@@ -56,7 +60,6 @@ DECAL_HOLD_MS = 1500  # real time at full strength
 DECAL_FADE_MS = 2500  # real time fading out after that
 DECAL_LIFE_MS = DECAL_HOLD_MS + DECAL_FADE_MS
 MAX_DECALS = 16
-TILE = 64  # world px
 
 
 def rubble_turn(position) -> int:
@@ -64,7 +67,7 @@ def rubble_turn(position) -> int:
     its tile, so neighbors differ without a random stream (seeded runs stay
     as they were)."""
     x, y = position
-    return (int(x) // TILE + int(y) // TILE) % 4
+    return (int(x) // TILE_SIZE + int(y) // TILE_SIZE) % 4
 
 
 @dataclass
@@ -88,18 +91,23 @@ class DeathFeedback:
         play_sfx: Callable[[str], object] | None,
         small_sound=None,
         big_sound=None,
+        frames: ExplosionFrames | None = None,
     ) -> None:
         """assets: the AssetManager (the explosion, smoke and decal images).
         play_sfx: plays a sound file at the SFX volume (GameAudio.play_sfx),
-        or None for no sound at all (the menu demo). small_sound: an
-        enemy's blast; big_sound: a tank's or a tower's."""
-        self._frames = ExplosionFrames(assets)
+        or None for no sound at all (the menu demo). small_sound: a
+        soldier's blast; big_sound: a tank's or a tower's. frames: the
+        owner's ExplosionFrames, shared with its BombImpactFeedback
+        (default: its own)."""
+        self._frames = frames or ExplosionFrames(assets)
         self._small_cap = SfxRateCap(play_sfx, small_sound)
-        self._big_cap = SfxRateCap(play_sfx, big_sound)
+        self._tank_cap = SfxRateCap(play_sfx, big_sound)
+        self._tower_cap = SfxRateCap(play_sfx, big_sound)
         self._decal_images = self._build_decals(
             assets.get_image("scorch_decal"), assets.get_image("rubble_decal")
         )
-        self.blasts: list[_Blast] = []
+        self.enemy_blasts: list[_Blast] = []
+        self.tower_blasts: list[_Blast] = []
         self.decals: list[_Decal] = []
         self.now_ms = 0.0  # real time, advanced by update()
 
@@ -119,35 +127,45 @@ class DeathFeedback:
             decals.append(decal)
         return decals
 
+    @property
+    def blasts(self) -> list[_Blast]:
+        """Every blast playing: enemies', then towers'."""
+        return [*self.enemy_blasts, *self.tower_blasts]
+
     def clear(self) -> None:
-        self.blasts.clear()
+        self.enemy_blasts.clear()
+        self.tower_blasts.clear()
         self.decals.clear()
         self._small_cap.clear()
-        self._big_cap.clear()
+        self._tank_cap.clear()
+        self._tower_cap.clear()
 
     # ── events ────────────────────────────────────────────────────────────────
 
     def enemy_died(self, position, is_tank: bool) -> None:
         """An enemy was killed at `position` (world); a tank's blast is
         bigger."""
-        self._blast(position, TANK_BLAST_SIZE if is_tank else ENEMY_BLAST_SIZE)
-        (self._big_cap if is_tank else self._small_cap).play(self.now_ms)
+        size = TANK_BLAST_SIZE if is_tank else ENEMY_BLAST_SIZE
+        blast = _Blast(Vector2(position), size, self.now_ms)
+        self._add(self.enemy_blasts, MAX_EFFECTS, blast)
+        (self._tank_cap if is_tank else self._small_cap).play(self.now_ms)
 
     def tower_destroyed(self, position) -> None:
         """A tower was destroyed at `position` (world): its blast and the
         rubble left on its tile."""
-        self._blast(position, TOWER_BLAST_SIZE)
-        if len(self.decals) >= MAX_DECALS:
-            self.decals.pop(0)
-        self.decals.append(
-            _Decal(Vector2(position), rubble_turn(position), self.now_ms)
-        )
-        self._big_cap.play(self.now_ms)
+        now_ms = self.now_ms
+        blast = _Blast(Vector2(position), TOWER_BLAST_SIZE, now_ms)
+        self._add(self.tower_blasts, MAX_TOWER_BLASTS, blast)
+        decal = _Decal(Vector2(position), rubble_turn(position), now_ms)
+        self._add(self.decals, MAX_DECALS, decal)
+        self._tower_cap.play(now_ms)
 
-    def _blast(self, position, size: int) -> None:
-        if len(self.blasts) >= MAX_EFFECTS:
-            self.blasts.pop(0)
-        self.blasts.append(_Blast(Vector2(position), size, self.now_ms))
+    @staticmethod
+    def _add(effects: list, cap: int, effect) -> None:
+        """Appends `effect`; past `cap`, the oldest makes room."""
+        if len(effects) >= cap:
+            effects.pop(0)
+        effects.append(effect)
 
     # ── update / draw ─────────────────────────────────────────────────────────
 
@@ -156,8 +174,14 @@ class DeathFeedback:
         speed, not stopped by pause). Drops what has played out."""
         self.now_ms += frame_ms
         now_ms = self.now_ms
-        if self.blasts:
-            self.blasts = [b for b in self.blasts if now_ms - b.born_ms < LIFE_MS]
+        if self.enemy_blasts:
+            self.enemy_blasts = [
+                b for b in self.enemy_blasts if now_ms - b.born_ms < LIFE_MS
+            ]
+        if self.tower_blasts:
+            self.tower_blasts = [
+                b for b in self.tower_blasts if now_ms - b.born_ms < LIFE_MS
+            ]
         if self.decals:
             self.decals = [d for d in self.decals if now_ms - d.born_ms < DECAL_LIFE_MS]
 
@@ -176,15 +200,17 @@ class DeathFeedback:
             alpha = self.decal_alpha(decal)
             if alpha <= 0:
                 continue
-            image = camera.scale_image(self._decal_images[decal.turn])
+            cached = self._decal_images[decal.turn]
+            image = camera.scale_image(cached)  # zoomed: already a fresh copy
             if alpha < 255:
-                image = image.copy()
+                if image is cached:  # zoom 1.0: never fade the cached one
+                    image = image.copy()
                 image.set_alpha(alpha)
             screen = camera.world_to_screen(decal.position)
             surface.blit(image, image.get_rect(center=(screen.x, screen.y)))
 
     def draw_blasts(self, surface: pygame.Surface, camera) -> None:
         """With the bomb explosions, through the camera."""
-        for blast in self.blasts:
+        for blast in (*self.enemy_blasts, *self.tower_blasts):
             frame = self._frames.frames(blast.size)[self.frame_index(blast)]
             draw_explosion(surface, camera, frame, blast.position)
