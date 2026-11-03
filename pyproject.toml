@@ -19,6 +19,7 @@ build = [
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
+    "pytest-xdist>=3.6",
     "coverage-badge>=1.1",
     "ruff==0.17.3",
     "pillow",
@@ -101,6 +102,12 @@ pygamine = { path = "src/pygamine", editable = true }
 # `import gameplay.*` etc. without per-file path hacks (mirrors __main__.py).
 pythonpath = ["src", "src/pygamine"]
 testpaths = ["tests"]
+# The default run skips tests marked slow (a quick local loop); CI runs
+# everything with `-m ""`, which overrides this (the last -m wins).
+addopts = '-m "not slow"'
+markers = [
+    "slow: whole simulated battles and script runs of 3+ seconds; skipped by default, run by CI",
+]
 
 [tool.coverage.run]
 # pygamine is a vendored submodule with its own separate test suite

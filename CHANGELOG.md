@@ -169,6 +169,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 
 ### Development
 
+- Faster tests: pytest-xdist runs them in parallel, and eight long simulation tests are marked
+  `slow` and skipped by default; CI still runs everything
+  ([#122](https://github.com/vectorviolet/chokepoint/issues/122)).
 - An illustrated devlog and architecture decision records, with generated indexes checked in CI
   ([#68](https://github.com/vectorviolet/chokepoint/pull/68),
   [#76](https://github.com/vectorviolet/chokepoint/pull/76)).

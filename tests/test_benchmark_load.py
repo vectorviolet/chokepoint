@@ -4,6 +4,8 @@ like the smoke test, never touches the real saves/."""
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 from pygamine import SaveStore
 
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "benchmark_load.py"
@@ -16,6 +18,7 @@ def _load_benchmark():
     return module
 
 
+@pytest.mark.slow
 def test_benchmark_runs_every_scenario_and_leaves_real_saves_unchanged(
     tmp_path, monkeypatch, capsys
 ):

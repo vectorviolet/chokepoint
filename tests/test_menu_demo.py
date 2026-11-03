@@ -164,6 +164,7 @@ def test_it_fades_in_from_black(make_demo):
     assert demo._fade == 0
 
 
+@pytest.mark.slow
 def test_a_long_session_keeps_running(make_demo):
     demo = make_demo(seed=3)
     surface = pygame.Surface((1280, 720))

@@ -623,6 +623,7 @@ def battle_outcome(demo):
     )
 
 
+@pytest.mark.slow
 def test_the_battle_plays_out_the_same_without_it(
     tilemap, assets, tower_config, monkeypatch
 ):

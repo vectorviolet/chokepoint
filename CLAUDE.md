@@ -12,9 +12,16 @@ python __main__.py         # or: uv run python __main__.py
 ## Testing
 
 ```bash
-uv run --group dev pytest tests/ -q                      # this app's own logic tests
-uv run --group dev pytest tests/ --cov --cov-report=term  # with coverage
+uv run --group dev pytest tests/ -q -n auto               # fast: skips @pytest.mark.slow, in parallel
+uv run --group dev pytest tests/ -q -n auto -m ""         # full: what CI runs (slow tests too)
+uv run --group dev pytest tests/ --cov --cov-report=term  # with coverage (add -n auto to be quicker)
 ```
+
+Run the fast command while iterating and the full one before you report. `-n auto` is
+pytest-xdist: each worker is its own process with its own pygame display, mixer and class state,
+and every test gets its own `tmp_path` (so its own saves folder). The tests must stay independent
+of each other and of order. Mark a test `@pytest.mark.slow` (a whole simulated battle or script
+run of 3+ seconds) only if it can't be made cheaper; the marker is registered in `pyproject.toml`.
 
 `tests/conftest.py` runs pygame headless (`SDL_VIDEODRIVER=dummy`) and points every
 `SaveStore` at a temporary folder (the autouse `saves_in_tmp` fixture).
