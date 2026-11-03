@@ -18,7 +18,7 @@ from gameplay.menu_demo import MenuDemo
 from gameplay.towers import TowerFactory
 from gameplay.towers.plane_tower import BOMB_DROP_INTERVAL_MS
 from pygamine import SaveStore
-from util.constants import TICK_MS
+from util.constants import MAX_GAME_SPEED, TICK_MS
 from gameplay.towers import PLANE_TYPE
 
 TICKS_TO_LAND = int(Bomb.FALL_DURATION_MS / TICK_MS) + 5
@@ -48,16 +48,17 @@ def played(game, monkeypatch):
 
 
 def plane_at_the_edge(battle, tower_config, assets, audio=None):
-    """A plane whose next tick drops a bomb that lands right on the map's
-    right edge, the last bomb it drops (issue #94); its sprite then slides
-    off the map and the plane is removed (issue #59)."""
+    """A plane whose next tick drops the last bomb it drops (issue #94):
+    one that would land right on the map's right edge at the fastest game
+    speed. Its sprite then slides off the map and the plane is removed
+    (issue #59)."""
     width = battle.tilemap.map_width
     plane = TowerFactory.create(
         PLANE_TYPE, 10, 40, tower_config, assets, audio, map_width=width
     )
     speed = battle.game_state.speed
-    drift = Bomb.landing_offset(Vector2(plane.speed, 0), speed).x
-    plane.position = Vector2(width - drift - plane.speed * speed, 700)
+    drift = Bomb.landing_offset(plane._drop_velocity(), MAX_GAME_SPEED).x
+    plane.position = Vector2(width - drift - plane.speed * speed - 0.01, 700)
     plane.rect.center = plane.position
     plane._last_bomb_drop_at = battle.game_state.time_ms - BOMB_DROP_INTERVAL_MS
     battle.towers.append(plane)

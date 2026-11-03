@@ -1,13 +1,12 @@
 import pygame
 import pytest
-from pygame.math import Vector2
 
 from domain.game_state import GameState
 from gameplay.combat.projectile import Bomb
 from gameplay.towers import TowerFactory
 from gameplay.towers.plane_tower import BOMB_DROP_INTERVAL_MS
 from gameplay.towers import PLANE_TYPE
-from util.constants import TICK_MS
+from util.constants import GAME_SPEEDS, MAX_GAME_SPEED, TICK_MS
 
 MAP_WIDTH = 3008
 
@@ -141,16 +140,28 @@ def fly_to_the_end(plane, gs: GameState) -> list[float]:
     raise AssertionError("the plane never left")
 
 
-@pytest.mark.parametrize("level", [1, 2])
-@pytest.mark.parametrize("speed", [1, 2])
-def test_the_last_bomb_lands_at_or_before_the_edge(tower_config, assets, level, speed):
-    # Issue #94: a bomb drifts on after its release; the plane drops only
-    # bombs that will land on the map.
+def plane_at_level(tower_config, assets, level: int, gs: GameState):
+    """A plane that has taken `level` from `gs` and started its bomb timer."""
     plane = make_plane(tower_config, assets)
-    gs = running_state(speed=speed, time_ms=1000)
     gs.plane_level = level
     plane.update(gs, [])  # takes the level, starts the bomb timer
     assert plane.level == level
+    return plane
+
+
+def max_drift(plane) -> float:
+    """How far before the edge the plane's last bomb may be dropped: its
+    drift at the fastest game speed."""
+    return Bomb.landing_offset(plane._drop_velocity(), MAX_GAME_SPEED).x
+
+
+@pytest.mark.parametrize("level", [1, 2])
+@pytest.mark.parametrize("speed", GAME_SPEEDS)
+def test_the_last_bomb_lands_at_or_before_the_edge(tower_config, assets, level, speed):
+    # Issue #94: a bomb drifts on after its release; the plane drops only
+    # bombs that will land on the map.
+    gs = running_state(speed=speed, time_ms=1000)
+    plane = plane_at_level(tower_config, assets, level, gs)
     plane.position.x = MAP_WIDTH - 1000
 
     landings = fly_to_the_end(plane, gs)
@@ -158,30 +169,30 @@ def test_the_last_bomb_lands_at_or_before_the_edge(tower_config, assets, level, 
     assert len(landings) >= 3
     assert max(landings) <= MAP_WIDTH
     # It drops right up to the cut-off: the next bomb, one drop interval
-    # of flight later, would have landed past the edge.
+    # of flight later, could have landed past the edge at the fastest speed.
     interval_flight = plane.speed * BOMB_DROP_INTERVAL_MS / TICK_MS  # any speed
-    assert landings[-1] > MAP_WIDTH - interval_flight - plane.speed * speed
+    drift = Bomb.landing_offset(plane._drop_velocity(), speed).x
+    margin = interval_flight + plane.speed * speed + max_drift(plane) - drift
+    assert landings[-1] > MAP_WIDTH - margin - 0.1
 
 
 @pytest.mark.parametrize("level", [1, 2])
-@pytest.mark.parametrize("speed", [1, 2])
-def test_drops_a_bomb_landing_on_the_edge_but_none_past_it(
+@pytest.mark.parametrize("speed", GAME_SPEEDS)
+def test_drops_a_bomb_that_may_land_on_the_edge_but_none_past_it(
     tower_config, assets, level, speed
 ):
-    plane = make_plane(tower_config, assets)
     gs = running_state(speed=speed, time_ms=1000)
-    gs.plane_level = level
-    plane.update(gs, [])  # takes the level, starts the bomb timer
+    plane = plane_at_level(tower_config, assets, level, gs)
     step = plane.speed * speed
-    drift = Bomb.landing_offset(Vector2(plane.speed, 0), speed).x
+    cut_off = MAP_WIDTH - max_drift(plane) - step  # the drop tick starts here
 
-    plane.position.x = MAP_WIDTH - drift - step  # next tick: lands on the edge
+    plane.position.x = cut_off - 0.01  # next tick: lands just inside the edge
     gs.time_ms += BOMB_DROP_INTERVAL_MS
     plane.update(gs, [])
     assert len(plane.bullets) == 1
 
     plane.bullets.clear()
-    plane.position.x = MAP_WIDTH - drift - step + 0.5  # next tick: just past it
+    plane.position.x = cut_off + 0.01  # next tick: could land just past it
     gs.time_ms += BOMB_DROP_INTERVAL_MS
     plane.update(gs, [])
     assert plane.bullets == []
@@ -192,23 +203,50 @@ def test_drops_a_bomb_landing_on_the_edge_but_none_past_it(
     assert plane.bullets == []
 
 
+@pytest.mark.parametrize("level", [1, 2])
+def test_speeding_up_mid_fall_still_lands_the_last_bomb_on_the_map(
+    tower_config, assets, level
+):
+    gs = running_state(speed=1, time_ms=1000)
+    plane = plane_at_level(tower_config, assets, level, gs)
+    plane.position.x = MAP_WIDTH - max_drift(plane) - plane.speed - 0.01
+    gs.time_ms += BOMB_DROP_INTERVAL_MS
+    plane.update(gs, [])  # drops the last bomb at x1, as far right as it may
+    (bomb,) = plane.bullets
+    ctx = LandingCtx(gs)
+    bomb.update(ctx)  # its first x1 tick, as in the battle
+
+    gs.speed = MAX_GAME_SPEED  # the player speeds up while it falls
+    landings = ctx.landings + fly_to_the_end(plane, gs)
+
+    assert len(landings) == 1
+    assert MAP_WIDTH - 1 < landings[0] <= MAP_WIDTH
+
+
 @pytest.mark.parametrize(
-    ("plane_speed", "game_speed", "expected"),
-    [(2, 1, 33.3), (1, 1, 16.7), (2, 2, 34.4), (1, 2, 17.2)],
+    ("level", "game_speed", "expected"),
+    [
+        (1, 1, 33.3),
+        (2, 1, 16.7),
+        (1, 2, 34.4),
+        (2, 2, 17.2),
+        (1, 4, 36.5),
+        (2, 4, 18.2),
+    ],
 )
 def test_landing_offset_is_the_drift_a_falling_bomb_covers(
-    tower_config, assets, plane_speed, game_speed, expected
+    tower_config, assets, level, game_speed, expected
 ):
-    offset = Bomb.landing_offset(Vector2(plane_speed, 0), game_speed)
+    gs = running_state(speed=game_speed)
+    plane = plane_at_level(tower_config, assets, level, gs)
+    offset = Bomb.landing_offset(plane._drop_velocity(), game_speed)
     assert offset.y == 0
     assert offset.x == pytest.approx(expected, abs=0.05)
 
     # A real bomb drifts that far, to within a tenth of a pixel, and no further.
-    plane = make_plane(tower_config, assets)
-    plane.now = 0.0
-    bomb = Bomb(plane, Vector2(plane_speed, 0))
+    plane.now = gs.time_ms
+    bomb = Bomb(plane, plane._drop_velocity())
     start = bomb.position.x
-    gs = running_state(speed=game_speed)
     ctx = LandingCtx(gs)
     while not ctx.landings:
         bomb.update(ctx)

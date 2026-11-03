@@ -4,6 +4,7 @@ from pygame.math import Vector2
 from domain.game_state import GameState, TowerConfig
 from gameplay.combat.projectile import Bomb
 from gameplay.towers.base_tower import BaseTower
+from util.constants import MAX_GAME_SPEED
 
 BOMB_DROP_INTERVAL_MS = 500
 
@@ -46,8 +47,7 @@ class PlaneTower(BaseTower):
         if game_state.is_started and not self._is_off_map():
             self.position.x += self.speed * game_state.speed
             self.rect.center = self.position
-            if not self._bomb_would_land_past_the_edge(game_state.speed):
-                self._maybe_drop_bomb()
+            self._maybe_drop_bomb()
 
     def _drop_velocity(self) -> Vector2:
         # Bomb inherits the plane's forward momentum at release; drag in Bomb.update
@@ -58,6 +58,8 @@ class PlaneTower(BaseTower):
         assert self._last_bomb_drop_at is not None  # set by update()
         if self.now - self._last_bomb_drop_at < BOMB_DROP_INTERVAL_MS:
             return
+        if self._bomb_would_land_past_the_edge():
+            return  # and none from here on: the plane only flies further
         self._last_bomb_drop_at = self.now
         self.bullets.append(Bomb(self, self._drop_velocity()))
 
@@ -127,13 +129,14 @@ class PlaneTower(BaseTower):
     def get_blocking_position(self) -> tuple | None:
         return None  # Planes fly over the map and never block a build tile
 
-    def _bomb_would_land_past_the_edge(self, game_speed: float) -> bool:
-        """A bomb dropped now, at `game_speed`, would land past the map's
-        right edge: it drifts on with the plane's momentum (Bomb.landing_offset,
-        about 33 px at level 1 and 17 px at level 2), so the plane stops
-        dropping that far before the edge and drops no more while its
-        sprite slides off (issue #94, owner's choice)."""
-        offset = Bomb.landing_offset(self._drop_velocity(), game_speed)
+    def _bomb_would_land_past_the_edge(self) -> bool:
+        """A bomb dropped now could land past the map's right edge: it drifts
+        on with the plane's momentum, at most Bomb.landing_offset at the
+        fastest game speed (about 36 px at level 1 and 18 px at level 2), so
+        none lands off the map even if the player speeds up mid-fall. The
+        plane stops dropping that far before the edge and drops no more while
+        its sprite slides off (issue #94, owner's choice)."""
+        offset = Bomb.landing_offset(self._drop_velocity(), MAX_GAME_SPEED)
         return self.position.x + offset.x > self._map_width
 
     def _is_off_map(self) -> bool:
