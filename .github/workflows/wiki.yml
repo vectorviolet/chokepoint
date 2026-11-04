@@ -2,14 +2,18 @@ name: Wiki
 
 # Mirrors the generated stats reference (docs/stats/, built by
 # scripts/gen_stats.py) to the repo's GitHub wiki as Stats, Stats-Towers,
-# Stats-Enemies and Stats-Waves. Only those pages are written; every other
-# wiki page (Home, ...) is left alone.
+# Stats-Enemies and Stats-Waves, with their pictures in the wiki's images/
+# folder (stats-*.png). Only those pages and pictures are written; every other
+# wiki page (Home, ...) and image is left alone. The pages link their pictures
+# as images/<file>, which is also the path in docs/stats/, so no link needs
+# rewriting.
 #
 # Runs on pushes to main that change docs/stats/ or the generator (which
 # alone decides the wiki page names, links and mirror note), and by hand (Run
 # workflow; only from main, so unreviewed numbers never reach the wiki).
 # Never on pull requests or merge-queue groups, so it is not and can't become
-# a required check. Pages no longer generated are deleted from the wiki.
+# a required check. Pages and pictures no longer generated are deleted from
+# the wiki.
 #
 # The wiki must be enabled (Settings > General > Features > Wikis) and have
 # its first page, created once in the web UI: until then the wiki has no git
@@ -78,14 +82,19 @@ jobs:
           fi
           git clone --depth=1 "$url" "$RUNNER_TEMP/wiki"
           cd "$RUNNER_TEMP/wiki"
-          # Drop the Stats pages the generator no longer makes, then copy in
-          # the current ones.
-          for page in Stats*.md; do
+          # Drop the Stats pages and pictures the generator no longer makes,
+          # then copy in the current ones.
+          for page in Stats*.md images/stats-*.png; do
             [ -e "$page" ] || continue
             [ -e "$RUNNER_TEMP/wiki-pages/$page" ] || git rm -q -- "$page"
           done
+          mkdir -p images
+          # No match must mean nothing to copy, not an error under pipefail.
+          shopt -s nullglob
           cp "$RUNNER_TEMP"/wiki-pages/*.md .
-          git add -- Stats*.md
+          pictures=("$RUNNER_TEMP"/wiki-pages/images/*.png)
+          [ ${#pictures[@]} -eq 0 ] || cp "${pictures[@]}" images/
+          git add -- Stats*.md images/stats-*.png
           if git diff --cached --quiet; then
             echo "Wiki pages unchanged; nothing to publish."
             exit 0

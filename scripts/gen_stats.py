@@ -14,6 +14,11 @@ mirrors the pages to the GitHub wiki with --wiki, which renames them
 (README.md -> Stats.md, towers.md -> Stats-Towers.md, ...) and rewrites the
 links between them.
 
+The pictures (docs/stats/images/) come from the game's own asset keys in
+config/assets.yaml (tower_N_lvlL, tower_N_platform, enemy_N), combined the
+way the game draws them; --check compares them as decoded pixels, so another
+zlib or libpng build can't make it fail. --wiki writes them into <dir>/images/.
+
 Never edit docs/stats/ by hand: change the config and run this script.
 """
 
@@ -23,6 +28,7 @@ import os
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cache, cached_property
 from pathlib import Path
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
@@ -33,6 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "src" / "pygamine"))
 
+import pygame  # noqa: E402
 from pygame.math import Vector2  # noqa: E402
 
 from domain.game_state import TowerConfig, WaveDef  # noqa: E402
@@ -42,6 +49,7 @@ from gameplay.combat.wave_manager import TANK_TYPES, WaveManager  # noqa: E402
 from gameplay.towers import GROUND_TOWER_TYPES, PLANE_TYPE  # noqa: E402
 from gameplay.towers.base_tower import SELL_REFUND  # noqa: E402
 from gameplay.towers.plane_tower import BOMB_DROP_INTERVAL_MS  # noqa: E402
+from pygamine import AssetManager  # noqa: E402
 from util.config_loader import (  # noqa: E402
     EnemyStats,
     TowerTooltip,
@@ -54,6 +62,11 @@ from util.config_loader import (  # noqa: E402
 from util.constants import TICKS_PER_SECOND, TILE_SIZE, WIN_WAVE  # noqa: E402
 
 OUT = ROOT / "docs" / "stats"
+# Pictures sit in this folder next to the pages, on GitHub and in the wiki
+# alike, so one relative link works in both. The prefix keeps the wiki's own
+# images apart from the ones the workflow may delete.
+IMAGES_DIR = "images"
+IMAGE_PREFIX = "stats-"
 REPO = "https://github.com/vectorviolet/chokepoint"
 # Endless waves listed after the last authored one, as a sample of the pattern.
 ENDLESS_SAMPLE = 10
@@ -78,6 +91,26 @@ PAGES = {
 Link = Callable[[str], str]
 
 
+@dataclass(eq=False)
+class Picture:
+    """One generated image: its file name in IMAGES_DIR, what it shows (alt
+    text) and how to draw it. The pixels are drawn on first use, so the text
+    pages never decode a PNG."""
+
+    file: str
+    alt: str
+    render: Callable[[], pygame.Surface]
+    first_level: int = 1  # a tower's: the lowest level it shows
+    last_level: int = 1  # and the highest
+
+    @cached_property
+    def surface(self) -> pygame.Surface:
+        return self.render()
+
+    def markdown(self) -> str:
+        return f"![{self.alt}]({IMAGES_DIR}/{self.file})"
+
+
 @dataclass(frozen=True)
 class Config:
     """Everything the pages are built from, each file read once."""
@@ -86,6 +119,8 @@ class Config:
     tooltips: dict[int, TowerTooltip]
     enemies: dict[int, EnemyStats]
     waves: dict[int, WaveDef]
+    tower_pictures: dict[int, list[Picture]]
+    enemy_pictures: dict[int, Picture]
     start_money: int
     start_lives: int
 
@@ -96,11 +131,17 @@ class Config:
 
 def load_config() -> Config:
     gameplay = gameplay_settings()
+    towers = load_tower_config()
+    enemies = load_enemy_stats()
+    assets = AssetManager()
+    assets.load_manifest(ROOT / "config" / "assets.yaml")
     return Config(
-        towers=load_tower_config(),
+        towers=towers,
         tooltips=load_tower_tooltips(),
-        enemies=load_enemy_stats(),
+        enemies=enemies,
         waves=load_wave_compositions(),
+        tower_pictures=tower_pictures(towers, assets),
+        enemy_pictures=enemy_pictures(enemies, assets),
         start_money=gameplay["starting_money"],
         start_lives=gameplay["starting_lives"],
     )
@@ -112,6 +153,158 @@ def docs_link(page: str) -> str:
 
 def wiki_link(page: str) -> str:
     return PAGES[page]
+
+
+# ── pictures ─────────────────────────────────────────────────────────────────
+
+
+def load_sprite(assets: AssetManager, key: str) -> pygame.Surface:
+    """The image of an assets.yaml key, as the game loads it (no display
+    needed: decoding is the same without convert_alpha)."""
+    return pygame.image.load(assets.image_path(key))
+
+
+def compose(parts: list[pygame.Surface]) -> pygame.Surface:
+    """`parts` drawn back to front, each centered on the same point, the way
+    the game draws a tower's platform and turret (both centered on the
+    tower's position, camera scale 1). The canvas is at least one tile."""
+    width = max([TILE_SIZE, *(p.get_width() for p in parts)])
+    height = max([TILE_SIZE, *(p.get_height() for p in parts)])
+    canvas = pygame.Surface((width, height), pygame.SRCALPHA)
+    for part in parts:
+        canvas.blit(part, part.get_rect(center=canvas.get_rect().center))
+    return canvas
+
+
+def tower_pictures(
+    config: TowerConfig, assets: AssetManager
+) -> dict[int, list[Picture]]:
+    """Tower type -> its pictures, one per run of levels that share a sprite.
+    A ground tower is its platform (`tower_N_platform`) under the turret
+    (`tower_N_lvlL`), as GroundTower draws them; the plane is its sprite
+    without the shadow (`tower_N_shadow_lvlL`) PlaneTower draws under it.
+    Only the keys are resolved here; the pixels are drawn on first use."""
+    pictures: dict[int, list[Picture]] = {}
+    for tower_type, levels in enumerate(config.max_levels, start=1):
+        assert tower_type in GROUND_TOWER_TYPES or tower_type == PLANE_TYPE, (
+            f"unknown tower type {tower_type}"
+        )
+        # Loaded once per tower, whichever of its pictures is drawn first.
+        platform = cache(
+            lambda t=tower_type: load_sprite(assets, f"tower_{t}_platform")
+        )
+        runs: list[tuple[int, int, str]] = []  # first level, last level, key
+        previous_path = None
+        for level in range(1, levels + 1):
+            key = f"tower_{tower_type}_lvl{level}"
+            path = str(assets.image_path(key))
+            if path == previous_path:
+                runs[-1] = (runs[-1][0], level, runs[-1][2])
+            else:
+                runs.append((level, level, key))
+            previous_path = path
+
+        def draw(key: str, tower_type: int = tower_type, platform=platform):
+            sprite = load_sprite(assets, key)
+            if tower_type in GROUND_TOWER_TYPES:
+                # At rest the barrel is the sprite's own orientation: the
+                # turret is drawn unrotated.
+                return compose([platform(), sprite])
+            return compose([sprite])
+
+        pictures[tower_type] = [
+            Picture(
+                f"{IMAGE_PREFIX}tower-{tower_type}-level-{first}.png",
+                f"Level {first}" if first == last else f"Levels {first}-{last}",
+                lambda key=key, draw=draw: draw(key),
+                first,
+                last,
+            )
+            for first, last, key in runs
+        ]
+    return pictures
+
+
+def enemy_pictures(
+    stats: dict[int, EnemyStats], assets: AssetManager
+) -> dict[int, Picture]:
+    """Enemy type -> its sprite (`enemy_N`); a tank also gets its muzzle
+    (`enemy_N_muzzle`) on top, unrotated, as Tank draws it before it aims."""
+
+    def draw(enemy_type: int) -> pygame.Surface:
+        parts = [load_sprite(assets, f"enemy_{enemy_type}")]
+        if enemy_type in TANK_TYPES:
+            parts.append(load_sprite(assets, f"enemy_{enemy_type}_muzzle"))
+        return compose(parts)
+
+    return {
+        enemy_type: Picture(
+            f"{IMAGE_PREFIX}enemy-{enemy_type}.png",
+            enemy_name(enemy_type),
+            lambda enemy_type=enemy_type: draw(enemy_type),
+        )
+        for enemy_type in stats
+    }
+
+
+def all_pictures(config: Config) -> dict[str, pygame.Surface]:
+    """Every generated image by file name."""
+    pictures = [p for ps in config.tower_pictures.values() for p in ps]
+    pictures += config.enemy_pictures.values()
+    return {p.file: p.surface for p in pictures}
+
+
+def pixels(surface: pygame.Surface) -> bytes:
+    """The decoded RGBA bytes of `surface`."""
+    return pygame.image.tobytes(surface, "RGBA")
+
+
+def same_picture(path: Path, surface: pygame.Surface) -> bool:
+    """Whether the PNG at `path` decodes to the same size and pixels as
+    `surface`. Never compares the PNG bytes, which differ between zlib and
+    libpng builds."""
+    try:
+        on_disk = pygame.image.load(path)
+    except (pygame.error, OSError):
+        return False
+    return on_disk.get_size() == surface.get_size() and pixels(on_disk) == pixels(
+        surface
+    )
+
+
+def extra_images(out: Path, wanted: dict[str, pygame.Surface]) -> list[str]:
+    """Generated-looking files (`IMAGE_PREFIX*.png`) in `out`/IMAGES_DIR that
+    aren't among the `wanted` ones; any other file there is not ours."""
+    folder = out / IMAGES_DIR
+    found = folder.glob(f"{IMAGE_PREFIX}*.png")
+    return sorted(p.name for p in found if p.name not in wanted)
+
+
+def stale_images(out: Path, wanted: dict[str, pygame.Surface]) -> list[str]:
+    """Images (as `images/<file>`) missing from `out`, differing from `wanted`
+    in decoded size or pixels, or no longer generated."""
+    stale = [
+        f"{IMAGES_DIR}/{name}"
+        for name, surface in wanted.items()
+        if not same_picture(out / IMAGES_DIR / name, surface)
+    ]
+    return stale + [f"{IMAGES_DIR}/{n}" for n in extra_images(out, wanted)]
+
+
+def write_images(
+    out: Path, images: dict[str, pygame.Surface], prune: bool = False
+) -> None:
+    """Write `images` into `out`/IMAGES_DIR; `prune` also deletes the `*.png`
+    files there that aren't among them. A file that already decodes to the
+    same pixels is left alone, so a rerun changes nothing in git."""
+    folder = out / IMAGES_DIR
+    folder.mkdir(parents=True, exist_ok=True)
+    if prune:
+        for name in extra_images(out, images):
+            (folder / name).unlink()
+    for name, surface in images.items():
+        if not same_picture(folder / name, surface):
+            pygame.image.save(surface, folder / name)
 
 
 # ── formatting ───────────────────────────────────────────────────────────────
@@ -249,6 +442,7 @@ def towers_page(cfg: Config, link: Link) -> str:
     for tower_type in GROUND_TOWER_TYPES:
         i = tower_type - 1
         lines += [f"## {tower_type}. {names[tower_type].name}", ""]
+        lines += [picture_line(cfg.tower_pictures[tower_type]), ""]
         lines += [
             f"{names[tower_type].strength}. {names[tower_type].weakness}.",
             "",
@@ -299,11 +493,17 @@ def towers_page(cfg: Config, link: Link) -> str:
             ),
             "",
         ]
-    lines += plane_section(config, names)
+    lines += plane_section(config, names, cfg.tower_pictures[PLANE_TYPE])
     return "\n".join(lines) + "\n"
 
 
-def plane_section(config: TowerConfig, names: dict[int, TowerTooltip]) -> list[str]:
+def picture_line(pictures: list[Picture]) -> str:
+    return " ".join(p.markdown() for p in pictures)
+
+
+def plane_section(
+    config: TowerConfig, names: dict[int, TowerTooltip], pictures: list[Picture]
+) -> list[str]:
     i = PLANE_TYPE - 1
     name = names[PLANE_TYPE]
     bombs_per_s = 1000 / BOMB_DROP_INTERVAL_MS
@@ -323,6 +523,8 @@ def plane_section(config: TowerConfig, names: dict[int, TowerTooltip]) -> list[s
         )
     return [
         f"## {PLANE_TYPE}. {name.name}",
+        "",
+        picture_line(pictures),
         "",
         f"{name.strength}. {name.weakness}.",
         "",
@@ -364,6 +566,7 @@ def enemies_page(config: Config, link: Link, last_wave: int) -> str:
         rows.append(
             [
                 str(enemy_type),
+                config.enemy_pictures[enemy_type].markdown(),
                 enemy_name(enemy_type),
                 f"{s.hp:,}",
                 f"{s.speed:g} px/tick ({s.speed * TICKS_PER_SECOND:g} px/s)",
@@ -373,7 +576,16 @@ def enemies_page(config: Config, link: Link, last_wave: int) -> str:
         )
     lines += [
         table(
-            ["#", "Enemy", "Base HP", "Speed", "Base kill money", "Lives lost"], rows
+            [
+                "#",
+                "Picture",
+                "Enemy",
+                "Base HP",
+                "Speed",
+                "Base kill money",
+                "Lives lost",
+            ],
+            rows,
         ),
         "",
         "## Tanks",
@@ -559,10 +771,14 @@ def main(argv: list[str] | None = None) -> int:
         if len(args) != 2:
             print("usage: gen_stats.py --wiki <dir>")
             return 2
-        write(Path(args[1]), wiki_pages())
+        config = load_config()
+        write(Path(args[1]), wiki_pages(config))
+        write_images(Path(args[1]), all_pictures(config))
         return 0
     if args == ["--check"]:
-        stale = stale_pages()
+        config = load_config()
+        stale = stale_pages(wanted=pages(config=config))
+        stale += stale_images(OUT, all_pictures(config))
         if stale:
             print(
                 ", ".join(f"docs/stats/{name}" for name in stale)
@@ -573,7 +789,9 @@ def main(argv: list[str] | None = None) -> int:
     if args:
         print(__doc__)
         return 2
-    write(OUT, pages(), prune=True)
+    config = load_config()
+    write(OUT, pages(config=config), prune=True)
+    write_images(OUT, all_pictures(config), prune=True)
     return 0
 
 

@@ -48,6 +48,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-11-04 | [UPG PLANES button as an icon, with key U](2026-11-04-planes-icon.md) | UI, controls | #131, #141, PR #137, PR #147 |
 | 2026-11-04 | [Settings toggles: skip intro, pause on focus loss, reduce flashing](2026-11-04-settings-toggles.md) | UI, accessibility | #115, #116, #117, PR #125 |
 | 2026-11-05 | [README as a front page](2026-11-05-readme-front-page.md) | Docs | #157 |
+| 2026-11-05 | [Tower and enemy pictures in the stats reference and wiki](2026-11-05-stats-pictures.md) | Docs, tooling | #95, PR #156 |
 <!-- index:end -->
 
 ## Adding an entry
