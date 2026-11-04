@@ -127,3 +127,153 @@ def test_wiki_pages_link_to_wiki_names(tmp_path, config):
     assert "[Towers](Stats-Towers)" in (tmp_path / "Stats.md").read_text(
         encoding="utf-8"
     )
+
+
+# ── pictures ─────────────────────────────────────────────────────────────────
+
+
+@pytest.fixture(scope="module")
+def assets():
+    from pygamine import AssetManager
+
+    manager = AssetManager()
+    manager.load_manifest(ROOT / "config" / "assets.yaml")
+    return manager
+
+
+@pytest.fixture(scope="module")
+def images(config):
+    return gen_stats.all_pictures(config)
+
+
+def raw(assets, key):
+    import pygame
+
+    return pygame.image.load(assets.image_path(key))
+
+
+def test_docs_stats_images_are_generated_from_the_config(images):
+    assert gen_stats.stale_images(gen_stats.OUT, images) == [], (
+        "docs/stats/images/ is out of date: run scripts/gen_stats.py"
+    )
+
+
+def test_pictures_are_found_through_the_asset_keys(config, assets):
+    # Every level of every tower and every enemy has a picture, found from
+    # the keys the game itself looks up; no hand-kept list of files.
+    for tower_type, levels in enumerate(config.towers.max_levels, start=1):
+        covered = [p.alt for p in config.tower_pictures[tower_type]]
+        for level in range(1, levels + 1):
+            assets.image_path(f"tower_{tower_type}_lvl{level}")  # a KeyError fails
+        assert covered == [f"Level {n}" for n in range(1, levels + 1)]
+    assert sorted(config.enemy_pictures) == sorted(config.enemies)
+    for enemy_type in config.enemies:
+        assets.image_path(f"enemy_{enemy_type}")
+
+
+def test_ground_tower_picture_is_the_platform_with_the_turret_on_top(config, assets):
+    import pygame
+
+    for tower_type in gen_stats.GROUND_TOWER_TYPES:
+        for i, picture in enumerate(config.tower_pictures[tower_type], start=1):
+            platform = raw(assets, f"tower_{tower_type}_platform")
+            turret = raw(assets, f"tower_{tower_type}_lvl{i}")
+            # What GroundTower draws: platform, then the unrotated turret,
+            # both centered on the tower's position.
+            expected = pygame.Surface(picture.surface.get_size(), pygame.SRCALPHA)
+            center = expected.get_rect().center
+            expected.blit(platform, platform.get_rect(center=center))
+            expected.blit(turret, turret.get_rect(center=center))
+            assert gen_stats.pixels(picture.surface) == gen_stats.pixels(expected)
+            assert gen_stats.pixels(picture.surface) != gen_stats.pixels(
+                gen_stats.compose([platform])
+            ), "the turret is missing"
+
+
+def test_plane_picture_is_the_sprite_without_the_shadow(config, assets):
+    for level, picture in enumerate(config.tower_pictures[gen_stats.PLANE_TYPE], 1):
+        plane = raw(assets, f"tower_{gen_stats.PLANE_TYPE}_lvl{level}")
+        assert gen_stats.pixels(picture.surface) == gen_stats.pixels(
+            gen_stats.compose([plane])
+        )
+
+
+def test_levels_sharing_a_sprite_get_one_picture(config, assets):
+    class SameSprite:
+        def image_path(self, key):
+            return assets.image_path("tower_2_lvl1" if "lvl" in key else key)
+
+    pictures = gen_stats.tower_pictures(config.towers, SameSprite())
+    assert [p.alt for p in pictures[2]] == ["Levels 1-3"]
+    assert [p.alt for p in pictures[3]] == ["Levels 1-2"]
+    assert [p.file for p in pictures[2]] == ["stats-tower-2-level-1.png"]
+
+
+def test_pages_link_pictures_that_exist(pages, images):
+    import re
+
+    linked = {
+        m
+        for text in pages.values()
+        for m in re.findall(r"\]\(images/([^)]+\.png)\)", text)
+    }
+    assert linked == set(images)
+
+
+def reencoded(path):
+    """The same pixels as `path`, saved with other PNG settings (as another
+    zlib or libpng build would write them)."""
+    from PIL import Image
+
+    before = path.read_bytes()
+    Image.open(path).save(path, compress_level=0)
+    assert path.read_bytes() != before
+    return path
+
+
+def test_stale_images_finds_changed_resized_missing_and_extra_images(tmp_path, images):
+    import pygame
+
+    gen_stats.write_images(tmp_path, images)
+    assert gen_stats.stale_images(tmp_path, images) == []
+    folder = tmp_path / gen_stats.IMAGES_DIR
+    names = sorted(images)
+    changed, resized, missing = names[0], names[1], names[2]
+    recolored = images[changed].copy()
+    recolored.set_at((32, 32), (1, 2, 3, 255))
+    pygame.image.save(recolored, folder / changed)
+    pygame.image.save(pygame.Surface((65, 64), pygame.SRCALPHA), folder / resized)
+    (folder / missing).unlink()
+    (folder / "old.png").write_bytes(b"not generated any more")
+    expected = [f"images/{n}" for n in (changed, resized, missing)]
+    assert gen_stats.stale_images(tmp_path, images) == [*expected, "images/old.png"]
+    gen_stats.write_images(tmp_path, images, prune=True)
+    assert gen_stats.stale_images(tmp_path, images) == []
+
+
+def test_stale_images_compares_pixels_not_png_bytes(tmp_path, images):
+    gen_stats.write_images(tmp_path, images)
+    folder = tmp_path / gen_stats.IMAGES_DIR
+    for name in images:
+        reencoded(folder / name)
+    assert gen_stats.stale_images(tmp_path, images) == []
+    # And a rewrite leaves files with the right pixels untouched.
+    before = {n: (folder / n).read_bytes() for n in images}
+    gen_stats.write_images(tmp_path, images, prune=True)
+    assert {n: (folder / n).read_bytes() for n in images} == before
+
+
+def test_an_undecodable_image_is_stale(tmp_path, images):
+    gen_stats.write_images(tmp_path, images)
+    name = sorted(images)[0]
+    (tmp_path / gen_stats.IMAGES_DIR / name).write_bytes(b"garbage")
+    assert gen_stats.stale_images(tmp_path, images) == [f"images/{name}"]
+
+
+def test_wiki_copy_has_the_images_its_pages_link(tmp_path, config, images):
+    gen_stats.write(tmp_path, gen_stats.wiki_pages(config))
+    gen_stats.write_images(tmp_path, images)
+    text = (tmp_path / "Stats-Towers.md").read_text(encoding="utf-8")
+    assert "![Level 1](images/stats-tower-2-level-1.png)" in text
+    for name in images:
+        assert (tmp_path / "images" / name).exists()

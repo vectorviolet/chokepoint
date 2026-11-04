@@ -17,6 +17,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 ### Development
 
 - README: a status badge row (CI, release, license, coverage, Python) under the title, and the official itch.io badge in the Download section ([#153](https://github.com/vectorviolet/chokepoint/pull/153)).
+- Stats reference and wiki: a picture next to each tower (platform with its turret, per level) and enemy, generated from the game's asset keys; `--check` compares decoded pixels ([PR_NUM](https://github.com/vectorviolet/chokepoint/pull/PR_NUM), [devlog](docs/devlog/2026-11-05-stats-pictures.md)).
 
 ## [0.4.0] – 2026-11-04
 

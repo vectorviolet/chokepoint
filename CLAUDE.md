@@ -243,7 +243,9 @@ The battle part (`BattleSimulation._draw_battle`) is shared by the game and the 
 `docs/stats/` (the stats reference) is generated from `towers.yaml`, `enemies.yaml`, `waves.yaml`
 and `settings.yaml` by `scripts/gen_stats.py`: after a config change run
 `uv run python scripts/gen_stats.py` and commit the pages; `tests/test_stats_docs.py` runs `--check`
-in CI. `.github/workflows/wiki.yml` mirrors the pages to the GitHub wiki on a push to `main`.
+in CI. It also draws the tower and enemy pictures in `docs/stats/images/` from the asset keys in
+`config/assets.yaml` (platform plus turret, as the game draws them) and `--check` compares them as
+decoded pixels, not PNG bytes. `.github/workflows/wiki.yml` mirrors the pages and pictures to the GitHub wiki on a push to `main`.
 
 ### Coordinate system
 

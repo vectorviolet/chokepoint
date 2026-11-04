@@ -8,14 +8,14 @@ Generated from the game's config by [`scripts/gen_stats.py`](https://github.com/
 
 Before wave scaling. **Speed** is the walking speed along the path. **Lives lost** is what an enemy costs when it reaches the exit.
 
-| # | Enemy | Base HP | Speed | Base kill money | Lives lost |
-|---|---|---|---|---|---|
-| 1 | Grunt | 20 | 1 px/tick (165 px/s) | $4 | 1 |
-| 2 | Fast runner | 55 | 1.6 px/tick (264 px/s) | $10 | 1 |
-| 3 | Bruiser | 160 | 0.9 px/tick (148.5 px/s) | $28 | 2 |
-| 4 | Heavy | 420 | 0.7 px/tick (115.5 px/s) | $75 | 3 |
-| 5 | Tank | 800 | 0.5 px/tick (82.5 px/s) | $200 | 5 |
-| 6 | Siege tank | 1,500 | 0.4 px/tick (66 px/s) | $400 | 8 |
+| # | Picture | Enemy | Base HP | Speed | Base kill money | Lives lost |
+|---|---|---|---|---|---|---|
+| 1 | ![Grunt](images/stats-enemy-1.png) | Grunt | 20 | 1 px/tick (165 px/s) | $4 | 1 |
+| 2 | ![Fast runner](images/stats-enemy-2.png) | Fast runner | 55 | 1.6 px/tick (264 px/s) | $10 | 1 |
+| 3 | ![Bruiser](images/stats-enemy-3.png) | Bruiser | 160 | 0.9 px/tick (148.5 px/s) | $28 | 2 |
+| 4 | ![Heavy](images/stats-enemy-4.png) | Heavy | 420 | 0.7 px/tick (115.5 px/s) | $75 | 3 |
+| 5 | ![Tank](images/stats-enemy-5.png) | Tank | 800 | 0.5 px/tick (82.5 px/s) | $200 | 5 |
+| 6 | ![Siege tank](images/stats-enemy-6.png) | Siege tank | 1,500 | 0.4 px/tick (66 px/s) | $400 | 8 |
 
 ## Tanks
 
