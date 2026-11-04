@@ -15,7 +15,7 @@ Run these commands from the `chokepoint` project folder:
 
 ```bash
 uv run --group dev pytest tests/ -q
-uv run python scripts/smoke_test.py
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy uv run python scripts/smoke_test.py  # headless
 ```
 
 The tests and smoke test redirect saves to temporary folders. Any custom script that creates

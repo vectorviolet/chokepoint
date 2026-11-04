@@ -105,7 +105,7 @@ enemy HP and rewards, each wave's contents) is on the wiki:
 
 ## Running from source
 
-Needs Python 3.12+ and [uv](https://docs.astral.sh/uv/) (or `pip install .`).
+Needs Python 3.12+ and [uv](https://docs.astral.sh/uv/), which also installs the pygamine engine from its submodule.
 
 ```bash
 git clone --recurse-submodules https://github.com/vectorviolet/chokepoint.git

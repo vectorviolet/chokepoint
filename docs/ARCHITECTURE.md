@@ -59,8 +59,8 @@ in `BattleSimulation` (`src/gameplay/battle.py`). `Game` inherits it for the rea
 `MenuDemo` (`src/gameplay/menu_demo.py`) inherits it too, as a separate world shown behind the
 menus:
 
-- It has its own state, towers, enemies, wave manager and camera, and shares only the tilemap
-  and assets with the real game. It saves nothing, its towers are silent, and enemies that
+- It has its own state, towers, enemies, wave manager and camera, and shares only the tilemap,
+  the assets and the tower config with the real game. It saves nothing, its towers are silent, and enemies that
   escape cost nothing.
 - Each run is random: towers of every type stand along the path, pre-upgraded, and the run
   starts at a mid-game wave with denser waves than the real game. After a few waves, or when
