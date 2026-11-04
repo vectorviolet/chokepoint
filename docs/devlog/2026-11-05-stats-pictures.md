@@ -57,6 +57,11 @@ B, decided by the owner in the issue (2026-11-05). How it is built:
 The generated tower pictures side by side (a contact sheet, not a screenshot of the rendered
 page). Tower 1, tower 2 levels 1 to 3, tower 3 levels 1 and 2, then the planes of levels 1 and 2.
 
+<img src="img/95-wiki-towers.png" width="640">
+
+The wiki's Stats Towers page after the merge, rendered by GitHub with the pictures under each
+tower heading (added after merge, since the wiki only updates on a push to `main`).
+
 ## Revisit if
 
 - A tower gets a platform per level, or a new tower type with parts the compositor doesn't know.
