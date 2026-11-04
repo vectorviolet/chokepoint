@@ -58,13 +58,10 @@ settings:
 format:
   decimal_separator: "."
   money: "{amount} $"
-  money_thousands: "{amount}K $"
   reward: "+${amount}"
 
 hud:
   round: "Round {level}"
-  upgrade_planes: "UPG PLANES"
-  maxed: "MAX"
 
 tower_info:
   kills: "Kills"

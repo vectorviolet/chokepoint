@@ -16,7 +16,7 @@ from pygamine import SaveStore
 from pygamine.util.localization import Localization, localization, missing_glyphs, tr
 from ui.tower_info import ARROW
 from util.config_loader import LANG_DIR, tower_types
-from util.text import decimal, money, money_short, reward
+from util.text import decimal, money, reward
 
 ROOT = Path(__file__).resolve().parent.parent
 # Every font a language's strings can be drawn in (config/assets.yaml).
@@ -103,12 +103,10 @@ def test_the_languages_have_a_display_name():
 def test_decimals_use_the_languages_separator():
     assert decimal(1.5) == "1.5"
     assert decimal(1.6667, ".2f") == "1.67"
-    assert money_short(1500) == "1.5K $"
     localization.set_language("tr")
     assert decimal(1.5) == "1,5"
     assert decimal(1.6667, ".2f") == "1,67"
     assert decimal(3) == "3"
-    assert money_short(1500) == "1,5 bin $"
 
 
 def test_the_tower_panel_shows_decimal_commas_in_turkish(tower_config, assets):
@@ -149,11 +147,7 @@ def test_there_is_a_buy_button_for_every_tower():
 
 def test_the_money_formats():
     assert money(100) == "100 $"
-    assert money_short(600) == "600 $"
-    assert money_short(5000) == "5K $"
     assert reward(12) == "+$12"
-    localization.set_language("tr")
-    assert money_short(5000) == "5 bin $"
 
 
 # ── the setting, in a real Game ──────────────────────────────────────────────
@@ -208,7 +202,7 @@ def test_the_arrows_switch_every_visible_text_at_once(game):
     assert text(game, "credits", "back_text") == "GERİ"
     assert text(game, "game", "gameover_title_text") == "OYUN BİTTİ"
     # Texts the game builds in code: toggles, window mode, the pause menu's
-    # music button, the round counter, the victory subtitle, the plane upgrade.
+    # music button, the round counter, the victory subtitle.
     assert text(game, "settings", "skip_intro_value_text") == "KAPALI"
     assert text(game, "settings", "window_mode_value_text") in {
         "TAM EKRAN",
@@ -218,15 +212,12 @@ def test_the_arrows_switch_every_visible_text_at_once(game):
     assert text(game, "game", "pause_music_text") == "MÜZİK: AÇIK"
     assert text(game, "game", "level_text") == f"Tur {game.game_state.level}"
     assert text(game, "game", "victory_subtitle_text") == "25. tur tamamlandı"
-    upgrade = game.panel_manager["game"]["upgrade_plane_button_text"]
-    assert upgrade.states["default"] == "UÇAK GELİŞTİR"
 
     click(game, "language_back_button")  # and back, with no restart
     assert localization.language == "en"
     assert text(game, "settings", "settings_title_text") == "SETTINGS"
     assert text(game, "game", "level_text") == f"Round {game.game_state.level}"
     assert text(game, "game", "pause_music_text") == "MUSIC: ON"
-    assert upgrade.states["default"] == "UPG PLANES"
 
 
 def test_both_arrows_wrap_around_the_languages(game):

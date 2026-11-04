@@ -2,8 +2,7 @@ import pygame
 
 from domain.game_state import GameState, TowerConfig
 from pygamine import PanelManager
-from pygamine.util.localization import tr
-from util.text import money, money_short
+from util.text import money
 
 BUY_BUTTONS = tuple(f"buy_tower_{i + 1}" for i in range(4))
 PLANE_UPGRADE = "upgrade_plane_button"
@@ -47,18 +46,19 @@ class GameHUD:
 
         self.fee_texts = [panel_manager["game"][f"fee_text_{i + 1}"] for i in range(4)]
         self._set_fee_texts()
-        self._show_plane_upgrade_price(panel_manager)
+        self._bind_plane_upgrade(panel_manager)
 
         game_state.add_money_listener(self._on_money_changed)
         game_state.add_level_listener(self._on_level_changed)
         game_state.add_lives_listener(self._on_lives_changed)
         self._check_purchasing_power(game_state.money)
 
-    def _show_plane_upgrade_price(self, panel_manager: PanelManager) -> None:
-        """The plane-upgrade button shows its price while hovered (or MAX
-        once bought; see refresh_plane_upgrade)."""
-        self._plane_upgrade_text = panel_manager["game"]["upgrade_plane_button_text"]
+    def _bind_plane_upgrade(self, panel_manager: PanelManager) -> None:
+        """The plane-upgrade button and its icon each get a grayed copy of
+        their look, shown once the upgrade is bought (see
+        refresh_plane_upgrade)."""
         self._plane_upgrade_button = panel_manager["game"][PLANE_UPGRADE]
+        self._plane_upgrade_icon = panel_manager["game"]["upgrade_plane_button_icon"]
         button = self._plane_upgrade_button
         maxed = _grayed(button.images[None])
         button.add_surface(MAXED, maxed)
@@ -67,20 +67,16 @@ class GameHUD:
         hover_images = getattr(button, "_hover_images", None)
         if hover_images is not None:
             hover_images[MAXED] = maxed
+        icon = self._plane_upgrade_icon
+        icon.add_surface(MAXED, _grayed(icon.images[None]))
 
     def refresh_plane_upgrade(self) -> None:
-        """Once planes are upgraded (the max level), the UPG PLANES button
-        is grayed and shows MAX instead of its price on hover. Its texts are
-        in the current language (set_text skips unchanged ones)."""
-        maxed = self._game_state.plane_level >= 2
-        state = MAXED if maxed else None
-        if self._plane_upgrade_button.state != state:
-            self._plane_upgrade_button.set_state(state)
-        label = (
-            tr("hud.maxed") if maxed else money_short(self._tower_config.prices[3][1])
-        )
-        self._plane_upgrade_text.set_text(label, state="hover")
-        self._plane_upgrade_text.set_text(tr("hud.upgrade_planes"), state="default")
+        """Once planes are upgraded (the max level), the plane-upgrade button
+        and its icon are grayed and clicks on it do nothing."""
+        state = MAXED if self._game_state.plane_level >= 2 else None
+        for obj in (self._plane_upgrade_button, self._plane_upgrade_icon):
+            if obj.state != state:
+                obj.set_state(state)
 
     def _bind_buy_buttons(self, panel_manager: PanelManager) -> None:
         """Gives each buy button a grayed copy of each of its looks, shown
@@ -150,8 +146,8 @@ class GameHUD:
             fee_text.set_text(money(self._tower_config.prices[i][0]))
 
     def refresh_language(self) -> None:
-        """Re-sync the texts built in code (round counter, prices, the plane
-        upgrade's labels) after a language change."""
+        """Re-sync the texts built in code (round counter, prices) after a
+        language change."""
         self._set_fee_texts()
         self.refresh()
 
@@ -177,5 +173,5 @@ class GameHUD:
         self._bind_buy_buttons(panel_manager)
         self.fee_texts = [panel_manager["game"][f"fee_text_{i + 1}"] for i in range(4)]
         self._set_fee_texts()
-        self._show_plane_upgrade_price(panel_manager)
+        self._bind_plane_upgrade(panel_manager)
         self.refresh()

@@ -30,7 +30,7 @@ GROUPS = {
             "auto_pause_button_icon",
             "keep_placing_button_icon",
             "speed_toggle_button_text",
-            "upgrade_plane_button_text",
+            "upgrade_plane_button_icon",
         ),
         (1, 0),
         0,

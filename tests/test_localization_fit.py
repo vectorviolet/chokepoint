@@ -53,36 +53,14 @@ def test_every_text_stays_inside_its_parent_or_the_window(game, language, size):
     resize(game, size)
     game.set_language(language)
     window = pygame.Rect((0, 0), size)
-    # The UPG PLANES label is wider than its 60 px button by design (the button
-    # sits in the 120 px control column); it is checked against that column below.
-    wider = game.panel_manager["game"]["upgrade_plane_button_text"]
     for panel_name in PANELS:
         for obj in texts(game, panel_name):
-            if obj is wider:
-                continue
             parent = obj.rect.parent
             limit = window if parent is None else parent  # a Transform: left, right
             assert limit.left <= obj.rect.left and obj.rect.right <= limit.right, (
                 panel_name,
                 obj.text,
             )
-
-
-@pytest.mark.parametrize("size", SIZES)
-@pytest.mark.parametrize("language", ["en", "tr"])
-def test_the_plane_upgrade_label_fits_the_control_column(game, language, size):
-    resize(game, size)
-    game.set_language(language)
-    panel = game.panel_manager["game"]
-    text = panel["upgrade_plane_button_text"]
-    column = panel["control_panel_bg"].rect
-    for state in ("default", "hover"):
-        text.set_state(state)
-        assert column.left <= text.rect.left and text.rect.right <= column.right, state
-    game.game_state.plane_level = 2
-    game.hud.refresh_plane_upgrade()
-    text.set_state("hover")
-    assert column.left <= text.rect.left and text.rect.right <= column.right
 
 
 @pytest.mark.parametrize("size", SIZES)

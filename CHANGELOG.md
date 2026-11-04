@@ -93,6 +93,10 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   player-visible text now comes from `config/lang/`
   ([#128](https://github.com/vectorviolet/chokepoint/pull/128),
   [devlog](docs/devlog/2026-11-04-language-setting.md)).
+- The UPG PLANES button is now an icon (a plane with an arrow, no text, grayed once bought) and the
+  U key upgrades the planes the same way
+  ([#137](https://github.com/vectorviolet/chokepoint/pull/137),
+  [devlog](docs/devlog/2026-11-04-planes-icon.md)).
 - A GAME setting, Keep selection while buying (off by default): off, picking a tower to buy
   deselects the selected tower and closes its info panel; on, the selection and its range ring stay
   ([#136](https://github.com/vectorviolet/chokepoint/pull/136),

@@ -6,7 +6,7 @@ A selected plane (a flying tower) uses the same panel with some rows
 relabeled: "Splash" (its bombs' blast radius) for Range, "Speed" (its
 flight speed) for Blind spot, "Bombs" (bombs per second) for Fire rate,
 and HP "-" with no bar, since planes have no HP. Its previews are for the
-global plane upgrade (UPG PLANES), which every plane follows.
+global plane upgrade (the plane-upgrade button), which every plane follows.
 
 The panel's objects are declared in config/panels.yaml (`tower_info_*` on
 the game panel), so they scale with the rest of the HUD; this module fills

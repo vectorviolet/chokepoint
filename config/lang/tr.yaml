@@ -55,13 +55,10 @@ settings:
 format:
   decimal_separator: ","
   money: "{amount} $"
-  money_thousands: "{amount} bin $"
   reward: "+${amount}"
 
 hud:
   round: "Tur {level}"
-  upgrade_planes: "UÇAK GELİŞTİR"
-  maxed: "MAKS"
 
 tower_info:
   kills: "Öldürme"

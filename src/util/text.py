@@ -16,13 +16,6 @@ def money(amount: int) -> str:
     return tr("format.money", amount=amount)
 
 
-def money_short(amount: int) -> str:
-    """A price, with thousands shortened from 1000 up: "100 $", "5K $"."""
-    if amount >= 1000:
-        return tr("format.money_thousands", amount=decimal(amount / 1000))
-    return money(amount)
-
-
 def reward(amount: int) -> str:
     """A kill's floating reward: "+$12"."""
     return tr("format.reward", amount=amount)
