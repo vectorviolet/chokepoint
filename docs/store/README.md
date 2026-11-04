@@ -4,7 +4,7 @@ The itch.io page at <https://umutcanekinci.itch.io/chokepoint> is edited by hand
 folder holds what goes into it:
 
 - `description.html`: the page's description. Paste it into the description field in HTML
-  mode. It uses only headings, paragraphs, lists, links, `code` and one image, with no inline
+  mode. It uses only headings, paragraphs, lists, links, `strong`, `code` and one image, with no inline
   styles or tables, so it reads well on phones.
 - `cover.png`, `cover_itchio.png`: the cover image (itch.io shows covers at 630×500).
 
@@ -29,8 +29,9 @@ Fields that live outside the description, following itch.io's
   was a coding assistant; check what itch.io's form asks about code, graphics, sound and text).
 - **Screenshots:** at least 4, uploaded to the page's gallery (`docs/screenshots/` has them).
   itch.io shows them apart from the description, so the description only embeds the GIF.
-- **Images:** upload the GIF through itch.io's editor instead of linking it from GitHub, so it
-  loads fast and doesn't break if the file moves.
+- **Images:** `description.html` links the GIF from GitHub so it works when pasted as is. Better:
+  upload `docs/preview.gif` through itch.io's editor and swap the image on the page for the
+  uploaded one, so it loads fast and doesn't break if the file moves in the repo.
 - **Theme:** colors that match the game (the logo's green), not plain black on white.
 
 The cover, a trailer and new screenshots are tracked in #13.

@@ -31,7 +31,7 @@ Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch
 <details>
 <summary>First launch on macOS or Windows</summary>
 
-> macOS Gatekeeper: the app is unsigned, so the first launch needs **right-click → Open** (or `xattr -dr com.apple.quarantine Chokepoint.app`).
+> macOS Gatekeeper: the app is unsigned, so macOS blocks the first launch. Open **System Settings → Privacy & Security**, click **Open Anyway** next to Chokepoint, then **Open** (or run `xattr -dr com.apple.quarantine Chokepoint.app`).
 >
 > Windows SmartScreen: the app is unsigned, so the first launch shows **"Windows protected your PC."** Click **More info → Run anyway**. This is Microsoft's download-reputation check, not a virus warning — brand-new unsigned executables always trigger it.
 
