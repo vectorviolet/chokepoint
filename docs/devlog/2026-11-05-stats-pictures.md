@@ -1,7 +1,7 @@
 # Tower and enemy pictures in the stats reference and wiki
-<!-- index | refs: #95 -->
+<!-- index | refs: #95, PR #156 -->
 
-**Date:** 2026-11-05 · **Area:** Docs, tooling · **Issue:** [#95](https://github.com/vectorviolet/chokepoint/issues/95)
+**Date:** 2026-11-05 · **Area:** Docs, tooling · **Issue:** [#95](https://github.com/vectorviolet/chokepoint/issues/95) · **PR:** [#156](https://github.com/vectorviolet/chokepoint/pull/156)
 
 ## Context
 
