@@ -1,198 +1,52 @@
-<h1>Chokepoint</h1>
-<p>Chokepoint is a 2D tower defense game built with <a target="_blank" href="https://github.com/pygame-community/pygame-ce">pygame-ce</a>. Defend the path through 25 waves of escalating enemies &mdash; then keep going in endless mode &mdash; by buying, placing, and upgrading towers along a fixed Tiled-authored map.</p>
-<p><img style="max-width: 100%;" alt="Gameplay Preview" src="https://raw.githubusercontent.com/vectorviolet/chokepoint/main/docs/preview.gif"></p>
-<h2>Gameplay</h2>
-<p>You start with <strong>$200</strong> and <strong>10 lives</strong>. Buy towers from the bar at the bottom of the screen, place them on the map, and upgrade them as you earn money from kills; selling a tower refunds 70% of everything you spent on it. Survive all 25 waves to win &mdash; clearing wave 25 opens a victory screen where you can play again, return to the main menu, or keep going in endless mode as waves keep escalating past 25. Enemy HP and reward scale +25% per wave; each wave's total payout funds roughly one upgrade.</p>
-<h3>Enemies</h3>
-<table border="1" style="width: 100%; border-collapse: collapse;">
-  <thead>
-    <tr>
-      <th style="padding: 8px; text-align: left;">#</th>
-      <th style="padding: 8px; text-align: left;">Role</th>
-      <th style="padding: 8px; text-align: left;">HP</th>
-      <th style="padding: 8px; text-align: left;">Speed</th>
-      <th style="padding: 8px; text-align: left;">Reward</th>
-      <th style="padding: 8px; text-align: left;">Damage</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="padding: 8px;">1</td>
-      <td style="padding: 8px;">Grunt</td>
-      <td style="padding: 8px;">20</td>
-      <td style="padding: 8px;">1.0</td>
-      <td style="padding: 8px;">4</td>
-      <td style="padding: 8px;">1</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">2</td>
-      <td style="padding: 8px;">Fast runner</td>
-      <td style="padding: 8px;">55</td>
-      <td style="padding: 8px;">1.6</td>
-      <td style="padding: 8px;">10</td>
-      <td style="padding: 8px;">1</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">3</td>
-      <td style="padding: 8px;">Bruiser</td>
-      <td style="padding: 8px;">160</td>
-      <td style="padding: 8px;">0.9</td>
-      <td style="padding: 8px;">28</td>
-      <td style="padding: 8px;">2</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">4</td>
-      <td style="padding: 8px;">Heavy</td>
-      <td style="padding: 8px;">420</td>
-      <td style="padding: 8px;">0.7</td>
-      <td style="padding: 8px;">75</td>
-      <td style="padding: 8px;">3</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">5</td>
-      <td style="padding: 8px;">Tank</td>
-      <td style="padding: 8px;">800</td>
-      <td style="padding: 8px;">0.5</td>
-      <td style="padding: 8px;">200</td>
-      <td style="padding: 8px;">5</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">6</td>
-      <td style="padding: 8px;">Siege tank</td>
-      <td style="padding: 8px;">1500</td>
-      <td style="padding: 8px;">0.4</td>
-      <td style="padding: 8px;">400</td>
-      <td style="padding: 8px;">8</td>
-    </tr>
-  </tbody>
-</table>
-<p>Types 5&ndash;6 are armed: while advancing, they fire on the nearest ground tower in range, chipping away its HP until it's destroyed.</p>
-<h3>Towers</h3>
-<table border="1" style="width: 100%; border-collapse: collapse;">
-  <thead>
-    <tr>
-      <th style="padding: 8px; text-align: left;">#</th>
-      <th style="padding: 8px; text-align: left;">Name</th>
-      <th style="padding: 8px; text-align: left;">Levels</th>
-      <th style="padding: 8px; text-align: left;">Price (L1)</th>
-      <th style="padding: 8px; text-align: left;">Behavior</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="padding: 8px;">1</td>
-      <td style="padding: 8px;">Rapid gun</td>
-      <td style="padding: 8px;">1</td>
-      <td style="padding: 8px;">$100</td>
-      <td style="padding: 8px;">Cheap starter &mdash; fast, low damage</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">2</td>
-      <td style="padding: 8px;">Homing missile</td>
-      <td style="padding: 8px;">3</td>
-      <td style="padding: 8px;">$160</td>
-      <td style="padding: 8px;">Tracks targets; scales hard with upgrades</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">3</td>
-      <td style="padding: 8px;">Heavy cannon</td>
-      <td style="padding: 8px;">2</td>
-      <td style="padding: 8px;">$280</td>
-      <td style="padding: 8px;">Long-range artillery, slow heavy hits</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">4</td>
-      <td style="padding: 8px;">Plane</td>
-      <td style="padding: 8px;">2</td>
-      <td style="padding: 8px;">$600</td>
-      <td style="padding: 8px;">Flies over the map, dropping bombs along its path</td>
-    </tr>
-  </tbody>
-</table>
-<p>Planes reach level 2 through a one-time $5000 upgrade that applies to every plane launched after it.</p>
-<p>All stats live in <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/towers.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/towers.yaml</code></a>, <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/enemies.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/enemies.yaml</code></a>, and <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/config/waves.yaml"><code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">config/waves.yaml</code></a> &mdash; tweak freely.</p>
-<h3>Controls</h3>
-<table border="1" style="width: 100%; border-collapse: collapse;">
-  <thead>
-    <tr>
-      <th style="padding: 8px; text-align: left;">Action</th>
-      <th style="padding: 8px; text-align: left;">Input</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td style="padding: 8px;">Pick a tower to buy</td>
-      <td style="padding: 8px;">Click it in the bottom bar, or press 1&ndash;4</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Place it</td>
-      <td style="padding: 8px;">Left click a green tile</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Cancel placement / deselect</td>
-      <td style="padding: 8px;">Right click</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Upgrade or sell a tower</td>
-      <td style="padding: 8px;">Click the tower, then the arrow (upgrade) or money bag (sell)</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Start / pause the waves</td>
-      <td style="padding: 8px;">Space, or the play button</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Game speed (x1 / x2 / x4)</td>
-      <td style="padding: 8px;">Speed button</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Scroll the map</td>
-      <td style="padding: 8px;">Move the mouse to a screen edge</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Zoom</td>
-      <td style="padding: 8px;">Mouse wheel</td>
-    </tr>
-    <tr>
-      <td style="padding: 8px;">Back to the main menu (saves the run)</td>
-      <td style="padding: 8px;">Esc, or the menu button</td>
-    </tr>
-  </tbody>
-</table>
-<h2>Requirements</h2>
+<h2>Hold the line. Build the chokepoint.</h2>
+<p>Chokepoint is a 2D tower defense game. Defend a winding path through 25 rounds of escalating enemies, from foot soldiers to siege tanks, then keep going in endless mode. Buy, place and upgrade towers, call in bombing runs, and spend every coin where it counts.</p>
+<p><img src="https://raw.githubusercontent.com/vectorviolet/chokepoint/main/docs/preview.gif" alt="Towers firing on a wave of enemies, with HP bars and kill rewards"></p>
+
+<h2>Features</h2>
 <ul>
-  <li>Python 3.12+</li>
-  <li><a target="_blank" href="https://github.com/pygame-community/pygame-ce">pygame-ce</a>, colorama, pyyaml, pytmx (resolved automatically from <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">pyproject.toml</code> / <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">uv.lock</code>)</li>
-  <li><a target="_blank" href="https://docs.astral.sh/uv/">uv</a> (optional but recommended)</li>
+  <li><strong>Four towers</strong> with upgrade paths: a rapid gun, a homing missile, a heavy cannon and a bombing plane.</li>
+  <li><strong>Enemies that fight back:</strong> armed tanks shoot your towers and can destroy them.</li>
+  <li><strong>25 rounds, then endless mode.</strong> Your run is saved, so you can quit and continue later.</li>
+  <li><strong>Your pace:</strong> x1, x2 and x4 speed, auto-pause between rounds, and continuous placement.</li>
+  <li><strong>Click anything to inspect it:</strong> a tower's kills, earnings and upgrade preview, or an enemy's HP.</li>
+  <li><strong>Punchy feedback:</strong> hit flashes, explosions, rubble and flying coins, with a "reduce flashing" option.</li>
+  <li><strong>English and Turkish</strong>, with window, audio and gameplay settings.</li>
+  <li>A live battle plays itself behind the main menu.</li>
 </ul>
-<h2>Running the Game (Source)</h2>
-<pre style="background: #222; color: #eee; padding: 12px; border-radius: 5px; overflow-x: auto;"><code>git clone --recurse-submodules https://github.com/vectorviolet/chokepoint.git
-cd chokepoint
-uv sync
-uv run python __main__.py</code></pre>
-<p>If you forgot <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">--recurse-submodules</code>: <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">git submodule update --init</code>.</p>
-<p>Without <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">uv</code>: <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">pip install .</code> then <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">python __main__.py</code>.</p>
-<h2>Project Layout</h2>
-<pre style="background: #222; color: #eee; padding: 12px; border-radius: 5px; overflow-x: auto;"><code>__main__.py            Entry point &mdash; injects src/ + src/pygamine/ into sys.path
-src/app/game.py        Game class &mdash; wires all subsystems
-src/domain/            Pure data (GameState, protocols)
-src/gameplay/          Battle simulation, combat, tilemap, menu demo
-src/towers/            Tower hierarchy and factory
-src/ui/                HUD, HP bars
-src/util/              Config loaders, constants
-src/pygamine/       Engine submodule (Application, Animator, PanelLoaderExt, ...)
-config/                YAML: assets, panels, towers, enemies, waves
-assets/                Images, sounds, fonts, Tiled project</code></pre>
-<p>See <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/CLAUDE.md">CLAUDE.md</a> for the full architecture overview.</p>
+
+<h2>Towers and enemies</h2>
+<ul>
+  <li><strong>Rapid gun:</strong> a cheap starter that fires fast, but with short range and light damage.</li>
+  <li><strong>Homing missile:</strong> tracks its target; its damage grows fast with upgrades.</li>
+  <li><strong>Heavy cannon:</strong> long range and heavy hits, but it can't hit enemies up close.</li>
+  <li><strong>Plane:</strong> flies one pass over the map, dropping splash bombs. One global upgrade makes every plane stronger, even those already in the air.</li>
+</ul>
+<p>Six enemy types march in, from the basic grunt to the siege tank. Every number (prices, ranges, damage, enemy HP and each wave's contents) is on the <a href="https://github.com/vectorviolet/chokepoint/wiki/Stats">stats wiki</a>.</p>
+
+<h2>Controls</h2>
+<ul>
+  <li><strong>Buy a tower:</strong> click it in the bottom bar, or press 1-4. Left click a green tile to place it; right click cancels.</li>
+  <li><strong>Inspect, upgrade or sell:</strong> click a tower, then the arrow or the money bag.</li>
+  <li><strong>Keep placing:</strong> Shift.</li>
+  <li><strong>Start or pause the rounds:</strong> Space.</li>
+  <li><strong>Upgrade the planes:</strong> U.</li>
+  <li><strong>Scroll and zoom:</strong> move the mouse to a screen edge; mouse wheel.</li>
+  <li><strong>Hide the HUD:</strong> Tab. <strong>Fullscreen:</strong> F11. <strong>Pause menu:</strong> Esc.</li>
+</ul>
+
+<h2>Installing</h2>
+<p>Download the zip for your system, unzip it and run the game. No Python or installer needed.</p>
+<ul>
+  <li><strong>Windows:</strong> run <code>chokepoint.exe</code>. The game isn't code-signed, so the first launch may show "Windows protected your PC": click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+  <li><strong>macOS:</strong> open <code>Chokepoint.app</code>. The app isn't signed, so macOS blocks the first launch: open <strong>System Settings → Privacy &amp; Security</strong>, click <strong>Open Anyway</strong> next to Chokepoint, then <strong>Open</strong>.</li>
+  <li><strong>Linux:</strong> run <code>./chokepoint/chokepoint</code>.</li>
+</ul>
+
 <h2>Credits</h2>
-<p>Art, UI, and sound from <a target="_blank" href="https://www.kenney.nl/">Kenney</a> &mdash; <a target="_blank" href="https://www.kenney.nl/assets/tower-defense-top-down">Tower Defense (Top-Down)</a>, <a target="_blank" href="https://www.kenney.nl/assets/ui-pack">UI Pack</a>, <a target="_blank" href="https://www.kenney.nl/assets/impact-sounds">Impact Sounds</a>, and <a target="_blank" href="https://www.kenney.nl/assets/smoke-particles">Smoke Particles</a>. Coin pickup art from <a target="_blank" href="https://laredgames.itch.io/gems-coins-free">La Red Games &mdash; Gems & Coins</a>. Fonts: <a target="_blank" href="https://fonts.google.com/specimen/Anton">Anton</a> and <a target="_blank" href="https://fonts.google.com/specimen/Fira+Sans">Fira Sans</a> (SIL OFL). Music: <a target="_blank" href="https://hypeddit.com/sakuragirl/clown">Sakura Girl - Clown</a>. Full credits with licenses in <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/CREDITS.md">CREDITS.md</a>.</p>
-<h2>Contributing</h2>
-<ol>
-  <li>Fork this repository.</li>
-  <li>Clone your fork: <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">git clone --recurse-submodules https://github.com/&lt;your-username&gt;/chokepoint.git</code></li>
-  <li>Create a branch: <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">git checkout -b feature/&lt;your-feature&gt;</code></li>
-  <li>Commit + push: <code style="background: #eee; color: #333; padding: 2px 4px; border-radius: 3px;">git commit -am "&lt;message&gt;" && git push origin feature/&lt;your-feature&gt;</code></li>
-  <li>Open a pull request.</li>
-</ol>
-<h2>Author & License</h2>
-<p>Created by Umutcan Ekinci &mdash; <a href="mailto:umutcannekinci@gmail.com">umutcannekinci@gmail.com</a>. See also the <a target="_blank" href="https://github.com/vectorviolet/chokepoint/contributors">contributors</a>.</p>
-<p>Distributed under the MIT License. See <a target="_blank" href="https://github.com/vectorviolet/chokepoint/blob/main/LICENSE">LICENSE</a> for details.</p>
+<p>Art, UI and sound from <a href="https://www.kenney.nl/">Kenney</a> (Tower Defense Top-Down, UI Pack, Impact Sounds, Smoke Particles). Coins from <a href="https://laredgames.itch.io/gems-coins-free">La Red Games</a>. Fonts: Anton and Fira Sans (SIL OFL). Music: <a href="https://hypeddit.com/sakuragirl/clown">Sakura Girl - Clown</a>. The full list with licenses is in <a href="https://github.com/vectorviolet/chokepoint/blob/main/CREDITS.md">CREDITS.md</a>.</p>
+
+<h2>Source code</h2>
+<p>Chokepoint is open source (MIT) and built with Python and <a href="https://github.com/pygame-community/pygame-ce">pygame-ce</a>. The code, devlog and changelog are on <a href="https://github.com/vectorviolet/chokepoint">GitHub</a>; bug reports and ideas are welcome in its issues.</p>
+
+<h2>Author</h2>
+<p>Made by <a href="https://www.linkedin.com/in/umutcanekinci/">Umutcan Ekinci</a>. Built with Claude Code as a coding assistant; game design, art direction, playtesting and review by me.</p>
