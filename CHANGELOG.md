@@ -18,6 +18,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 - README: a status badge row (CI, release, license, coverage, Python) under the title, and the official itch.io badge in the Download section ([#153](https://github.com/vectorviolet/chokepoint/pull/153)).
 - README: the game's logo replaces the text title, full width, with the badges centered under it ([#155](https://github.com/vectorviolet/chokepoint/pull/155)).
+- README: rewritten as a front page, with `CONTRIBUTING.md` and `docs/ARCHITECTURE.md` taking the contributor and architecture material ([#PR](https://github.com/vectorviolet/chokepoint/pull/PR), [devlog](docs/devlog/2026-11-05-readme-front-page.md)).
 
 ## [0.4.0] – 2026-11-04
 

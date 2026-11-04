@@ -12,113 +12,9 @@
 
 </div>
 
-Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 rounds of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
+Chokepoint is a 2D tower defense game: defend a winding path through 25 rounds of escalating enemies, then keep going in endless mode, by buying, placing and upgrading towers on a Tiled-authored map. Built with [pygame-ce](https://github.com/pygame-community/pygame-ce) on the author's own [pygamine](https://github.com/vectorviolet/pygamine) engine layer.
 
-![Current source-build gameplay with tower fire, enemy HP bars and kill rewards](docs/preview.gif)
-
-The preview and screenshots below show the current source build. Downloadable releases may
-lag behind these changes; see the [changelog](CHANGELOG.md) and [devlog](docs/devlog/README.md).
-
-## Gameplay
-
-You start with **$200** and **10 lives**. Buy towers from the bar at the bottom of the screen,
-place them on the map, and upgrade them as you earn money from kills; selling a tower refunds
-70% of everything you spent on it. Survive all 25 rounds to win — clearing round 25 opens a
-victory screen where you can play again, return to the main menu, or continue in endless mode.
-Enemy HP and kill rewards scale by `1 + 0.25 × (round − 1)` from their base values, rounded
-down to integers; this is linear growth, not a compounded 25% increase.
-
-Click a ground tower or flying plane to inspect its stats, kills, earnings and upgrade
-previews. Click an enemy to see its HP as numbers. The HUD includes toggles for continuous
-placement and auto-pause between rounds, and Tab slides it out of the way. The main menu has
-its own live battle running in the background.
-
-### Screenshots
-
-Captured from the current source build at 1920×1080. The gameplay images use a staged round-15
-run with several tower types and levels; they are not a fresh $200 start.
-
-| Main menu with a live battle | Gameplay and kill feedback |
-|---|---|
-| ![Main menu over an animated battle](docs/screenshots/01_menu.png) | ![Round 15 with mixed towers, enemy HP bars and flying reward coins](docs/screenshots/02_gameplay.png) |
-
-| Tower stats and upgrade previews | Pause menu |
-|---|---|
-| ![Selected missile tower showing range, HP and next-level stat previews](docs/screenshots/03_upgrades.png) | ![Pause menu with Back, Settings, Music and Main menu](docs/screenshots/04_pause.png) |
-
-<details>
-<summary>Display and audio settings</summary>
-
-![Settings screen on the Display tab: window size and mode controls](docs/screenshots/05_settings.png)
-
-</details>
-
-### Enemies
-
-Base stats before round scaling; Damage is the lives lost when an enemy escapes.
-
-| # | Role         | HP   | Speed | Reward | Damage |
-|---|--------------|------|-------|--------|--------|
-| 1 | Grunt        | 20   | 1.0   | 4      | 1      |
-| 2 | Fast runner  | 55   | 1.6   | 10     | 1      |
-| 3 | Bruiser      | 160  | 0.9   | 28     | 2      |
-| 4 | Heavy        | 420  | 0.7   | 75     | 3      |
-| 5 | Tank         | 800  | 0.5   | 200    | 5      |
-| 6 | Siege tank   | 1500 | 0.4   | 400    | 8      |
-
-Types 5–6 are armed: while advancing, they fire on the nearest ground tower in range, chipping away its HP until it's destroyed.
-
-### Towers
-
-| # | Name           | Levels | Price (L1) | Behavior                                 |
-|---|----------------|--------|------------|------------------------------------------|
-| 1 | Rapid gun      | 1      | $100       | Cheap starter — fast, low damage         |
-| 2 | Homing missile | 3      | $160       | Tracks targets; scales hard with upgrades |
-| 3 | Heavy cannon   | 2      | $280       | Long range and heavy hits; cannot target enemies within its 1.5-tile blind spot |
-| 4 | Plane          | 2      | $600       | Flies over the map, dropping bombs along its path |
-
-Planes reach level 2 through the one-time **$5000** plane upgrade (the plane-with-arrow HUD button,
-or **U**). It applies globally,
-including to planes already flying. A plane makes one pass toward the right edge; its bombs
-deal splash damage when they land. Fired projectiles keep flying after their source is sold,
-destroyed or removed from the map.
-
-All stats live in `config/towers.yaml`, `config/enemies.yaml`, and `config/waves.yaml` — tweak freely.
-
-### Stats reference
-
-Every tower level, enemy and wave with its numbers (price, range, DPS, HP and kill money per
-wave, each wave's enemies) is in [`docs/stats/`](docs/stats/README.md), generated from the config
-by `scripts/gen_stats.py`: [towers](docs/stats/towers.md), [enemies](docs/stats/enemies.md),
-[waves](docs/stats/waves.md). After changing the config, run
-`uv run python scripts/gen_stats.py` and commit the pages with it; CI fails when they are stale.
-A workflow also mirrors them to the project wiki.
-
-### Controls
-
-| Action | Input |
-|---|---|
-| Pick a tower to buy | Click it in the bottom bar, or press 1–4 |
-| Inspect a tower / plane, or an enemy's HP | Left click it |
-| Hide / show the HUD | Tab (hotkeys still work; money and lives pop back briefly when they change) |
-| Place it | Left click a green tile |
-| Cancel placement / deselect | Right click |
-| Toggle continuous placement | Press Shift, or click the circular-arrows HUD button; stays on until toggled off |
-| Upgrade or sell a tower | Click the tower, then the arrow (upgrade) or money bag (sell) |
-| Start / pause the rounds | Space, or the play button |
-| Upgrade the planes | U, or the plane-with-arrow HUD button |
-| Toggle auto-pause between rounds | Hourglass HUD button |
-| Game speed (x1 / x2 / x4) | Speed button |
-| Scroll the map | Move the mouse to a screen edge |
-| Zoom | Mouse wheel |
-| Toggle fullscreen | F11 |
-| Open / close the pause menu | Esc or the window's close button, or the menu button to open it |
-| Leave the victory / game-over popup | Esc or the window's close button: back to the main menu (a won run is saved; a lost one isn't) |
-| Save the run and return to the main menu | Main menu inside the pause menu |
-
-The pause menu also provides Settings and a music toggle. Settings has tabs: Display has the window size and mode, Audio has
-separate master, music and SFX volume sliders. Leaving Settings returns to the menu it
-was opened from.
+![Gameplay with tower fire, enemy HP bars and kill rewards](docs/preview.gif)
 
 ## Download
 
@@ -132,17 +28,84 @@ Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch
 | macOS | Extract `chokepoint-macos.zip`, open `Chokepoint.app` |
 | Linux | Extract `chokepoint-linux.zip`, run `./chokepoint/chokepoint` |
 
+<details>
+<summary>First launch on macOS or Windows</summary>
+
 > macOS Gatekeeper: the app is unsigned, so the first launch needs **right-click → Open** (or `xattr -dr com.apple.quarantine Chokepoint.app`).
 >
 > Windows SmartScreen: the app is unsigned, so the first launch shows **"Windows protected your PC."** Click **More info → Run anyway**. This is Microsoft's download-reputation check, not a virus warning — brand-new unsigned executables always trigger it.
 
-## Requirements (from source)
+</details>
 
-- Python 3.12+
-- [pygame-ce](https://github.com/pygame-community/pygame-ce), colorama, pyyaml, pytmx (resolved automatically from `pyproject.toml` / `uv.lock`)
-- [uv](https://docs.astral.sh/uv/) (optional but recommended)
+## Features
 
-## Running
+- Four towers (rapid gun, homing missile, heavy cannon, plane) with upgrade paths, buy tooltips and a stats panel with upgrade previews.
+- Armed tanks that shoot back and can destroy your towers.
+- 25 rounds, a victory screen, then endless mode; runs are saved and can be continued.
+- Game speed x1, x2 and x4, auto-pause between rounds and continuous placement.
+- A live battle plays itself behind the main menu.
+- Kill rewards, hit flashes, explosions and rubble, with a "reduce flashing" setting.
+- English and Turkish, with window, audio and gameplay settings.
+- Edge-scrolling, zooming camera over a large map.
+
+## Screenshots
+
+| Main menu with a live battle | Gameplay and kill feedback |
+|---|---|
+| ![Main menu over an animated battle](docs/screenshots/01_menu.png) | ![Round 15 with mixed towers, enemy HP bars and flying reward coins](docs/screenshots/02_gameplay.png) |
+
+| Tower stats and upgrade previews | Pause menu |
+|---|---|
+| ![Selected missile tower showing range, HP and next-level stat previews](docs/screenshots/03_upgrades.png) | ![Pause menu with Back, Settings, Music and Main menu](docs/screenshots/04_pause.png) |
+
+## Towers and enemies
+
+| Tower | Role |
+|---|---|
+| Rapid gun | Cheap starter that fires fast but short and light |
+| Homing missile | Tracks its target; damage grows fast with upgrades |
+| Heavy cannon | Long range and heavy hits, but can't hit enemies up close |
+| Plane | Flies one pass over the map, dropping splash bombs |
+
+Six enemy types march in, from the basic grunt to the siege tank. The two tank types are armed:
+they fire on the nearest tower in range until it is destroyed. The plane gets its one-time
+global upgrade from the plane-with-arrow button, or **U**. Every number (prices, ranges, DPS,
+enemy HP and rewards, each wave's contents) is on the wiki:
+[Stats](https://github.com/vectorviolet/chokepoint/wiki/Stats),
+[Towers](https://github.com/vectorviolet/chokepoint/wiki/Stats-Towers),
+[Enemies](https://github.com/vectorviolet/chokepoint/wiki/Stats-Enemies) and
+[Waves](https://github.com/vectorviolet/chokepoint/wiki/Stats-Waves).
+
+## Controls
+
+| Action | Input |
+|---|---|
+| Pick a tower to buy | Click it in the bottom bar, or press 1–4 |
+| Place it / cancel | Left click a green tile / right click |
+| Inspect a tower, plane or enemy | Left click it |
+| Upgrade or sell a tower | Click the tower, then the arrow or the money bag |
+| Keep placing | Shift, or the circular-arrows button |
+| Start / pause the rounds | Space, or the play button |
+| Upgrade the planes | U, or the plane-with-arrow button |
+| Game speed (x1 / x2 / x4) | Speed button |
+| Scroll / zoom the map | Mouse at a screen edge / mouse wheel |
+| Hide the HUD / fullscreen | Tab / F11 |
+| Pause menu | Esc |
+
+## Under the hood
+
+- **Engine:** built on [pygamine](https://github.com/vectorviolet/pygamine), the author's own engine layer, pinned as a git submodule in `src/pygamine/`.
+- **Simulation:** gameplay runs on a fixed tick independent of the frame rate, so pausing and x2/x4 speeds stay consistent. The same battle code drives the real game and the menu demo ([architecture](docs/ARCHITECTURE.md)).
+- **Targeting:** towers and tanks find targets through per-tick spatial grids, tested to pick exactly what a full scan would ([ADR 0004](docs/decisions/0004-grid-targeting.md)).
+- **Balance:** a headless simulator plays whole runs with scripted strategy bots and writes per-wave reports ([`scripts/balance_sim.py`](scripts/balance_sim.py), [ADR 0007](docs/decisions/0007-headless-balance-simulator.md)).
+- **Quality:** a large pytest suite with coverage, plus mypy, ruff and codespell, run in [CI](.github/workflows/ci.yml); `main` is protected and changes land through pull requests.
+- **Docs from config:** the stats reference and the wiki's stats pages are generated from the YAML config, and CI fails when they are stale ([`scripts/gen_stats.py`](scripts/gen_stats.py)).
+- **Release pipeline:** a version tag builds Windows, macOS and Linux bundles and publishes them to GitHub Releases and itch.io ([`release.yml`](.github/workflows/release.yml)).
+- **History:** every feature and design decision has a [devlog](docs/devlog/README.md) entry, and architecture choices an [ADR](docs/decisions/README.md).
+
+## Running from source
+
+Needs Python 3.12+ and [uv](https://docs.astral.sh/uv/) (or `pip install .`).
 
 ```bash
 git clone --recurse-submodules https://github.com/vectorviolet/chokepoint.git
@@ -151,154 +114,23 @@ uv sync
 uv run python __main__.py
 ```
 
-If you forgot `--recurse-submodules`, or the engine folder is out of step after a pull:
-`git submodule update --init` (on Windows, `scripts\sync-pygamine.bat` does the same).
+Tests, code style, releases and the other contributor details are in [CONTRIBUTING.md](CONTRIBUTING.md); how the code fits together is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-Without `uv`: `pip install .` then `python __main__.py`.
+## Links
 
-## Building a standalone bundle
-
-Builds are produced by [PyInstaller](https://pyinstaller.org/) from `chokepoint.spec`, which bundles `assets/` and `config/` alongside the executable (onedir). To build locally for your current OS:
-
-```bash
-uv sync --group build
-uv run pyinstaller chokepoint.spec --noconfirm
-```
-
-The result lands in `dist/chokepoint/` (`dist/Chokepoint.app` on macOS).
-
-### Cutting a release
-
-Prepare a **Release x.y.z** PR with the version and changelog changes first. After required
-CI passes and the owner merges it through the merge queue, the owner creates and pushes the
-matching `vx.y.z` tag on that merged commit. Protected release tags cannot be moved or deleted.
-
-The tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
-on each OS, zips the bundle, attaches all three to a GitHub Release, and pushes each build to
-its [itch.io](https://umutcanekinci.itch.io/chokepoint) channel via
-[Butler](https://itch.io/docs/butler/). Use **Run workflow** to build without publishing.
-
-## Development and checks
-
-Run these commands from the `chokepoint` project folder:
-
-```bash
-uv run --group dev pytest tests/ -q
-uv run python scripts/smoke_test.py
-```
-
-The tests and smoke test redirect saves to temporary folders. Any custom script that creates
-a `Game()` must do the same: normal gameplay can overwrite a save, and losing a run deletes it.
-
-For a ready-made run **inside a separate worktree**, use:
-
-```bash
-uv run python scripts/make_playtest_save.py --out saves
-uv run python __main__.py
-```
-
-Press **Continue** for a paused round-10 run with $100,000, towers at every level and muted
-audio. The generator always refuses the main checkout's real saves. Replacing existing
-generated files in the worktree requires `--overwrite`.
-
-Refresh the README media from the current game with:
-
-```bash
-uv run --group build python scripts/capture_readme.py
-```
-
-This captures screenshots and a six-second GIF headlessly, using temporary saves and checking
-that the real save directories remain unchanged.
-
-## Project layout
-
-```
-__main__.py            Entry point — injects src/ + src/pygamine/ into sys.path
-src/app/game.py        Game class — wires all subsystems
-src/domain/            Pure data (GameState, protocols)
-src/gameplay/          Battle simulation, combat, tilemap, menu demo
-src/gameplay/towers/   Tower hierarchy and factory
-src/ui/                HUD, info panels, pause menu, tooltips, feedback effects
-src/util/              Config loaders, constants
-src/pygamine/          Pinned engine submodule (Application, Animator, PanelLoaderExt, ...)
-config/                YAML: assets, panels, towers, enemies, waves
-assets/                Images, sounds, fonts, Tiled map
-scripts/               Smoke checks, play-test saves, media and documentation generators
-docs/devlog/           Feature history and decisions with screenshots
-docs/decisions/        Architecture decision records
-docs/stats/            Generated stats reference (towers, enemies, waves)
-```
-
-See [CLAUDE.md](CLAUDE.md) for the architecture overview and development conventions.
+- [Wiki](https://github.com/vectorviolet/chokepoint/wiki): [stats reference](https://github.com/vectorviolet/chokepoint/wiki/Stats)
+- [Roadmap](https://github.com/vectorviolet/chokepoint/milestone/1): the 1.0 milestone
+- [Devlog](docs/devlog/README.md) and [changelog](CHANGELOG.md)
 
 ## Credits
 
 Art, UI, and sound from [Kenney](https://www.kenney.nl/) — [Tower Defense (Top-Down)](https://www.kenney.nl/assets/tower-defense-top-down), [UI Pack](https://www.kenney.nl/assets/ui-pack), [Impact Sounds](https://www.kenney.nl/assets/impact-sounds), and [Smoke Particles](https://www.kenney.nl/assets/smoke-particles). Coin pickup art from [La Red Games — Gems & Coins](https://laredgames.itch.io/gems-coins-free). Fonts: [Anton](https://fonts.google.com/specimen/Anton) and [Fira Sans](https://fonts.google.com/specimen/Fira+Sans) (SIL OFL). Music: [Sakura Girl - Clown](https://hypeddit.com/sakuragirl/clown). Full list with licenses in [CREDITS.md](CREDITS.md).
 
-## Asset sources
-
-Every file under `assets/` is listed in `assets/SOURCES.yaml` with its source:
-
-- **A pack**, given by its slug (for example `kenney-ui-pack`). The entry also gives the file's
-  path inside that pack as `original`. Images built from several pack files list them under
-  `composited_from` instead. Edited pack files say what changed under `modified`.
-- **`own`**, for files made for this game.
-- **`unknown`**, for files whose origin or license isn't confirmed yet. Each needs a `todo` that
-  says what to do; the credits list them as "not yet verified".
-
-The `packs` section names each pack, its author, URL, license and what the game uses it for.
-Each pack's own license text is in `licenses/assets/<slug>.txt`, and every build ships it.
-
-When you add, replace or remove an asset:
-
-1. Update `assets/SOURCES.yaml`, and add `licenses/assets/<slug>.txt` for any new pack.
-2. Run `uv run python scripts/gen_credits.py` to regenerate CREDITS.md's asset section. Don't
-   edit that section by hand.
-3. Run the tests. `tests/test_sources.py` fails if a file is missing from `SOURCES.yaml`, if a
-   listed file doesn't exist, if a pack has no license text, or if CREDITS.md is out of date.
-
-Only ship assets whose license allows bundling them in a distributed game; resolve every
-`unknown` entry before the next release.
-
-## Code style
-
-- **Formatting:** Black-compatible, enforced by `ruff format` (line length 88, double quotes,
-  otherwise Black's defaults; see `[tool.ruff.format]` in `pyproject.toml`).
-- **Lint:** `ruff check`, deliberately narrow (pyflakes rules only).
-- **CI:** runs both. The `src/pygamine` submodule is excluded; it has its own setup.
-
-Run both locally before committing:
-
-```bash
-uv run --group dev ruff format .          # reformat
-uv run --group dev ruff check .           # lint
-uv run --group dev ruff format --check .  # what CI runs: fails if anything would be reformatted
-```
-
-The commit that first applied the formatter is listed in `.git-blame-ignore-revs`. To have
-`git blame` skip it and show the real author of each line:
-
-```bash
-git config blame.ignoreRevsFile .git-blame-ignore-revs
-```
-
-## Contributing
-
-1. Fork this repository.
-2. Clone your fork: `git clone --recurse-submodules https://github.com/<you>/chokepoint.git`
-3. Create a branch: `git checkout -b feature/<your-feature>`
-4. Run the tests, smoke test and Ruff checks.
-5. Stage the intended file paths explicitly, commit, and push your branch.
-6. Open a pull request. Feature and design-decision PRs include a devlog entry;
-   architecture changes include an ADR.
-7. After lead review and the owner's playtest, the owner queues the PR with **Merge when ready**.
-   Required CI also runs on the merge group; do not push directly to protected `main`.
-
 ## Author
 
-Umutcan Ekinci — [umutcannekinci@gmail.com](mailto:umutcannekinci@gmail.com)
+[Umutcan Ekinci](https://www.linkedin.com/in/umutcanekinci/)
 
-See also the [contributors](https://github.com/vectorviolet/chokepoint/contributors).
+Built with Claude Code as a coding assistant; game design, art direction, playtesting and review by me.
 
 ## License
 

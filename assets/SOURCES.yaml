@@ -1,4 +1,4 @@
-# Where every file under assets/ comes from -- see README.md ("Asset sources").
+# Where every file under assets/ comes from -- see CONTRIBUTING.md ("Asset sources").
 # tests/test_sources.py keeps this complete, and scripts/gen_credits.py builds
 # CREDITS.md's asset section from it. A source's license text is in
 # licenses/assets/<source>.txt.
