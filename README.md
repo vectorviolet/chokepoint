@@ -1,6 +1,10 @@
 # Chokepoint
 
-![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vectorviolet/chokepoint/badges/coverage.json)
+[![CI](https://github.com/vectorviolet/chokepoint/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/vectorviolet/chokepoint/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/vectorviolet/chokepoint)](https://github.com/vectorviolet/chokepoint/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/vectorviolet/chokepoint)](LICENSE)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vectorviolet/chokepoint/badges/coverage.json)](https://github.com/vectorviolet/chokepoint/actions/workflows/ci.yml)
+[![Python 3.12+ | pygame-ce](https://img.shields.io/badge/python-3.12%2B%20%7C%20pygame--ce-3776AB?logo=python&logoColor=white)](https://github.com/pygame-community/pygame-ce)
 
 Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 rounds of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
 
@@ -112,7 +116,7 @@ was opened from.
 
 ## Download
 
-[![Available on itch.io](https://jessemillar.github.io/available-on-itchio-badge/badge-color.png)](https://umutcanekinci.itch.io/chokepoint)
+[![Available on itch.io](https://static.itch.io/images/badge.svg)](https://umutcanekinci.itch.io/chokepoint)
 
 Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch.io/chokepoint) or the [latest GitHub release](https://github.com/vectorviolet/chokepoint/releases/latest) — no Python required. Unzip and run:
 
