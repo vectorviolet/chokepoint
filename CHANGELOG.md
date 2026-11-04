@@ -198,6 +198,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#93](https://github.com/vectorviolet/chokepoint/issues/93)).
 - A tower destroyed by tanks can no longer be sold or upgraded in the frame before it is removed
   ([#145](https://github.com/vectorviolet/chokepoint/pull/145)).
+- A config enemy or tower HP below 1 or not a whole number is now rejected at startup, so an HP
+  bar can never divide by zero ([#146](https://github.com/vectorviolet/chokepoint/pull/146)).
 
 ### Development
 
