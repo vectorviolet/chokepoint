@@ -282,6 +282,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.keep_placing = bool(
             saved_settings.get("keep_placing", self._default_keep_placing)
         )
+        self.tower_controller.keep_selection_while_buying = self.toggles[
+            "keep_selection_while_buying"
+        ]
         self.enemy_hp_label = EnemyHpLabel(self.assets.font_path("anton"))
         self.hud_slide = HudSlide(self.panel_manager, self.size, self.game_state)
         self.tower_info = TowerInfoPanel(self.panel_manager)
@@ -533,12 +536,15 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def set_toggle(self, key: str, on: bool) -> None:
         """Sets the ON/OFF setting `key` (one of TOGGLE_SETTINGS). Reduce
         flashing reaches the game's and the menu demo's feedback at once;
+        Keep selection while buying reaches the placement controller at once;
         Skip intro is only read at the next launch."""
         assert key in self.toggles, key
         self.toggles[key] = on
         if key == "reduce_flashing":
             self.set_reduce_flashing(on)
             self.menu_demo.set_reduce_flashing(on)
+        elif key == "keep_selection_while_buying":
+            self.tower_controller.keep_selection_while_buying = on
         self._refresh_toggle_labels()
 
     def _save_settings(self) -> None:

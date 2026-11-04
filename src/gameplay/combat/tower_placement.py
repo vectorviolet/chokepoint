@@ -69,7 +69,10 @@ class TowerPlacementController:
         picked (its buy button or number key); the pick itself is refused.
         keep_placing: the "keep placing" toggle -- while on, placement mode
         stays on after a placement as long as another tower of the same type
-        is affordable."""
+        is affordable.
+        keep_selection_while_buying: the GAME tab setting -- while off, a
+        successful pick (buy button or number key) deselects the selected
+        tower and so closes its info panel; while on, the selection stays."""
         self._towers = towers
         self._tower_config = tower_config
         self._assets = assets
@@ -84,6 +87,7 @@ class TowerPlacementController:
         self._on_tower_sold = on_tower_sold
         self._on_denied = on_denied
         self.keep_placing = False
+        self.keep_selection_while_buying = False
         self._enemies = enemies if enemies is not None else []
 
         self.buying_tower_type: int = 0
@@ -208,6 +212,8 @@ class TowerPlacementController:
                 self._on_denied(tower_type)
         else:
             self.buying_tower_type = tower_type
+            if not self.keep_selection_while_buying:
+                self._game_state.selected_tower = None
 
     def _handle_tower_actions(self, mouse_pos: tuple) -> bool:
         """Upgrade/sell the selected tower if its button was clicked. True
