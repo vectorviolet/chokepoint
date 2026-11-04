@@ -162,10 +162,14 @@ def test_pictures_are_found_through_the_asset_keys(config, assets):
     # Every level of every tower and every enemy has a picture, found from
     # the keys the game itself looks up; no hand-kept list of files.
     for tower_type, levels in enumerate(config.towers.max_levels, start=1):
-        covered = [p.alt for p in config.tower_pictures[tower_type]]
+        covered = [
+            level
+            for p in config.tower_pictures[tower_type]
+            for level in range(p.first_level, p.last_level + 1)
+        ]
         for level in range(1, levels + 1):
             assets.image_path(f"tower_{tower_type}_lvl{level}")  # a KeyError fails
-        assert covered == [f"Level {n}" for n in range(1, levels + 1)]
+        assert covered == list(range(1, levels + 1))  # each level exactly once
     assert sorted(config.enemy_pictures) == sorted(config.enemies)
     for enemy_type in config.enemies:
         assets.image_path(f"enemy_{enemy_type}")
@@ -245,9 +249,12 @@ def test_stale_images_finds_changed_resized_missing_and_extra_images(tmp_path, i
     pygame.image.save(recolored, folder / changed)
     pygame.image.save(pygame.Surface((65, 64), pygame.SRCALPHA), folder / resized)
     (folder / missing).unlink()
-    (folder / "old.png").write_bytes(b"not generated any more")
+    (folder / "stats-old.png").write_bytes(b"not generated any more")
     expected = [f"images/{n}" for n in (changed, resized, missing)]
-    assert gen_stats.stale_images(tmp_path, images) == [*expected, "images/old.png"]
+    assert gen_stats.stale_images(tmp_path, images) == [
+        *expected,
+        "images/stats-old.png",
+    ]
     gen_stats.write_images(tmp_path, images, prune=True)
     assert gen_stats.stale_images(tmp_path, images) == []
 
@@ -298,3 +305,12 @@ def test_text_pages_do_not_decode_any_png(monkeypatch):
     config = gen_stats.load_config()
     gen_stats.pages(config=config)
     gen_stats.wiki_pages(config)
+
+
+def test_an_unrelated_png_is_neither_stale_nor_deleted(tmp_path, images):
+    gen_stats.write_images(tmp_path, images)
+    other = tmp_path / gen_stats.IMAGES_DIR / "screenshot.png"
+    other.write_bytes(b"someone else's picture")
+    assert gen_stats.stale_images(tmp_path, images) == []
+    gen_stats.write_images(tmp_path, images, prune=True)
+    assert other.read_bytes() == b"someone else's picture"

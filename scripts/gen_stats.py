@@ -101,6 +101,7 @@ class Picture:
     alt: str
     render: Callable[[], pygame.Surface]
     first_level: int = 1  # a tower's: the lowest level it shows
+    last_level: int = 1  # and the highest
 
     @cached_property
     def surface(self) -> pygame.Surface:
@@ -217,6 +218,7 @@ def tower_pictures(
                 f"Level {first}" if first == last else f"Levels {first}-{last}",
                 lambda key=key, draw=draw: draw(key),
                 first,
+                last,
             )
             for first, last, key in runs
         ]
@@ -271,9 +273,11 @@ def same_picture(path: Path, surface: pygame.Surface) -> bool:
 
 
 def extra_images(out: Path, wanted: dict[str, pygame.Surface]) -> list[str]:
-    """`*.png` files in `out`/IMAGES_DIR that aren't among the `wanted` ones."""
+    """Generated-looking files (`IMAGE_PREFIX*.png`) in `out`/IMAGES_DIR that
+    aren't among the `wanted` ones; any other file there is not ours."""
     folder = out / IMAGES_DIR
-    return sorted(p.name for p in folder.glob("*.png") if p.name not in wanted)
+    found = folder.glob(f"{IMAGE_PREFIX}*.png")
+    return sorted(p.name for p in found if p.name not in wanted)
 
 
 def stale_images(out: Path, wanted: dict[str, pygame.Surface]) -> list[str]:
