@@ -152,7 +152,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#142](https://github.com/vectorviolet/chokepoint/pull/142)).
 - The plane-upgrade icon has the plane in the center with the upgrade arrow overlapping it, so it
   looks centered on its button
-  ([#141](https://github.com/vectorviolet/chokepoint/pull/147),
+  ([#147](https://github.com/vectorviolet/chokepoint/pull/147),
   [devlog](docs/devlog/2026-11-04-planes-icon.md)).
 
 ### Removed
