@@ -3,12 +3,13 @@ name: Wiki
 # Mirrors the generated stats reference (docs/stats/, built by
 # scripts/gen_stats.py) to the repo's GitHub wiki as Stats, Stats-Towers,
 # Stats-Enemies and Stats-Waves, with their pictures in the wiki's images/
-# folder (stats-*.png). Only those pages and pictures are written; every other
-# wiki page (Home, ...) and image is left alone. The pages link their pictures
+# folder (stats-*.png). It also publishes the hand-written docs/wiki/Home.md as
+# the wiki's Home page. Only those pages and pictures are written; every other
+# wiki page and image is left alone. The pages link their pictures
 # as images/<file>, which is also the path in docs/stats/, so no link needs
 # rewriting.
 #
-# Runs on pushes to main that change docs/stats/ or the generator (which
+# Runs on pushes to main that change docs/stats/, docs/wiki/ or the generator (which
 # alone decides the wiki page names, links and mirror note), and by hand (Run
 # workflow; only from main, so unreviewed numbers never reach the wiki).
 # Never on pull requests or merge-queue groups, so it is not and can't become
@@ -23,7 +24,7 @@ name: Wiki
 on:
   push:
     branches: [main]
-    paths: ["docs/stats/**", "scripts/gen_stats.py"]
+    paths: ["docs/stats/**", "docs/wiki/**", "scripts/gen_stats.py"]
   workflow_dispatch:
 
 permissions:
@@ -92,12 +93,13 @@ jobs:
           # No match must mean nothing to copy, not an error under pipefail.
           shopt -s nullglob
           cp "$RUNNER_TEMP"/wiki-pages/*.md .
+          cp "$GITHUB_WORKSPACE/docs/wiki/Home.md" Home.md
           pictures=("$RUNNER_TEMP"/wiki-pages/images/*.png)
           [ ${#pictures[@]} -eq 0 ] || cp "${pictures[@]}" images/
-          git add -- Stats*.md images/stats-*.png
+          git add -- Home.md Stats*.md images/stats-*.png
           if git diff --cached --quiet; then
             echo "Wiki pages unchanged; nothing to publish."
             exit 0
           fi
-          git commit -m "Update the stats reference from ${GITHUB_SHA::7}"
+          git commit -m "Update the wiki from ${GITHUB_SHA::7}"
           git push origin HEAD
