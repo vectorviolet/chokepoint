@@ -43,6 +43,7 @@ settings:
   reduce_flashing: "YANIP SÖNMEYİ AZALT"
   skip_intro: "GİRİŞİ ATLA"
   pause_on_focus_loss: "ODAK KAYBINDA DURAKLAT"
+  keep_selection_while_buying: "SATIN ALIRKEN SEÇİMİ KORU"
   language: "DİL"
   master_volume: "ANA SES"
   sfx_volume: "EFEKT SESİ"

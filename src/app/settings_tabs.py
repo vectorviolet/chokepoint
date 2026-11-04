@@ -23,7 +23,12 @@ DEFAULT_TAB = "display"
 # default under `gameplay:` in config/settings.yaml. They are loaded, saved,
 # reset and labeled from this one list (Game.toggles); a row's tab lists them
 # with toggle_rows().
-TOGGLE_SETTINGS = ("skip_intro", "pause_on_focus_loss", "reduce_flashing")
+TOGGLE_SETTINGS = (
+    "skip_intro",
+    "pause_on_focus_loss",
+    "keep_selection_while_buying",
+    "reduce_flashing",
+)
 
 
 @dataclass(frozen=True)
@@ -78,7 +83,9 @@ SETTINGS_TABS = (
         "game",
         shown=True,
         rows=(
-            *toggle_rows("skip_intro", "pause_on_focus_loss"),
+            *toggle_rows(
+                "skip_intro", "pause_on_focus_loss", "keep_selection_while_buying"
+            ),
             SettingsRow("language_back_button", "_cycle_language", -1),
             SettingsRow("language_next_button", "_cycle_language", 1),
         ),

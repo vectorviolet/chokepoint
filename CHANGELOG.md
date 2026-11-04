@@ -93,6 +93,10 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   player-visible text now comes from `config/lang/`
   ([#128](https://github.com/vectorviolet/chokepoint/pull/128),
   [devlog](docs/devlog/2026-11-04-language-setting.md)).
+- A GAME setting, Keep selection while buying (off by default): off, picking a tower to buy
+  deselects the selected tower and closes its info panel; on, the selection and its range ring stay
+  ([#136](https://github.com/vectorviolet/chokepoint/pull/136),
+  [devlog](docs/devlog/2026-11-04-keep-selection-while-buying.md)).
 
 ### Changed
 
@@ -233,6 +237,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - CodeRabbit no longer posts its docstring-coverage pre-merge warning
   ([#126](https://github.com/vectorviolet/chokepoint/pull/126)).
 - pygamine bumped to 0.29.0 (localization and `Display`); test fakes updated for `app.display` ([#127](https://github.com/vectorviolet/chokepoint/pull/127)).
+- The play-test save turns Skip intro on, so worktree play-tests open on the menu; the game's own
+  default stays off ([#136](https://github.com/vectorviolet/chokepoint/pull/136)).
 
 ## [0.3.1] – 2026-10-25
 

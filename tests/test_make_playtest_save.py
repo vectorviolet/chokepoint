@@ -46,6 +46,8 @@ def test_save_loads_in_a_real_game_as_described(script, tmp_path, tower_config):
     assert game.auto_pause is False
     settings = json.loads((out / "settings.json").read_text())
     assert settings["auto_pause_between_waves"] is False
+    assert settings["skip_intro"] is True  # play-tests open straight to the menu
+    assert game.toggles["skip_intro"] is True
 
     assert game._has_saved_game()
     game._load_game()  # what the play menu's Continue does
@@ -326,3 +328,9 @@ def test_leaves_the_default_saves_folder_alone(script, tmp_path):
     # the build's own Game() saved into a redirected temporary folder.
     assert not (tmp_path / "saves").exists()
     assert SaveStore("save").directory == tmp_path / "saves"
+
+
+def test_the_games_own_skip_intro_default_stays_off():
+    from util.config_loader import gameplay_settings, load_settings
+
+    assert gameplay_settings(load_settings())["skip_intro"] is False

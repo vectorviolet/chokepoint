@@ -391,7 +391,7 @@ panels:
         size: [700, 340]
       game_tab:
         position: [610, 500]
-        size: [700, 340]
+        size: [700, 420]
       controls_tab:
         position: [610, 500]
         size: [700, 300]
@@ -512,7 +512,7 @@ panels:
       skip_intro_back_button:
         extends: btn-sm
         parent: game_tab
-        position: [0, 60]
+        position: [0, 50]
       skip_intro_back_button_text:
         extends: button_text
         parent: skip_intro_back_button
@@ -525,12 +525,12 @@ panels:
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
         parent: game_tab
-        position: [CENTER, 52]
+        position: [CENTER, 42]
         text: "OFF"
       skip_intro_next_button:
         extends: btn-sm
         parent: game_tab
-        position: [636, 60]
+        position: [636, 50]
       skip_intro_next_button_text:
         extends: button_text
         parent: skip_intro_next_button
@@ -542,12 +542,12 @@ panels:
         font_size: 28
         color: white
         parent: game_tab
-        position: [CENTER, 110]
+        position: [CENTER, 100]
         text_key: "settings.pause_on_focus_loss"
       pause_on_focus_loss_back_button:
         extends: btn-sm
         parent: game_tab
-        position: [0, 170]
+        position: [0, 150]
       pause_on_focus_loss_back_button_text:
         extends: button_text
         parent: pause_on_focus_loss_back_button
@@ -560,15 +560,50 @@ panels:
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
         parent: game_tab
-        position: [CENTER, 162]
+        position: [CENTER, 142]
         text: "ON"
       pause_on_focus_loss_next_button:
         extends: btn-sm
         parent: game_tab
-        position: [636, 170]
+        position: [636, 150]
       pause_on_focus_loss_next_button_text:
         extends: button_text
         parent: pause_on_focus_loss_next_button
+        text: ">"
+
+      keep_selection_while_buying_label_text:
+        type: text
+        font: fira_sans
+        font_size: 28
+        color: white
+        parent: game_tab
+        position: [CENTER, 200]
+        text_key: "settings.keep_selection_while_buying"
+      keep_selection_while_buying_back_button:
+        extends: btn-sm
+        parent: game_tab
+        position: [0, 250]
+      keep_selection_while_buying_back_button_text:
+        extends: button_text
+        parent: keep_selection_while_buying_back_button
+        text: "<"
+      keep_selection_while_buying_value_text:
+        type: text
+        font: fira_sans
+        font_size: 37
+        color: white
+        background_color: [0, 0, 0, 100]
+        padding: [8, 24]
+        parent: game_tab
+        position: [CENTER, 242]
+        text: "OFF"
+      keep_selection_while_buying_next_button:
+        extends: btn-sm
+        parent: game_tab
+        position: [636, 250]
+      keep_selection_while_buying_next_button_text:
+        extends: button_text
+        parent: keep_selection_while_buying_next_button
         text: ">"
 
       language_label_text:
@@ -577,12 +612,12 @@ panels:
         font_size: 28
         color: white
         parent: game_tab
-        position: [CENTER, 220]
+        position: [CENTER, 300]
         text_key: "settings.language"
       language_back_button:
         extends: btn-sm
         parent: game_tab
-        position: [0, 280]
+        position: [0, 350]
       language_back_button_text:
         extends: button_text
         parent: language_back_button
@@ -595,12 +630,12 @@ panels:
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
         parent: game_tab
-        position: [CENTER, 272]
+        position: [CENTER, 342]
         text: "ENGLISH"  # set from the language's display name (Game)
       language_next_button:
         extends: btn-sm
         parent: game_tab
-        position: [636, 280]
+        position: [636, 350]
       language_next_button_text:
         extends: button_text
         parent: language_next_button
@@ -678,7 +713,7 @@ panels:
       back:
         extends: btn-sm
         size: [375, 100]
-        position: [93, 840]
+        position: [93, 930]
       back_text:
         extends: button_text
         parent: back
@@ -686,7 +721,7 @@ panels:
       reset:
         extends: btn-sm
         size: [375, 100]
-        position: [493, 840]
+        position: [493, 930]
       reset_text:
         extends: button_text
         parent: reset
