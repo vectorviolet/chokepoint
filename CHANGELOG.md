@@ -142,6 +142,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - Text uses Fira Sans instead of Comic Neue, which lacks the Turkish letters Ğ ğ İ
   ([#128](https://github.com/vectorviolet/chokepoint/pull/128),
   [devlog](docs/devlog/2026-11-04-language-setting.md)).
+- Bump pygamine to v0.30.0: InputMap (rebindable key actions) and TooltipManager (tooltips with key
+  prompts). No game changes yet; key bindings and tooltips come in their own PRs. The game reads and
+  sets `PanelManager.current_panel`, which is now a property in pygamine and behaves the same.
 
 ### Removed
 
