@@ -192,6 +192,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - The kill-reward coins and the money counter's pop are no longer drawn over the pause menu, victory
   or game over popups; the popups now cover everything from the run
   ([#93](https://github.com/vectorviolet/chokepoint/issues/93)).
+- An enemy's max HP is now asserted to be at least 1 where it is scaled, so its HP bar can never
+  divide by zero ([#102](https://github.com/vectorviolet/chokepoint/issues/102)).
 
 ### Development
 

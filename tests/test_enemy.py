@@ -1,7 +1,10 @@
+import dataclasses
+
 import pytest
 from pygame.math import Vector2
 
 from gameplay.combat.enemy import Enemy
+from util.config_loader import load_enemy_stats
 
 WAYPOINTS = [Vector2(0, 0), Vector2(100, 0), Vector2(100, 100)]
 
@@ -29,6 +32,23 @@ def test_stats_scale_25_percent_per_level(assets, level, expected_scale):
     # Damage and speed are flat stats, not scaled by wave level.
     assert scaled.damage == base.damage
     assert scaled.mov_speed == base.mov_speed
+
+
+def test_every_enemy_type_has_at_least_one_max_hp_at_level_one(assets):
+    # Level 1 has the smallest scale (1.0), so it is the smallest scaled HP.
+    for enemy_type in load_enemy_stats():
+        e = Enemy(1, enemy_type, level=1, waypoints=WAYPOINTS, assets=assets)
+        assert e.max_hp >= 1
+        assert e.hp == e.max_hp
+
+
+def test_an_enemy_whose_scaled_hp_rounds_to_zero_is_refused(assets, monkeypatch):
+    stats = load_enemy_stats()
+    stats[1] = dataclasses.replace(stats[1], hp=0)
+    monkeypatch.setattr("gameplay.combat.enemy._BASE_STATS", stats)
+
+    with pytest.raises(AssertionError):
+        Enemy(1, 1, level=1, waypoints=WAYPOINTS, assets=assets)
 
 
 def test_move_advances_toward_next_waypoint_without_overshooting_first(assets):

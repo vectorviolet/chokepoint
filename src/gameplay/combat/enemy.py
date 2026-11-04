@@ -49,6 +49,9 @@ class Enemy(RotatableObject):
         stats = _BASE_STATS[enemy_type]
         scale = 1.0 + (level - 1) * 0.25
         self.max_hp = int(stats.hp * scale)
+        # The HP bars divide by it. The scale is at least 1 from wave 1 on,
+        # so this only fails on a config with an enemy HP below 1.
+        assert self.max_hp >= 1, f"enemy type {enemy_type} has max_hp {self.max_hp}"
         self.hp = self.max_hp
         self.kill_money = max(1, int(stats.kill_money * scale))
         self.damage = stats.damage
