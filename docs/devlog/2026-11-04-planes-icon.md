@@ -49,7 +49,7 @@ lower left and the arrow in the upper right. On 2026-11-04 the owner decided to 
 the middle of the image and let the arrow overlap it
 ([#141](https://github.com/vectorviolet/chokepoint/issues/141)). Claude recomposed it from the same
 two Kenney sprites at the same display size (48 px in the 60 px button): the plane (92 px wide,
-dark outline) is centered on the 128 px canvas, and a smaller yellow arrow (52 px wide) sits at its
+dark outline) is centered on the 128 px canvas, and a smaller yellow arrow (58 px wide) sits at its
 upper right over the right wing, drawn on top.
 
 <table>
@@ -59,7 +59,7 @@ upper right over the right wing, drawn on top.
 </tr>
 </table>
 
-The arrow had to shrink (52 px instead of 64 px: at 64 px it hid the plane's nose), so it
+The arrow had to shrink (58 px instead of 64 px: at 64 px it hid the plane's nose), so it
 reads slightly smaller than before. The icon is still shown at 48 px; going to 32 px is a separate
 1.1 card.
 
