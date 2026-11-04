@@ -193,7 +193,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   or game over popups; the popups now cover everything from the run
   ([#93](https://github.com/vectorviolet/chokepoint/issues/93)).
 - A config enemy or tower HP below 1 or not a whole number is now rejected at startup, so an HP
-  bar can never divide by zero ([#102](https://github.com/vectorviolet/chokepoint/pull/146)).
+  bar can never divide by zero ([#146](https://github.com/vectorviolet/chokepoint/pull/146)).
 
 ### Development
 
