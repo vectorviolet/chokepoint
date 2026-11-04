@@ -324,7 +324,7 @@ panels:
       back:
         extends: btn-sm
         size: [375, 100]
-        position: [93, 930]
+        position: [93, 840]
       back_text:
         extends: button_text
         parent: back

@@ -741,3 +741,28 @@ def test_a_plane_preview_is_never_tinted(tower_config, assets, monkeypatch):
     image = _previewed_image(controller, monkeypatch, 5, 5)
 
     assert image is controller._tower_images[PLANE_TYPE - 1]
+
+
+def test_a_placement_click_on_the_kept_towers_sell_or_upgrade_button_does_neither(
+    tower_config, assets
+):
+    # With "keep selection while buying" on, the selected tower is still
+    # selected in placement mode; a click on a tile under its buttons places
+    # the new tower and must not sell or upgrade the selected one.
+    controller, _, gs = make_controller(tower_config, assets)
+    tower = make_tower(tower_config, assets, row=10, col=10)
+    controller._towers.append(tower)
+    gs.selected_tower = tower
+    start = gs.money
+    camera = controller._camera
+    for rect in (tower._sell_hit_rect(camera), tower._upgrade_hit_rect(camera)):
+        controller.buying_tower_type = GROUND_TYPE
+        pos = rect.center
+        controller.update_cursor(pos)
+        controller.handle_event(buy_button_event(), mouse_pos=pos)
+
+        assert tower in controller._towers
+        assert tower.level == 1
+        assert gs.selected_tower is tower
+    price = tower_config.prices[GROUND_TYPE - 1][0]
+    assert start - gs.money == price * (len(controller._towers) - 1)

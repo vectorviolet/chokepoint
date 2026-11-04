@@ -3,22 +3,17 @@ directory): with the GAME tab setting off, picking a tower to buy (button
 click or 1-4) deselects the selected tower and closes its info panel; with it
 on, the selection and its range ring stay."""
 
-from functools import partial
-
 import pygame
 import pytest
 
-import app.game
 from app.game import Game
 from gameplay.towers import TowerFactory
-from pygamine import SaveStore
 
 KEY = "keep_selection_while_buying"
 
 
 @pytest.fixture
-def make_game(monkeypatch, tmp_path, fake_ticks):
-    monkeypatch.setattr(app.game, "SaveStore", partial(SaveStore, directory=tmp_path))
+def make_game(monkeypatch, fake_ticks):
     monkeypatch.setattr(pygame.mouse, "get_pos", lambda: (400, 300))
 
     def make() -> Game:
@@ -57,7 +52,6 @@ def press(game, k):
 
 def test_it_is_off_by_default(game):
     assert game.toggles[KEY] is False
-    assert game.tower_controller.keep_selection_while_buying is False
 
 
 @pytest.mark.parametrize("how", ["click", "key"])
@@ -111,7 +105,6 @@ def test_the_setting_is_saved_and_loaded(make_game):
     second = make_game()
 
     assert second.toggles[KEY] is True
-    assert second.tower_controller.keep_selection_while_buying is True
 
 
 def test_reset_to_default_turns_it_off(game):
@@ -120,7 +113,6 @@ def test_reset_to_default_turns_it_off(game):
     game._reset_settings()
 
     assert game.toggles[KEY] is False
-    assert game.tower_controller.keep_selection_while_buying is False
     assert game.settings_store.load()[KEY] is False
 
 
@@ -136,4 +128,4 @@ def test_the_game_tab_row_flips_it(game):
         game.handle_event(pygame.event.Event(kind, button=1, pos=button.rect.center))
 
     assert settings[f"{KEY}_value_text"].text == "ON"
-    assert game.tower_controller.keep_selection_while_buying is True
+    assert game.toggles[KEY] is True

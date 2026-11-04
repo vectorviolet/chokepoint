@@ -330,7 +330,7 @@ def test_leaves_the_default_saves_folder_alone(script, tmp_path):
     assert SaveStore("save").directory == tmp_path / "saves"
 
 
-def test_the_games_own_skip_intro_default_stays_off(tmp_path):
-    from app.game import Game
+def test_the_games_own_skip_intro_default_stays_off():
+    from util.config_loader import gameplay_settings, load_settings
 
-    assert Game().toggles["skip_intro"] is False
+    assert gameplay_settings(load_settings())["skip_intro"] is False

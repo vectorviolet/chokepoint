@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import pygame
 from pygamine import AssetManager
 from pygamine import PanelManager
@@ -58,6 +60,7 @@ class TowerPlacementController:
         enemies: list | None = None,
         on_tower_sold=None,
         on_denied=None,
+        keep_selection_while_buying: Callable[[], bool] = lambda: False,
     ) -> None:
         """feedback: told when a tower is placed or sold (a sound and an
         effect on its tile; see ui.place_sell_feedback), or None.
@@ -70,9 +73,10 @@ class TowerPlacementController:
         keep_placing: the "keep placing" toggle -- while on, placement mode
         stays on after a placement as long as another tower of the same type
         is affordable.
-        keep_selection_while_buying: the GAME tab setting -- while off, a
-        successful pick (buy button or number key) deselects the selected
-        tower and so closes its info panel; while on, the selection stays."""
+        keep_selection_while_buying(): the GAME tab setting, read at each
+        pick -- while off, a successful pick (buy button or number key)
+        deselects the selected tower and so closes its info panel; while on,
+        the selection stays."""
         self._towers = towers
         self._tower_config = tower_config
         self._assets = assets
@@ -87,7 +91,7 @@ class TowerPlacementController:
         self._on_tower_sold = on_tower_sold
         self._on_denied = on_denied
         self.keep_placing = False
-        self.keep_selection_while_buying = False
+        self._keep_selection_while_buying = keep_selection_while_buying
         self._enemies = enemies if enemies is not None else []
 
         self.buying_tower_type: int = 0
@@ -169,7 +173,9 @@ class TowerPlacementController:
             # A click on the selected tower's own upgrade/sell button keeps
             # it selected (and its info panel open) rather than counting as
             # a click elsewhere.
-            if not self._handle_tower_actions(mouse_pos):
+            # While placing, the click places a tower: it can't sell or
+            # upgrade the (kept) selected tower.
+            if self.is_construct_mode() or not self._handle_tower_actions(mouse_pos):
                 self._handle_selection(mouse_pos)
             self._handle_tower_purchase(mouse_pos)
         if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
@@ -204,7 +210,9 @@ class TowerPlacementController:
         """A buy button or number key: picks that tower for placement, or
         drops it if it's the one being placed. A tower the player can't
         afford can't be picked: the current placement (if any) stays and
-        on_denied is told instead."""
+        on_denied is told instead. A successful pick also deselects the
+        selected tower (closing its info panel) unless the keep-selection
+        setting is on."""
         if self.buying_tower_type == tower_type:
             self.buying_tower_type = 0
         elif not self._can_afford(tower_type):
@@ -212,7 +220,7 @@ class TowerPlacementController:
                 self._on_denied(tower_type)
         else:
             self.buying_tower_type = tower_type
-            if not self.keep_selection_while_buying:
+            if not self._keep_selection_while_buying():
                 self._game_state.selected_tower = None
 
     def _handle_tower_actions(self, mouse_pos: tuple) -> bool:
