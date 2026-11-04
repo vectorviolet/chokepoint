@@ -160,8 +160,8 @@ class BattleSimulation:
 
     def tower_destroyed(self, tower) -> None:
         """A tower's HP just ran out (it's removed on the next tick): show
-        its explosion and rubble now, so they show even if it's sold
-        first. Cosmetic only."""
+        its explosion and rubble now (a destroyed tower can't be sold or
+        upgraded before then). Cosmetic only."""
         if self.death_feedback is not None:
             self.death_feedback.tower_destroyed(tower.position)
 

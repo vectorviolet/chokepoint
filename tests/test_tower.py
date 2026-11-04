@@ -172,6 +172,47 @@ def test_a_destroyed_tower_cannot_be_sold_for_a_refund(tower_config, assets):
     assert tower in towers
 
 
+def test_a_destroyed_tower_cannot_be_upgraded(tower_config, assets):
+    tower = make_tower(tower_config, assets, tower_type=2)
+    gs = GameState(start_money=1_000_000, start_lives=10)
+    tower.hp = 0
+
+    tower.upgrade(_click_at(UPGRADE_BTN_OFFSET, tower.position), gs, IdentityCamera())
+
+    assert tower.level == 1
+    assert tower.hp == 0
+    assert gs.money == 1_000_000
+
+
+def test_a_destroyed_tower_has_no_action_buttons_to_hit_or_draw(tower_config, assets):
+    import pygame
+    from pygamine import Camera
+
+    camera = Camera(pygame.Rect(0, 0, 800, 600), 3008, 2176)
+    gs = GameState(start_money=1_000_000, start_lives=10)
+    tower = make_tower(tower_config, assets, tower_type=2, row=4, col=4)
+    standing = pygame.Surface((800, 600))
+    standing.fill((1, 2, 3))
+    tower.draw_selected_ui(standing, gs, camera)
+    sell = tower._sell_hit_rect(camera)
+    assert tower.hits_action_button(sell.center, camera)
+    assert any(
+        standing.get_at(p)[:3] != (1, 2, 3)
+        for p in [(x, sell.centery) for x in range(sell.left, sell.right)]
+    )
+
+    tower.hp = 0
+    destroyed = pygame.Surface((800, 600))
+    destroyed.fill((1, 2, 3))
+    tower.draw_selected_ui(destroyed, gs, camera)
+
+    assert not tower.hits_action_button(sell.center, camera)
+    assert not tower.hits_action_button(tower._upgrade_hit_rect(camera).center, camera)
+    blank = pygame.Surface((800, 600))
+    blank.fill((1, 2, 3))
+    assert pygame.image.tobytes(destroyed, "RGB") == pygame.image.tobytes(blank, "RGB")
+
+
 # ── sell price ───────────────────────────────────────────────────────────────
 
 

@@ -493,7 +493,9 @@ def test_a_tower_destroyed_this_frame_cannot_be_sold_but_still_explodes(game):
     game.game_state.selected_tower = tower
     money = game.game_state.money
     controller = game.tower_controller
-    assert controller._handle_tower_actions(tower._sell_hit_rect(game.camera).center)
+    assert not controller._handle_tower_actions(
+        tower._sell_hit_rect(game.camera).center
+    )
 
     assert tower in game.towers
     assert game.game_state.money == money

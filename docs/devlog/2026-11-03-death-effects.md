@@ -85,7 +85,8 @@ between their bomb impacts and death effects.
   (`big_death_blast = True` on `Tank`).
 - A tower is reported destroyed where its HP crosses 0: `BaseTower.decrease_hp` calls
   `ctx.tower_destroyed(tower)`, once, as `Enemy.decrease_hp` calls `ctx.enemy_killed`. So the blast
-  and rubble show even if the tower is sold before the tick that removes it. A plane leaving the
+  and rubble show right then; a destroyed tower can't be sold or upgraded before the tick that
+  removes it. A plane leaving the
   map and a tower sold with HP left show nothing.
 - An effect keeps only a position and a time, never the dead entity: it outlives it and never holds
   up its removal or payout. A test runs the same seeded menu-demo battle (with a tank and frail

@@ -192,8 +192,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - The kill-reward coins and the money counter's pop are no longer drawn over the pause menu, victory
   or game over popups; the popups now cover everything from the run
   ([#93](https://github.com/vectorviolet/chokepoint/issues/93)).
-- A tower destroyed by tanks can no longer be sold for a refund in the frame before it is removed
-  ([#110](https://github.com/vectorviolet/chokepoint/issues/110)).
+- A tower destroyed by tanks can no longer be sold or upgraded in the frame before it is removed
+  ([#110](https://github.com/vectorviolet/chokepoint/pull/145)).
 
 ### Development
 
