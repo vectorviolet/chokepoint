@@ -1,10 +1,16 @@
-# Chokepoint
+<h1 align="center">
+  <img src="assets/images/branding/logo.png" alt="Chokepoint" width="100%">
+</h1>
+
+<div align="center">
 
 [![CI](https://github.com/vectorviolet/chokepoint/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/vectorviolet/chokepoint/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/vectorviolet/chokepoint)](https://github.com/vectorviolet/chokepoint/releases/latest)
 [![License: MIT](https://img.shields.io/github/license/vectorviolet/chokepoint)](LICENSE)
 [![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/vectorviolet/chokepoint/badges/coverage.json)](https://github.com/vectorviolet/chokepoint/actions/workflows/ci.yml)
 [![Python 3.12+ | pygame-ce](https://img.shields.io/badge/python-3.12%2B%20%7C%20pygame--ce-3776AB?logo=python&logoColor=white)](https://github.com/pygame-community/pygame-ce)
+
+</div>
 
 Chokepoint is a 2D tower defense game built with [pygame-ce](https://github.com/pygame-community/pygame-ce). Defend the path through 25 rounds of escalating enemies — then keep going in endless mode — by buying, placing, and upgrading towers along a fixed Tiled-authored map.
 
