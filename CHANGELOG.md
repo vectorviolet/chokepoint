@@ -14,6 +14,8 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ## [Unreleased]
 
+## [0.4.0] – 2026-11-04
+
 Lines link their PR, or the commit for changes pushed straight to `main` before PRs were required.
 
 ### Added
@@ -165,6 +167,9 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 
 ### Fixed
 
+- With the HUD hidden (Tab), no sliver of the Level counter or any other HUD group stays on screen
+  when its text grows, for example from "Level 1" to "Level 12"
+  ([#46](https://github.com/vectorviolet/chokepoint/pull/46)).
 - No enemies spawned after continuing a saved run between waves
   ([#26](https://github.com/vectorviolet/chokepoint/pull/26)).
 - An explicit 0 in the config (spawn interval, tank stats) was replaced by the default
