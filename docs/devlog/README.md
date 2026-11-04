@@ -45,7 +45,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-11-03 | [Watch the balance bots play](2026-11-03-watch-the-bots-play.md) | Tooling, balance | #100, PR #103 |
 | 2026-11-04 | [Setting: keep the selected tower while buying](2026-11-04-keep-selection-while-buying.md) | UI, settings | #132, #133, PR #136 |
 | 2026-11-04 | [Language setting: English and Türkçe, and the move to Fira Sans](2026-11-04-language-setting.md) | UI, localization | #120, PR #128 |
-| 2026-11-04 | [UPG PLANES button as an icon, with key U](2026-11-04-planes-icon.md) | UI, controls | #131, #141, PR #137 |
+| 2026-11-04 | [UPG PLANES button as an icon, with key U](2026-11-04-planes-icon.md) | UI, controls | #131, #141, PR #137, PR #147 |
 | 2026-11-04 | [Settings toggles: skip intro, pause on focus loss, reduce flashing](2026-11-04-settings-toggles.md) | UI, accessibility | #115, #116, #117, PR #125 |
 <!-- index:end -->
 

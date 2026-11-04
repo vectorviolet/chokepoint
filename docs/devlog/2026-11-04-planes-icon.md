@@ -1,5 +1,5 @@
 # UPG PLANES button as an icon, with key U
-<!-- index | refs: #131, #141, PR #137 -->
+<!-- index | refs: #131, #141, PR #137, PR #147 -->
 
 **Date:** 2026-11-04 · **Area:** UI, controls · **Issue:** [#131](https://github.com/vectorviolet/chokepoint/issues/131)
 
