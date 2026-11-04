@@ -1,3 +1,8 @@
+# Labels the game always sets from code (the ON/OFF and window mode values, the pause
+# menu's music button, the tower info labels, the plane upgrade, the language value)
+# carry plain placeholder text here, not a text_key: Game and ui/*.py fill them from
+# config/lang on every change. Everything else uses text_key (pygamine keeps those in
+# step with the language itself).
 groups:
   menu_chrome:
     logo:
@@ -451,7 +456,7 @@ panels:
         padding: [8, 24]
         parent: display_tab
         position: [CENTER, 162]
-        text_key: "settings.window_mode_fullscreen"
+        text: "FULLSCREEN"
       window_mode_next_button:
         extends: btn-sm
         parent: display_tab
@@ -486,7 +491,7 @@ panels:
         padding: [8, 24]
         parent: display_tab
         position: [CENTER, 272]
-        text_key: "settings.off"
+        text: "OFF"
       reduce_flashing_next_button:
         extends: btn-sm
         parent: display_tab
@@ -521,7 +526,7 @@ panels:
         padding: [8, 24]
         parent: game_tab
         position: [CENTER, 52]
-        text_key: "settings.off"
+        text: "OFF"
       skip_intro_next_button:
         extends: btn-sm
         parent: game_tab
@@ -556,7 +561,7 @@ panels:
         padding: [8, 24]
         parent: game_tab
         position: [CENTER, 162]
-        text_key: "settings.on"
+        text: "ON"
       pause_on_focus_loss_next_button:
         extends: btn-sm
         parent: game_tab
@@ -839,13 +844,13 @@ panels:
         extends: tower_info_title
         parent: tower_info_bg
         position: [16, 10]
-      tower_info_kills_label:     { extends: tower_info_label, position: [16, 58], text_key: "tower_info.kills" }
-      tower_info_earned_label:    { extends: tower_info_label, position: [16, 94], text_key: "tower_info.earned" }
-      tower_info_range_label:     { extends: tower_info_label, position: [16, 130], text_key: "tower_info.range" }
-      tower_info_min_range_label: { extends: tower_info_label, position: [16, 166], text_key: "tower_info.min_range" }
-      tower_info_damage_label:    { extends: tower_info_label, position: [16, 202], text_key: "tower_info.damage" }
-      tower_info_fire_rate_label: { extends: tower_info_label, position: [16, 238], text_key: "tower_info.fire_rate" }
-      tower_info_hp_label:        { extends: tower_info_label, position: [16, 274], text_key: "tower_info.hp" }
+      tower_info_kills_label:     { extends: tower_info_label, position: [16, 58], text: "Kills" }
+      tower_info_earned_label:    { extends: tower_info_label, position: [16, 94], text: "Earned" }
+      tower_info_range_label:     { extends: tower_info_label, position: [16, 130], text: "Range" }
+      tower_info_min_range_label: { extends: tower_info_label, position: [16, 166], text: "Blind spot" }
+      tower_info_damage_label:    { extends: tower_info_label, position: [16, 202], text: "Damage" }
+      tower_info_fire_rate_label: { extends: tower_info_label, position: [16, 238], text: "Fire rate" }
+      tower_info_hp_label:        { extends: tower_info_label, position: [16, 274], text: "HP" }
       tower_info_kills_value:     { extends: tower_info_value, position: [126, 56] }
       tower_info_earned_value:    { extends: tower_info_value, position: [126, 92] }
       tower_info_range_value:     { extends: tower_info_value, position: [126, 128] }
@@ -918,7 +923,7 @@ panels:
       pause_music_text:
         extends: button_text
         parent: pause_music
-        text_key: "pause.music_on"   # Game sets "MUSIC: OFF" while the music is off
+        text: "MUSIC: ON"   # Game sets "MUSIC: OFF" while the music is off
       pause_main_menu_text:
         extends: button_text
         parent: pause_main_menu

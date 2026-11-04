@@ -8,6 +8,8 @@ from util.paths import resource_path
 # Anchored to the resource root (not this file) so it resolves inside a
 # PyInstaller bundle, where module files are relocated but bundled data is not.
 _CONFIG_DIR = resource_path("config")
+# One <code>.yaml per language (pygamine localization).
+LANG_DIR = _CONFIG_DIR / "lang"
 
 
 @dataclass
@@ -82,14 +84,20 @@ class TowerTooltip:
     weakness: str
 
 
-TOWER_TYPES = (1, 2, 3, 4)
+def tower_types() -> list[int]:
+    """The tower types of config/towers.yaml, in order (the buy buttons' order)."""
+    with open(_CONFIG_DIR / "towers.yaml") as f:
+        return sorted(t["type"] for t in yaml.safe_load(f)["towers"])
 
 
-def parse_tower_tooltips(data: dict) -> dict[int, TowerTooltip]:
-    """Tooltips keyed by tower type, from a parsed language file. Raises
-    ValueError naming the tower type if a name or line is missing or blank."""
+def parse_tower_tooltips(
+    data: dict, types: list[int] | None = None
+) -> dict[int, TowerTooltip]:
+    """Tooltips keyed by tower type, from a parsed language file, for each of
+    `types` (default: every tower in towers.yaml). Raises ValueError naming
+    the tower type if a name or line is missing or blank."""
     tooltips = {}
-    for tower_type in TOWER_TYPES:
+    for tower_type in tower_types() if types is None else types:
         tower = data.get(f"tower_{tower_type}") or {}
         for key in ("name", "strength", "weakness"):
             text = tower.get(key)
@@ -104,7 +112,7 @@ def parse_tower_tooltips(data: dict) -> dict[int, TowerTooltip]:
 
 
 def load_tower_tooltips(language: str = "en") -> dict[int, TowerTooltip]:
-    with open(_CONFIG_DIR / "lang" / f"{language}.yaml", encoding="utf-8") as f:
+    with open(LANG_DIR / f"{language}.yaml", encoding="utf-8") as f:
         return parse_tower_tooltips(yaml.safe_load(f))
 
 

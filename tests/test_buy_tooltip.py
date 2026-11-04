@@ -16,9 +16,10 @@ from util.config_loader import (
     TowerTooltip,
     load_tower_tooltips,
     parse_tower_tooltips,
+    tower_types,
 )
 
-TOWER_TYPES = (1, 2, 3, 4)
+TOWER_TYPES = tuple(tower_types())
 
 
 # ── config ───────────────────────────────────────────────────────────────────
@@ -51,6 +52,13 @@ def _lang(**tower):
 def test_a_missing_or_blank_text_is_rejected(tower, missing):
     with pytest.raises(ValueError, match=f"tower_1 .*{missing}"):
         parse_tower_tooltips(_lang(**tower))
+
+
+def test_a_tower_of_towers_yaml_missing_from_a_language_file_is_rejected():
+    data = _lang()
+    del data[f"tower_{TOWER_TYPES[-1]}"]
+    with pytest.raises(ValueError, match=f"tower_{TOWER_TYPES[-1]} "):
+        parse_tower_tooltips(data)
 
 
 def test_texts_are_trimmed():

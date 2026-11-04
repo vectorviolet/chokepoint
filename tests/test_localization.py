@@ -15,10 +15,10 @@ from app.game import Game
 from pygamine import SaveStore
 from pygamine.util.localization import Localization, localization, missing_glyphs, tr
 from ui.tower_info import ARROW
+from util.config_loader import LANG_DIR, tower_types
 from util.text import money, money_short, reward
 
 ROOT = Path(__file__).resolve().parent.parent
-LANG_DIR = ROOT / "config" / "lang"
 # Every font a language's strings can be drawn in (config/assets.yaml).
 FONT_KEYS = ("anton", "fira_sans", "fira_sans_bold")
 
@@ -43,7 +43,7 @@ def test_the_coverage_check_reports_a_missing_key_and_a_changed_placeholder(tmp_
 
 
 def test_there_is_an_english_and_a_turkish_file():
-    assert localization.languages() == {"en": "English", "tr": "Türkçe"}
+    assert localization.languages() == {"en": "ENGLISH", "tr": "TÜRKÇE"}
 
 
 @pytest.mark.parametrize("font_key", FONT_KEYS)
@@ -83,6 +83,7 @@ def test_every_english_key_is_used_or_built_from_a_known_pattern():
         r"settings\.window_mode_(fullscreen|borderless|windowed)",
         r"tower_[1-4]\.(name|strength|weakness)",
         r"pause\.music_(on|off)",
+        r"tower_info\.(kills|earned|range|min_range|damage|fire_rate|hp|plane_\w+)",
         r"settings\.(on|off)",
     )
     used = _keys_in_use()
@@ -97,6 +98,22 @@ def test_every_english_key_is_used_or_built_from_a_known_pattern():
 def test_the_languages_have_a_display_name():
     for file in LANG_DIR.glob("*.yaml"):
         assert yaml.safe_load(file.read_text(encoding="utf-8"))["_meta"]["name"]
+
+
+def test_every_tower_in_towers_yaml_has_its_texts_in_every_language():
+    """The buy tooltip names a tower's keys from its type, so a tower added to
+    towers.yaml without its `tower_<type>` texts must fail here, not in play."""
+    for code in localization.languages():
+        table = localization.table(code)
+        for tower_type in tower_types():
+            for part in ("name", "strength", "weakness"):
+                assert f"tower_{tower_type}.{part}" in table, (code, tower_type, part)
+
+
+def test_there_is_a_buy_button_for_every_tower():
+    from ui.hud_slide import BUY_BUTTONS
+
+    assert len(BUY_BUTTONS) == len(tower_types())
 
 
 def test_the_money_formats():
@@ -222,6 +239,17 @@ def test_a_saved_language_that_is_not_available_loads_as_english(make_game):
     first = make_game()
     first.settings_store.save({"language": "klingon"})
     localization.set_language("tr")
+
+    second = make_game()
+
+    assert localization.language == "en"
+    assert text(second, "main_menu", "play_text") == "PLAY"
+
+
+@pytest.mark.parametrize("bad", [[], {}, 7, None, ["tr"]])
+def test_a_saved_language_of_the_wrong_type_loads_as_english(make_game, bad):
+    first = make_game()
+    first.settings_store.save({"language": bad})
 
     second = make_game()
 

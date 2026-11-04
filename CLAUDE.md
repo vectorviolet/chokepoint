@@ -182,8 +182,9 @@ with `text_params`, updated with `set_params()`. To add a language, drop `<code>
 `config/lang` with the same keys and `{placeholders}`; the Language row finds it. To add a string,
 add its key to **both** files: `tests/test_localization.py` fails on a missing key or placeholder, a
 key nothing uses, and a glyph the fonts (Anton, Fira Sans Regular and Bold) can't draw;
-`tests/test_localization_fit.py` measures every text in both languages. Turkish captions are
-written in capitals by hand (İ and I, never a case function). codespell skips `config/lang/tr.yaml`.
+`tests/test_localization_fit.py` measures every text in both languages. Turkish captions and every language's `_meta.name`
+(shown on the Language row) are written in capitals by hand (İ and I, never a case function). Every tower in
+`towers.yaml` needs its `tower_<type>.name/strength/weakness` keys (tested). The folder is `config_loader.LANG_DIR`. codespell skips `config/lang/tr.yaml`.
 
 ### Settings tabs
 

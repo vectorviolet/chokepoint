@@ -17,7 +17,7 @@ import pytest
 
 from pygamine import AssetManager, GameAudio, SaveStore
 from pygamine.util.localization import DEFAULT_LANGUAGE, localization
-from util.config_loader import load_tower_config
+from util.config_loader import LANG_DIR, load_tower_config
 
 pygame.init()
 # RotatableObject/StateObject load images via convert_alpha(), which raises
@@ -27,7 +27,7 @@ pygame.init()
 pygame.display.set_mode((1, 1))
 
 
-localization.load("config/lang")  # for tests that format text without a Game()
+localization.load(LANG_DIR)  # for tests that format text without a Game()
 
 
 @pytest.fixture(autouse=True)

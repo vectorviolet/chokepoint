@@ -29,6 +29,7 @@ from pygamine import (
     make_scrolling_panel_factory,
 )
 from util.config_loader import (
+    LANG_DIR,
     gameplay_settings,
     load_settings,
     load_tower_config,
@@ -66,8 +67,6 @@ from gameplay.towers import BaseTower
 from gameplay.combat.wave_manager import WaveManager
 from gameplay.battle import BattleSimulation
 from gameplay.menu_demo import MenuDemo
-
-LANG_DIR = "config/lang"  # one <code>.yaml per language (pygamine localization)
 
 # Toggled together via _set_victory_popup_active() -- the panel/GuiObject
 # system has no group-visibility concept, so each object's .active is set
@@ -141,7 +140,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         saved_language = saved_settings.get("language")
         localization.set_language(
             saved_language
-            if saved_language in localization.languages()
+            if isinstance(saved_language, str)
+            and saved_language in localization.languages()
             else DEFAULT_LANGUAGE
         )
         # Missing (e.g. master in old settings files) or broken values load
@@ -482,9 +482,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     def _refresh_language_label(self) -> None:
         """The language row shows the current language's own name (its
-        `_meta.name`), in capitals like the other values."""
+        `_meta.name`, written in capitals in the language file)."""
         name = localization.languages()[localization.language]
-        self.panel_manager["settings"]["language_value_text"].set_text(name.upper())
+        self.panel_manager["settings"]["language_value_text"].set_text(name)
 
     def set_language(self, code: str) -> None:
         """Switches the language at once: every key-driven text re-renders
@@ -501,6 +501,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._refresh_toggle_labels()
         self._refresh_language_label()
         self._refresh_music_toggles()
+        self._refresh_game_language_texts()
+
+    def _refresh_game_language_texts(self) -> None:
+        """The in-run texts built in code: HUD, tower panel, open tooltip."""
         self.hud.refresh_language()
         self.tower_info.show(self.tower_info.tower)
         self.buy_tooltip.refresh_language()
@@ -567,9 +571,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.keep_placing = self._default_keep_placing
         for key, default in self._default_toggles.items():
             self.set_toggle(key, default)
-        self.set_language(DEFAULT_LANGUAGE)
+        localization.set_language(DEFAULT_LANGUAGE)
 
-        self._bind_settings_ui()  # sliders, labels and window labels
+        self._bind_settings_ui()  # sliders, labels (language too) and window labels
+        self._refresh_game_language_texts()
         self._save_settings()
 
     # ── BattleSimulation hooks ───────────────────────────────────────────────

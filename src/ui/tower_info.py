@@ -17,7 +17,7 @@ like the in-world HP bars).
 
 import pygame
 from pygamine import PanelManager, clamp01
-from pygamine.util.localization import tr
+from pygamine.util.localization import localization, tr
 
 from ui import hp_bar
 from util.constants import TICKS_PER_SECOND, TILE_SIZE
@@ -161,6 +161,7 @@ class TowerInfoPanel:
 
     def __init__(self, panel_manager: PanelManager) -> None:
         self.tower = None
+        self._label_set: tuple[str, bool] | None = None
         self.rebind(panel_manager)
 
     def rebind(self, panel_manager: PanelManager) -> None:
@@ -171,6 +172,7 @@ class TowerInfoPanel:
         self._values = {key: panel[f"tower_info_{key}_value"] for key in ROWS}
         self._labels = {key: panel[f"tower_info_{key}_label"] for key in ROWS}
         self._hp_bar = panel["tower_info_hp_bar"]
+        self._label_set = None  # new label objects
         self.show(self.tower)
 
     @property
@@ -190,8 +192,11 @@ class TowerInfoPanel:
         self._title.set_text(texts["title"])
         for key, obj in self._values.items():
             obj.set_text(texts[key])
-        for key, text in labels(tower).items():
-            self._labels[key].set_text(text)
+        label_set = (localization.language, getattr(tower, "is_flying", False))
+        if label_set != self._label_set:  # not every frame: they only change then
+            self._label_set = label_set
+            for key, text in labels(tower).items():
+                self._labels[key].set_text(text)
 
     def draw_hp_fill(self, surface: pygame.Surface) -> None:
         """The HP bar's fill, over its background object (drawn with the

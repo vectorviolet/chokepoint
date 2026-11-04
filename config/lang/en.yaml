@@ -5,7 +5,7 @@
 # Logs, debug overlays and the balance tools stay English and are not here.
 # Quote every value (a bare ON or 10 would not be a string).
 _meta:
-  name: "English"
+  name: "ENGLISH"  # shown on the Language row: written in capitals by hand
 
 common:
   back: "BACK"

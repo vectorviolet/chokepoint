@@ -2,7 +2,7 @@
 # {placeholders} as en.yaml. UI captions are written in capitals by hand
 # (Turkish capitals: i -> İ, ı -> I), never with a case function.
 _meta:
-  name: "Türkçe"
+  name: "TÜRKÇE"
 
 common:
   back: "GERİ"
