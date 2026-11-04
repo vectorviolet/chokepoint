@@ -46,6 +46,7 @@ settings:
   reduce_flashing: "REDUCE FLASHING"
   skip_intro: "SKIP INTRO"
   pause_on_focus_loss: "PAUSE ON FOCUS LOSS"
+  keep_selection_while_buying: "KEEP SELECTION WHILE BUYING"
   language: "LANGUAGE"
   master_volume: "MASTER VOLUME"
   sfx_volume: "SFX VOLUME"

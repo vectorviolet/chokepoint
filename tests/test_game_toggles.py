@@ -57,6 +57,7 @@ def focus(kind):
     [
         ("game", "skip_intro", "OFF"),
         ("game", "pause_on_focus_loss", "ON"),
+        ("game", "keep_selection_while_buying", "OFF"),
         ("display", "reduce_flashing", "OFF"),
     ],
 )

@@ -10,6 +10,7 @@ gameplay:
   keep_placing: false  # the HUD's keep-placing toggle (Shift); saved in settings
   skip_intro: false  # Settings > GAME: open straight to the main menu; saved in settings
   pause_on_focus_loss: true  # Settings > GAME: a battle pauses when the window loses focus; saved in settings
+  keep_selection_while_buying: false  # Settings > GAME: picking a tower to buy keeps the selected tower and its range ring; saved in settings
   reduce_flashing: false  # Settings > DISPLAY: no white hit flash, dimmer explosions; saved in settings
 
 camera:

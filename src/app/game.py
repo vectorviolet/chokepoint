@@ -276,6 +276,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             enemies=self.enemies,
             on_tower_sold=self._tower_sold,
             on_denied=self._deny_purchase,
+            keep_selection_while_buying=lambda: self.toggles[
+                "keep_selection_while_buying"
+            ],
         )
         # Keep placing after a placement (the HUD toggle / a Shift press). A
         # global setting: old settings files without it load as off.
