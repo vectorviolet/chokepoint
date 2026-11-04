@@ -72,38 +72,39 @@ def parse_min_ranges(tower: dict) -> list[int]:
 
 @dataclass(frozen=True)
 class TowerTooltip:
-    """A buy button's hover tooltip: the tower's name and one line each for
-    what it's good and bad at (config/towers.yaml `name` + `tooltip`)."""
+    """A tower's name and one line each for what it's good and bad at (the
+    buy button's hover tooltip). They live in the language files
+    (`tower_<type>` in config/lang/<code>.yaml), so the game shows them in the
+    current language; this reads one language's file, for the stats pages."""
 
     name: str
     strength: str
     weakness: str
 
 
+TOWER_TYPES = (1, 2, 3, 4)
+
+
 def parse_tower_tooltips(data: dict) -> dict[int, TowerTooltip]:
-    """Tooltips keyed by tower type, from parsed towers.yaml data. Raises
+    """Tooltips keyed by tower type, from a parsed language file. Raises
     ValueError naming the tower type if a name or line is missing or blank."""
     tooltips = {}
-    for tower in data["towers"]:
-        tower_type = tower["type"]
-        tooltip = tower.get("tooltip") or {}
-        texts = {
-            "name": tower.get("name"),
-            "strength": tooltip.get("strength"),
-            "weakness": tooltip.get("weakness"),
-        }
-        for key, text in texts.items():
+    for tower_type in TOWER_TYPES:
+        tower = data.get(f"tower_{tower_type}") or {}
+        for key in ("name", "strength", "weakness"):
+            text = tower.get(key)
             if not isinstance(text, str) or not text.strip():
                 raise ValueError(
-                    f"config/towers.yaml: tower type {tower_type} needs a "
-                    f"non-empty {'name' if key == 'name' else 'tooltip.' + key}"
+                    f"language file: tower_{tower_type} needs a non-empty {key}"
                 )
-        tooltips[tower_type] = TowerTooltip(**{k: v.strip() for k, v in texts.items()})
+        tooltips[tower_type] = TowerTooltip(
+            **{k: tower[k].strip() for k in ("name", "strength", "weakness")}
+        )
     return tooltips
 
 
-def load_tower_tooltips() -> dict[int, TowerTooltip]:
-    with open(_CONFIG_DIR / "towers.yaml", encoding="utf-8") as f:
+def load_tower_tooltips(language: str = "en") -> dict[int, TowerTooltip]:
+    with open(_CONFIG_DIR / "lang" / f"{language}.yaml", encoding="utf-8") as f:
         return parse_tower_tooltips(yaml.safe_load(f))
 
 

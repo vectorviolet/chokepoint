@@ -41,7 +41,7 @@ object_templates:
     position: [CENTER, CENTER]
   fee_text:
     type: text
-    font: comic_neue
+    font: fira_sans
     font_size: 21
     color: green
     text: "0 $"
@@ -50,20 +50,20 @@ object_templates:
   stat_text:
     type: text
     background_color: [ 50, 50, 50, 200 ]
-    font: comic_neue_bold
+    font: fira_sans_bold
     font_size: 31
     color: white
   # Tower info panel (game panel): title, a label column and a value column.
   tower_info_title:
     type: text
-    font: comic_neue_bold
+    font: fira_sans_bold
     font_size: 30
     color: white
   tower_info_label:
     type: text
     parent: tower_info_bg
-    font: comic_neue
-    font_size: 25
+    font: fira_sans
+    font_size: 22  # Fira Sans runs wider than the old Comic Neue (was 25)
     color: [200, 200, 200]
   tower_info_value:
     type: text
@@ -71,22 +71,22 @@ object_templates:
     font: anton
     font_size: 24
     color: white
-  # Buy button tooltip lines (game panel): sentences, so Comic Neue.
+  # Buy button tooltip lines (game panel): sentences, so Fira Sans.
   buy_tooltip_line:
     type: text
     parent: buy_tooltip_bg
-    font: comic_neue
+    font: fira_sans
     font_size: 25
     color: white
   # Credits screen: a small accent-colored heading per section, entries below.
   credits_heading:
     type: text
-    font: comic_neue_bold
+    font: fira_sans_bold
     font_size: 36
     color: [168, 224, 99]   # the logo's green
   credits_entry:
     type: text
-    font: comic_neue
+    font: fira_sans
     font_size: 38
     color: white
 
@@ -105,19 +105,19 @@ panels:
       play_text:
         extends: button_text
         parent: play
-        text: "PLAY"
+        text_key: "menu.play"
       credits_text:
         extends: button_text
         parent: credits
-        text: "CREDITS"
+        text_key: "menu.credits"
       settings_text:
         extends: button_text
         parent: settings
-        text: "SETTINGS"
+        text_key: "menu.settings"
       exit_text:
         extends: button_text
         parent: exit
-        text: "EXIT"
+        text_key: "menu.exit"
 
       music_toggle_button:
         extends: btn-sm
@@ -134,7 +134,7 @@ panels:
         font_size: 70
         color: [168, 224, 99]
         position: [CENTER, 320]
-        text: "PLAY"
+        text_key: "menu.play"
 
       play_menu_buttons:
         layout: { direction: vertical, start: [CENTER, 460], spacing: 120 }
@@ -146,15 +146,15 @@ panels:
       new_game_text:
         extends: button_text
         parent: new_game
-        text: "NEW GAME"
+        text_key: "menu.new_game"
       continue_game_text:
         extends: button_text
         parent: continue_game
-        text: "CONTINUE"
+        text_key: "menu.continue"
       back_text:
         extends: button_text
         parent: back
-        text: "BACK"
+        text_key: "common.back"
 
       music_toggle_button:
         extends: btn-sm
@@ -210,12 +210,12 @@ panels:
         font: anton
         font_size: 70
         position: [CENTER, 120]
-        text: "CREDITS"
+        text_key: "credits.title"
         color: white
       credits_dev_title:
         extends: credits_heading
         position: [CENTER, 250]
-        text: "Developer"
+        text_key: "credits.developer"
       credits_dev:
         extends: credits_entry
         position: [CENTER, 292]
@@ -223,7 +223,7 @@ panels:
       credits_art_title:
         extends: credits_heading
         position: [CENTER, 372]
-        text: "Art"
+        text_key: "credits.art"
       credits_art:
         extends: credits_entry
         position: [CENTER, 414]
@@ -231,7 +231,7 @@ panels:
       credits_ui_title:
         extends: credits_heading
         position: [CENTER, 494]
-        text: "UI"
+        text_key: "credits.ui"
       credits_ui:
         extends: credits_entry
         position: [CENTER, 536]
@@ -243,7 +243,7 @@ panels:
       credits_sound_title:
         extends: credits_heading
         position: [CENTER, 662]
-        text: "Sound"
+        text_key: "credits.sound"
       credits_sound:
         extends: credits_entry
         position: [CENTER, 704]
@@ -251,7 +251,7 @@ panels:
       credits_vfx_title:
         extends: credits_heading
         position: [CENTER, 784]
-        text: "VFX"
+        text_key: "credits.vfx"
       credits_vfx:
         extends: credits_entry
         position: [CENTER, 826]
@@ -259,7 +259,7 @@ panels:
       credits_music_title:
         extends: credits_heading
         position: [CENTER, 906]
-        text: "Music"
+        text_key: "credits.music"
       credits_music:
         extends: credits_entry
         position: [CENTER, 948]
@@ -271,11 +271,11 @@ panels:
       credits_music_3:
         extends: credits_entry
         position: [CENTER, 1040]
-        text: "Licensed under CC BY 3.0"
+        text_key: "credits.license_cc_by"
       credits_fonts_title:
         extends: credits_heading
         position: [CENTER, 1120]
-        text: "Fonts"
+        text_key: "credits.fonts"
       credits_fonts:
         extends: credits_entry
         position: [CENTER, 1162]
@@ -283,11 +283,11 @@ panels:
       credits_fonts_2:
         extends: credits_entry
         position: [CENTER, 1208]
-        text: "Comic Neue - Craig Rozynski"
+        text: "Fira Sans - Mozilla, Telefonica"
       credits_built_title:
         extends: credits_heading
         position: [CENTER, 1288]
-        text: "Built with"
+        text_key: "credits.built_with"
       credits_built:
         extends: credits_entry
         position: [CENTER, 1330]
@@ -323,7 +323,7 @@ panels:
       back_text:
         extends: button_text
         parent: back
-        text: "BACK"
+        text_key: "common.back"
       music_toggle_button:
         extends: btn-sm
         position: [25, 25]
@@ -339,7 +339,7 @@ panels:
         font_size: 70
         color: [168, 224, 99]
         position: [CENTER, 320]
-        text: "SETTINGS"
+        text_key: "settings.title"
 
       # Tabs: a button per tab in the row below the title, and one group
       # (`<tab>_tab`) holding that tab's rows. Rows are added by copying an
@@ -352,7 +352,7 @@ panels:
         extends: button_text
         parent: tab_display_button
         font_size: 36
-        text: "DISPLAY"
+        text_key: "settings.tab_display"
       tab_audio_button:
         extends: settings_tab_button
         position: [640, 420]
@@ -360,7 +360,7 @@ panels:
         extends: button_text
         parent: tab_audio_button
         font_size: 36
-        text: "AUDIO"
+        text_key: "settings.tab_audio"
       tab_game_button:
         extends: settings_tab_button
         position: [980, 420]
@@ -368,7 +368,7 @@ panels:
         extends: button_text
         parent: tab_game_button
         font_size: 36
-        text: "GAME"
+        text_key: "settings.tab_game"
       tab_controls_button:
         extends: settings_tab_button
         position: [1320, 420]
@@ -376,7 +376,7 @@ panels:
         extends: button_text
         parent: tab_controls_button
         font_size: 36
-        text: "CONTROLS"
+        text_key: "settings.tab_controls"
 
       display_tab:
         position: [610, 500]
@@ -386,19 +386,19 @@ panels:
         size: [700, 340]
       game_tab:
         position: [610, 500]
-        size: [700, 300]
+        size: [700, 340]
       controls_tab:
         position: [610, 500]
         size: [700, 300]
 
       window_size_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: display_tab
         position: [CENTER, 0]
-        text: "WINDOW SIZE"
+        text_key: "settings.window_size"
       window_size_back_button:
         extends: btn-sm
         parent: display_tab
@@ -409,7 +409,7 @@ panels:
         text: "<"
       window_size_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 37
         color: white
         background_color: [0, 0, 0, 100]
@@ -428,12 +428,12 @@ panels:
 
       window_mode_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: display_tab
         position: [CENTER, 110]
-        text: "WINDOW MODE"
+        text_key: "settings.window_mode"
       window_mode_back_button:
         extends: btn-sm
         parent: display_tab
@@ -444,14 +444,14 @@ panels:
         text: "<"
       window_mode_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 37
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
         parent: display_tab
         position: [CENTER, 162]
-        text: "FULLSCREEN"
+        text_key: "settings.window_mode_fullscreen"
       window_mode_next_button:
         extends: btn-sm
         parent: display_tab
@@ -463,12 +463,12 @@ panels:
 
       reduce_flashing_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: display_tab
         position: [CENTER, 220]
-        text: "REDUCE FLASHING"
+        text_key: "settings.reduce_flashing"
       reduce_flashing_back_button:
         extends: btn-sm
         parent: display_tab
@@ -479,14 +479,14 @@ panels:
         text: "<"
       reduce_flashing_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 37
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
         parent: display_tab
         position: [CENTER, 272]
-        text: "OFF"
+        text_key: "settings.off"
       reduce_flashing_next_button:
         extends: btn-sm
         parent: display_tab
@@ -498,12 +498,12 @@ panels:
 
       skip_intro_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: game_tab
         position: [CENTER, 0]
-        text: "SKIP INTRO"
+        text_key: "settings.skip_intro"
       skip_intro_back_button:
         extends: btn-sm
         parent: game_tab
@@ -514,14 +514,14 @@ panels:
         text: "<"
       skip_intro_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 37
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
         parent: game_tab
         position: [CENTER, 52]
-        text: "OFF"
+        text_key: "settings.off"
       skip_intro_next_button:
         extends: btn-sm
         parent: game_tab
@@ -533,12 +533,12 @@ panels:
 
       pause_on_focus_loss_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: game_tab
         position: [CENTER, 110]
-        text: "PAUSE ON FOCUS LOSS"
+        text_key: "settings.pause_on_focus_loss"
       pause_on_focus_loss_back_button:
         extends: btn-sm
         parent: game_tab
@@ -549,14 +549,14 @@ panels:
         text: "<"
       pause_on_focus_loss_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 37
         color: white
         background_color: [0, 0, 0, 100]
         padding: [8, 24]
         parent: game_tab
         position: [CENTER, 162]
-        text: "ON"
+        text_key: "settings.on"
       pause_on_focus_loss_next_button:
         extends: btn-sm
         parent: game_tab
@@ -566,17 +566,52 @@ panels:
         parent: pause_on_focus_loss_next_button
         text: ">"
 
+      language_label_text:
+        type: text
+        font: fira_sans
+        font_size: 28
+        color: white
+        parent: game_tab
+        position: [CENTER, 220]
+        text_key: "settings.language"
+      language_back_button:
+        extends: btn-sm
+        parent: game_tab
+        position: [0, 280]
+      language_back_button_text:
+        extends: button_text
+        parent: language_back_button
+        text: "<"
+      language_value_text:
+        type: text
+        font: fira_sans
+        font_size: 37
+        color: white
+        background_color: [0, 0, 0, 100]
+        padding: [8, 24]
+        parent: game_tab
+        position: [CENTER, 272]
+        text: "ENGLISH"  # set from the language's display name (Game)
+      language_next_button:
+        extends: btn-sm
+        parent: game_tab
+        position: [636, 280]
+      language_next_button_text:
+        extends: button_text
+        parent: language_next_button
+        text: ">"
+
       master_volume_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: audio_tab
         position: [CENTER, 0]
-        text: "MASTER VOLUME"
+        text_key: "settings.master_volume"
       master_volume_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: audio_tab
@@ -591,15 +626,15 @@ panels:
 
       sfx_volume_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: audio_tab
         position: [CENTER, 100]
-        text: "SFX VOLUME"
+        text_key: "settings.sfx_volume"
       sfx_volume_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: audio_tab
@@ -614,15 +649,15 @@ panels:
 
       music_volume_label_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: audio_tab
         position: [CENTER, 200]
-        text: "BGM VOLUME"
+        text_key: "settings.music_volume"
       music_volume_value_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 28
         color: white
         parent: audio_tab
@@ -642,7 +677,7 @@ panels:
       back_text:
         extends: button_text
         parent: back
-        text: "BACK"
+        text_key: "common.back"
       reset:
         extends: btn-sm
         size: [375, 100]
@@ -651,7 +686,7 @@ panels:
         extends: button_text
         parent: reset
         font_size: 36
-        text: "RESET TO DEFAULT"
+        text_key: "settings.reset"
       music_toggle_button:
         extends: btn-sm
         position: [25, 25]
@@ -664,7 +699,8 @@ panels:
         extends: stat_text
         position: [15, 15]
         padding: [5, 10]
-        text: "Round 1"
+        text_key: "hud.round"
+        text_params: { level: 1 }  # kept current by ui/game_hud.py
       live_text:
         extends: stat_text
         position: [15, 75]
@@ -758,10 +794,11 @@ panels:
         extends: button_text
         parent: upgrade_plane_button
         font_size: 21
-        text: "UPG PLANES"
+        # Both texts are language-dependent: ui/game_hud.py sets "UPG PLANES"
+        # (not hovered) and the price, or MAX once bought (hovered).
         states:
-          default: "UPG PLANES"  # back to this when not hovered
-          hover: "5K $"  # the price, or MAX once bought (ui/game_hud.py)
+          default: ""
+          hover: ""
 
       tower_panel_bg:
         anchor: bottom
@@ -792,8 +829,8 @@ panels:
 
       # Tower info panel -- shown while a tower is selected (ui/tower_info.py
       # toggles .active and fills in the values), under the counters on the
-      # left, sliding off with them on Tab. Values use Anton: it has the
-      # arrow glyph, Comic Neue doesn't.
+      # left, sliding off with them on Tab. Values use Anton (it has the
+      # arrow glyph; so does Fira Sans, but the values keep the display look).
       tower_info_bg:
         position: [15, 205]
         size: [340, 352]
@@ -802,13 +839,13 @@ panels:
         extends: tower_info_title
         parent: tower_info_bg
         position: [16, 10]
-      tower_info_kills_label:     { extends: tower_info_label, position: [16, 58], text: "Kills" }
-      tower_info_earned_label:    { extends: tower_info_label, position: [16, 94], text: "Earned" }
-      tower_info_range_label:     { extends: tower_info_label, position: [16, 130], text: "Range" }
-      tower_info_min_range_label: { extends: tower_info_label, position: [16, 166], text: "Blind spot" }
-      tower_info_damage_label:    { extends: tower_info_label, position: [16, 202], text: "Damage" }
-      tower_info_fire_rate_label: { extends: tower_info_label, position: [16, 238], text: "Fire rate" }
-      tower_info_hp_label:        { extends: tower_info_label, position: [16, 274], text: "HP" }
+      tower_info_kills_label:     { extends: tower_info_label, position: [16, 58], text_key: "tower_info.kills" }
+      tower_info_earned_label:    { extends: tower_info_label, position: [16, 94], text_key: "tower_info.earned" }
+      tower_info_range_label:     { extends: tower_info_label, position: [16, 130], text_key: "tower_info.range" }
+      tower_info_min_range_label: { extends: tower_info_label, position: [16, 166], text_key: "tower_info.min_range" }
+      tower_info_damage_label:    { extends: tower_info_label, position: [16, 202], text_key: "tower_info.damage" }
+      tower_info_fire_rate_label: { extends: tower_info_label, position: [16, 238], text_key: "tower_info.fire_rate" }
+      tower_info_hp_label:        { extends: tower_info_label, position: [16, 274], text_key: "tower_info.hp" }
       tower_info_kills_value:     { extends: tower_info_value, position: [126, 56] }
       tower_info_earned_value:    { extends: tower_info_value, position: [126, 92] }
       tower_info_range_value:     { extends: tower_info_value, position: [126, 128] }
@@ -835,8 +872,8 @@ panels:
         extends: tower_info_title
         parent: buy_tooltip_bg
         position: [16, 8]
-      buy_tooltip_strength_label: { extends: tower_info_label, parent: buy_tooltip_bg, position: [16, 50], text: "Good" }
-      buy_tooltip_weakness_label: { extends: tower_info_label, parent: buy_tooltip_bg, position: [16, 84], text: "Weak" }
+      buy_tooltip_strength_label: { extends: tower_info_label, parent: buy_tooltip_bg, position: [16, 50], text_key: "buy_tooltip.good" }
+      buy_tooltip_weakness_label: { extends: tower_info_label, parent: buy_tooltip_bg, position: [16, 84], text_key: "buy_tooltip.weak" }
       buy_tooltip_strength_text:  { extends: buy_tooltip_line, position: [96, 51] }
       buy_tooltip_weakness_text:  { extends: buy_tooltip_line, position: [96, 85] }
 
@@ -860,7 +897,7 @@ panels:
         color: white
         parent: pause_panel_bg
         position: [CENTER, 50]
-        text: "PAUSED"
+        text_key: "pause.title"
 
       pause_buttons:
         parent: pause_panel_bg
@@ -873,19 +910,19 @@ panels:
       pause_back_text:
         extends: button_text
         parent: pause_back
-        text: "BACK"
+        text_key: "common.back"
       pause_settings_text:
         extends: button_text
         parent: pause_settings
-        text: "SETTINGS"
+        text_key: "menu.settings"
       pause_music_text:
         extends: button_text
         parent: pause_music
-        text: "MUSIC: ON"   # Game sets "MUSIC: OFF" while the music is off
+        text_key: "pause.music_on"   # Game sets "MUSIC: OFF" while the music is off
       pause_main_menu_text:
         extends: button_text
         parent: pause_main_menu
-        text: "MAIN MENU"
+        text_key: "common.main_menu"
 
       # Victory popup -- hidden by default (Game toggles .active on each of
       # these when wave 25 clears); declared last so it draws on top.
@@ -905,15 +942,16 @@ panels:
         color: [255, 215, 0]
         parent: victory_panel_bg
         position: [CENTER, 70]
-        text: "YOU WON!"
+        text_key: "victory.title"
       victory_subtitle_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 25
         color: white
         parent: victory_panel_bg
         position: [CENTER, 140]
-        text: ""  # set by Game from WIN_WAVE (VICTORY_SUBTITLE)
+        text_key: "victory.subtitle"
+        text_params: { wave: 0 }  # Game sets WIN_WAVE (util/constants.py)
 
       victory_buttons:
         parent: victory_panel_bg
@@ -926,15 +964,15 @@ panels:
         extends: button_text
         parent: victory_continue
         font_size: 30
-        text: "CONTINUE (ENDLESS)"
+        text_key: "victory.continue_endless"
       victory_play_again_text:
         extends: button_text
         parent: victory_play_again
-        text: "PLAY AGAIN"
+        text_key: "common.play_again"
       victory_main_menu_text:
         extends: button_text
         parent: victory_main_menu
-        text: "MAIN MENU"
+        text_key: "common.main_menu"
 
       # Game over popup -- hidden by default (Game toggles .active on each of
       # these when lives hit 0); declared last so it draws on top.
@@ -954,15 +992,15 @@ panels:
         color: [220, 60, 60]
         parent: gameover_panel_bg
         position: [CENTER, 70]
-        text: "GAME OVER"
+        text_key: "gameover.title"
       gameover_subtitle_text:
         type: text
-        font: comic_neue
+        font: fira_sans
         font_size: 25
         color: white
         parent: gameover_panel_bg
         position: [CENTER, 140]
-        text: "You ran out of lives"
+        text_key: "gameover.subtitle"
 
       gameover_buttons:
         parent: gameover_panel_bg
@@ -973,8 +1011,8 @@ panels:
       gameover_play_again_text:
         extends: button_text
         parent: gameover_play_again
-        text: "PLAY AGAIN"
+        text_key: "common.play_again"
       gameover_main_menu_text:
         extends: button_text
         parent: gameover_main_menu
-        text: "MAIN MENU"
+        text_key: "common.main_menu"

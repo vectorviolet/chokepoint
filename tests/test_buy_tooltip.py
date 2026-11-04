@@ -32,29 +32,30 @@ def test_every_tower_type_has_a_name_strength_and_weakness():
         assert "\n" not in tip.strength + tip.weakness  # one line each
 
 
-def _towers(**tower):
-    return {"towers": [{"type": 1, **tower}]}
+def _lang(**tower):
+    return {
+        f"tower_{t}": {"name": "Gun", "strength": "a", "weakness": "b"}
+        for t in TOWER_TYPES
+    } | ({"tower_1": tower} if tower else {})
 
 
 @pytest.mark.parametrize(
     "tower, missing",
     [
-        ({"tooltip": {"strength": "a", "weakness": "b"}}, "name"),
-        ({"name": "Gun"}, "tooltip.strength"),
-        ({"name": "Gun", "tooltip": {"strength": "a"}}, "tooltip.weakness"),
-        ({"name": "Gun", "tooltip": {"strength": " ", "weakness": "b"}}, "strength"),
+        ({"strength": "a", "weakness": "b"}, "name"),
+        ({"name": "Gun", "weakness": "b"}, "strength"),
+        ({"name": "Gun", "strength": "a"}, "weakness"),
+        ({"name": "Gun", "strength": " ", "weakness": "b"}, "strength"),
     ],
 )
 def test_a_missing_or_blank_text_is_rejected(tower, missing):
-    with pytest.raises(ValueError, match=f"type 1 .*{missing}"):
-        parse_tower_tooltips(_towers(**tower))
+    with pytest.raises(ValueError, match=f"tower_1 .*{missing}"):
+        parse_tower_tooltips(_lang(**tower))
 
 
 def test_texts_are_trimmed():
-    tip = parse_tower_tooltips(
-        _towers(name=" Gun ", tooltip={"strength": "a ", "weakness": " b"})
-    )
-    assert tip == {1: TowerTooltip("Gun", "a", "b")}
+    tip = parse_tower_tooltips(_lang(name=" Gun ", strength="a ", weakness=" b"))
+    assert tip[1] == TowerTooltip("Gun", "a", "b")
 
 
 # ── in a real Game ───────────────────────────────────────────────────────────

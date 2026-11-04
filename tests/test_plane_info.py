@@ -19,8 +19,7 @@ from gameplay.towers.plane_tower import BOMB_DROP_INTERVAL_MS
 from pygamine import SaveStore
 from ui.tower_info import (
     ARROW,
-    GROUND_LABELS,
-    PLANE_LABELS,
+    ROWS,
     TOWER_INFO_OBJECTS,
     bomb_rate,
     flight_speed,
@@ -28,6 +27,22 @@ from ui.tower_info import (
 )
 
 MAP_WIDTH = 3008
+
+ENGLISH_GROUND_LABELS = {
+    "kills": "Kills",
+    "earned": "Earned",
+    "range": "Range",
+    "min_range": "Blind spot",
+    "damage": "Damage",
+    "fire_rate": "Fire rate",
+    "hp": "HP",
+}
+ENGLISH_PLANE_LABELS = {
+    **ENGLISH_GROUND_LABELS,
+    "range": "Splash",
+    "min_range": "Speed",
+    "fire_rate": "Bombs",
+}
 
 
 def make_plane(tower_config, assets, *, level=1, row=8, col=10):
@@ -155,7 +170,7 @@ def test_clicking_a_plane_opens_its_panel(game, plane):
     assert value(game, "range") == f"1.5 {ARROW} 2 tiles"
     assert value(game, "fire_rate") == "2.00/s"
     assert value(game, "hp") == "-"
-    assert {key: label(game, key) for key in PLANE_LABELS} == PLANE_LABELS
+    assert {key: label(game, key) for key in ROWS} == ENGLISH_PLANE_LABELS
     panel = game.panel_manager["game"]
     assert not panel["tower_info_hp_bar"].active  # no HP, no bar
     others = [o for o in info_objects(game) if o is not panel["tower_info_hp_bar"]]
@@ -246,7 +261,7 @@ def test_selecting_a_ground_tower_switches_the_panel_and_its_labels(
     click(game, screen_pos(game, ground))
 
     assert game.tower_info.tower is ground
-    assert {key: label(game, key) for key in GROUND_LABELS} == GROUND_LABELS
+    assert {key: label(game, key) for key in ROWS} == ENGLISH_GROUND_LABELS
     assert game.panel_manager["game"]["tower_info_hp_bar"].active
 
 
@@ -394,7 +409,7 @@ def test_no_plane_label_runs_into_its_value(game, plane, size):
     frame(game)
 
     panel = game.panel_manager["game"]
-    for key in PLANE_LABELS:
+    for key in ROWS:
         label_rect = panel[f"tower_info_{key}_label"].rect
         value_rect = panel[f"tower_info_{key}_value"].rect
         assert label_rect.right < value_rect.left, key

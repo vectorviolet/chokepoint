@@ -77,7 +77,11 @@ SETTINGS_TABS = (
     SettingsTab(
         "game",
         shown=True,
-        rows=toggle_rows("skip_intro", "pause_on_focus_loss"),
+        rows=(
+            *toggle_rows("skip_intro", "pause_on_focus_loss"),
+            SettingsRow("language_back_button", "_cycle_language", -1),
+            SettingsRow("language_next_button", "_cycle_language", 1),
+        ),
     ),
     SettingsTab("controls", shown=False),
 )

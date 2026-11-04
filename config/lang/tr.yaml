@@ -1,0 +1,114 @@
+# Turkish strings (a draft for the owner's review, issue #120). Same keys and
+# {placeholders} as en.yaml. UI captions are written in capitals by hand
+# (Turkish capitals: i -> İ, ı -> I), never with a case function.
+_meta:
+  name: "Türkçe"
+
+common:
+  back: "GERİ"
+  main_menu: "ANA MENÜ"
+  play_again: "TEKRAR OYNA"
+
+menu:
+  play: "OYNA"
+  credits: "KREDİLER"
+  settings: "AYARLAR"
+  exit: "ÇIKIŞ"
+  new_game: "YENİ OYUN"
+  continue: "DEVAM ET"
+
+credits:
+  title: "KREDİLER"
+  developer: "Geliştirici"
+  art: "Sanat"
+  ui: "Arayüz"
+  sound: "Ses"
+  vfx: "Görsel efektler"
+  music: "Müzik"
+  license_cc_by: "CC BY 3.0 lisansıyla"
+  fonts: "Yazı tipleri"
+  built_with: "Kullanılan araçlar"
+
+settings:
+  title: "AYARLAR"
+  tab_display: "EKRAN"
+  tab_audio: "SES"
+  tab_game: "OYUN"
+  tab_controls: "KONTROLLER"
+  window_size: "PENCERE BOYUTU"
+  window_mode: "PENCERE MODU"
+  window_mode_fullscreen: "TAM EKRAN"
+  window_mode_borderless: "ÇERÇEVESİZ"
+  window_mode_windowed: "PENCERELİ"
+  reduce_flashing: "YANIP SÖNMEYİ AZALT"
+  skip_intro: "GİRİŞİ ATLA"
+  pause_on_focus_loss: "ODAK KAYBINDA DURAKLAT"
+  language: "DİL"
+  master_volume: "ANA SES"
+  sfx_volume: "EFEKT SESİ"
+  music_volume: "MÜZİK SESİ"
+  reset: "VARSAYILANA DÖN"
+  "on": "AÇIK"
+  "off": "KAPALI"
+
+format:
+  money: "{amount} $"
+  money_thousands: "{amount} bin $"
+  reward: "+${amount}"
+
+hud:
+  round: "Tur {level}"
+  upgrade_planes: "UÇAK GELİŞTİR"
+  maxed: "MAKS"
+
+tower_info:
+  kills: "Öldürme"
+  earned: "Kazanç"
+  range: "Menzil"
+  min_range: "Kör nokta"
+  damage: "Hasar"
+  fire_rate: "Atış hızı"
+  hp: "Can"
+  plane_range: "Alan"
+  plane_speed: "Hız"
+  plane_bombs: "Bomba"
+  level: "Seviye {level} / {max_level}"
+  level_max: "Seviye {level} / {max_level}  (maks)"
+  tiles: "{value} kare"
+  tiles_per_second: "{value} kare/sn"
+  per_second: "{value}/sn"
+
+buy_tooltip:
+  good: "İyi"
+  weak: "Zayıf"
+
+tower_1:
+  name: "Seri silah"
+  strength: "Ucuz ve hızlı ateş eder"
+  weakness: "Kısa menzil, düşük hasar, geliştirilemez"
+tower_2:
+  name: "Güdümlü füze"
+  strength: "Füzeler hedefi izler; hasar geliştirmelerle hızla artar"
+  weakness: "Yavaş dolar; tam güç pahalı geliştirmeler ister"
+tower_3:
+  name: "Ağır top"
+  strength: "Uzun menzil, ağır vuruşlar, sağlam"
+  weakness: "Yavaş ateş eder, pahalı, yakındaki düşmanlara vuramaz"
+tower_4:
+  name: "Uçak"
+  strength: "Uçuş yolu boyunca alan bombaları atar; tanklar ona vuramaz"
+  weakness: "Haritanın sağ kenarına bir kez uçar, sonra gider"
+
+pause:
+  title: "DURAKLATILDI"
+  music_on: "MÜZİK: AÇIK"
+  music_off: "MÜZİK: KAPALI"
+
+victory:
+  title: "KAZANDIN!"
+  subtitle: "{wave}. tur tamamlandı"
+  continue_endless: "DEVAM ET (SONSUZ)"
+
+gameover:
+  title: "OYUN BİTTİ"
+  subtitle: "Canların bitti"

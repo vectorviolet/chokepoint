@@ -57,9 +57,10 @@ check-hidden = true
 # Not ours or not text: the pygamine submodule (its own repo), third-party
 # license texts, assets and binaries, the lock file, and local files
 # (virtualenv, tool caches, saves, builds). Also the project dictionary
-# itself (it lists British forms) and the devlog entry on this decision,
-# which shows the old British spellings as examples.
-skip = "./.codespell-en-us.txt,./docs/devlog/2026-11-03-american-english.md,./.git,./.venv,.*_cache,__pycache__,./saves,./dist,./build,./htmlcov,./src/pygamine,./licenses,./assets,./uv.lock,./docs/devlog/img,*.png,*.gif,*.ico,*.ogg,*.mp3,*.wav,*.ttf,*.tmx,*.tsx,*.tiled-project"
+# itself (it lists British forms), the devlog entry on this decision, which
+# shows the old British spellings as examples, and the Turkish language file
+# (its words trip the English dictionaries).
+skip = "./.codespell-en-us.txt,./config/lang/tr.yaml,./docs/devlog/2026-11-03-american-english.md,./.git,./.venv,.*_cache,__pycache__,./saves,./dist,./build,./htmlcov,./src/pygamine,./licenses,./assets,./uv.lock,./docs/devlog/img,*.png,*.gif,*.ico,*.ogg,*.mp3,*.wav,*.ttf,*.tmx,*.tsx,*.tiled-project"
 # Real words codespell flags, one per line with why:
 #   datas: PyInstaller's Analysis(datas=...) argument (chokepoint.spec, util/paths.py)
 #   retuned: "re-tuned" (docs/decisions/0004-grid-targeting.md), not "returned"

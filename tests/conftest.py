@@ -16,6 +16,7 @@ import pygame
 import pytest
 
 from pygamine import AssetManager, GameAudio, SaveStore
+from pygamine.util.localization import DEFAULT_LANGUAGE, localization
 from util.config_loader import load_tower_config
 
 pygame.init()
@@ -24,6 +25,17 @@ pygame.init()
 # set_resolution(); these tests construct game objects directly, with no
 # Application/Game involved, so they need their own.
 pygame.display.set_mode((1, 1))
+
+
+localization.load("config/lang")  # for tests that format text without a Game()
+
+
+@pytest.fixture(autouse=True)
+def language_reset():
+    """The language is process-wide: every test starts and ends in English."""
+    localization.set_language(DEFAULT_LANGUAGE)
+    yield
+    localization.set_language(DEFAULT_LANGUAGE)
 
 
 @pytest.fixture(scope="session")
