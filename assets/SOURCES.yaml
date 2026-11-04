@@ -176,7 +176,7 @@ files:
     composited_from:
       - "kenney-tower-defense-top-down: PNG/Default size/towerDefense_tile271.png"
       - "kenney-ui-pack: PNG/Extra/Double/icon_arrow_up_dark.png"
-    modified: "plane rotated nose-up, scaled to 92 px wide and given a dark outline; the arrow tinted yellow, scaled to 58 px wide and given a dark outline; composed on a 128x128 canvas with the plane centered and the arrow over its upper-right wing"
+    modified: "plane rotated nose-up, scaled to 92 px wide and given a dark outline; the arrow tinted yellow, scaled to 58 px wide and given a dark outline; composed on a 128x128 canvas with the plane centered and the arrow at its upper right, overlapping the right wing"
   "images/hud/icons/icon_jump.png":
     source: kenney-mobile-controls
     original: "Sprites/Icons/Large (2×)/icon_jump.png"

@@ -50,7 +50,7 @@ the middle of the image and let the arrow overlap it
 ([#141](https://github.com/vectorviolet/chokepoint/issues/141)). Claude recomposed it from the same
 two Kenney sprites at the same display size (48 px in the 60 px button): the plane (92 px wide,
 dark outline) is centered on the 128 px canvas, and a smaller yellow arrow (58 px wide) sits at its
-upper right over the right wing, drawn on top.
+upper right, overlapping the edge of the right wing and clear of the nose, drawn on top.
 
 <table>
 <tr>
