@@ -28,9 +28,8 @@ import os
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
+from functools import cache, cached_property
 from pathlib import Path
-
-import pygame
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -40,14 +39,10 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "src" / "pygamine"))
 
+import pygame  # noqa: E402
 from pygame.math import Vector2  # noqa: E402
 
 from domain.game_state import TowerConfig, WaveDef  # noqa: E402
-from gameplay.rotatable_object import (  # noqa: E402
-    FACE_RIGHT,
-    cached_rotation,
-    quantise_angle,
-)
 from gameplay.combat.enemy import Enemy  # noqa: E402
 from gameplay.combat.tank import tank_weapon  # noqa: E402
 from gameplay.combat.wave_manager import TANK_TYPES, WaveManager  # noqa: E402
@@ -99,11 +94,17 @@ Link = Callable[[str], str]
 @dataclass(eq=False)
 class Picture:
     """One generated image: its file name in IMAGES_DIR, what it shows (alt
-    text) and its pixels."""
+    text) and how to draw it. The pixels are drawn on first use, so the text
+    pages never decode a PNG."""
 
     file: str
     alt: str
-    surface: pygame.Surface
+    render: Callable[[], pygame.Surface]
+    first_level: int = 1  # a tower's: the lowest level it shows
+
+    @cached_property
+    def surface(self) -> pygame.Surface:
+        return self.render()
 
     def markdown(self) -> str:
         return f"![{self.alt}]({IMAGES_DIR}/{self.file})"
@@ -174,45 +175,50 @@ def compose(parts: list[pygame.Surface]) -> pygame.Surface:
     return canvas
 
 
-def resting_turret(sprite: pygame.Surface) -> pygame.Surface:
-    """A turret before it first aims: GroundTower starts with barrel_angle =
-    sprite_orientation, so the rotation it draws is zero degrees."""
-    return cached_rotation(sprite, quantise_angle(FACE_RIGHT - FACE_RIGHT))
-
-
 def tower_pictures(
     config: TowerConfig, assets: AssetManager
 ) -> dict[int, list[Picture]]:
     """Tower type -> its pictures, one per run of levels that share a sprite.
     A ground tower is its platform (`tower_N_platform`) under the turret
     (`tower_N_lvlL`), as GroundTower draws them; the plane is its sprite
-    without the shadow (`tower_N_shadow_lvlL`) PlaneTower draws under it."""
+    without the shadow (`tower_N_shadow_lvlL`) PlaneTower draws under it.
+    Only the keys are resolved here; the pixels are drawn on first use."""
     pictures: dict[int, list[Picture]] = {}
     for tower_type, levels in enumerate(config.max_levels, start=1):
-        runs: list[tuple[int, int, pygame.Surface]] = []  # first, last, pixels
+        assert tower_type in GROUND_TOWER_TYPES or tower_type == PLANE_TYPE, (
+            f"unknown tower type {tower_type}"
+        )
+        # Loaded once per tower, whichever of its pictures is drawn first.
+        platform = cache(
+            lambda t=tower_type: load_sprite(assets, f"tower_{t}_platform")
+        )
+        runs: list[tuple[int, int, str]] = []  # first level, last level, key
         previous_path = None
         for level in range(1, levels + 1):
             key = f"tower_{tower_type}_lvl{level}"
             path = str(assets.image_path(key))
             if path == previous_path:
                 runs[-1] = (runs[-1][0], level, runs[-1][2])
-                continue
+            else:
+                runs.append((level, level, key))
             previous_path = path
+
+        def draw(key: str, tower_type: int = tower_type, platform=platform):
             sprite = load_sprite(assets, key)
             if tower_type in GROUND_TOWER_TYPES:
-                platform = load_sprite(assets, f"tower_{tower_type}_platform")
-                sprite = compose([platform, resting_turret(sprite)])
-            else:
-                assert tower_type == PLANE_TYPE, f"unknown tower type {tower_type}"
-                sprite = compose([sprite])
-            runs.append((level, level, sprite))
+                # At rest the barrel is the sprite's own orientation: the
+                # turret is drawn unrotated.
+                return compose([platform(), sprite])
+            return compose([sprite])
+
         pictures[tower_type] = [
             Picture(
                 f"{IMAGE_PREFIX}tower-{tower_type}-level-{first}.png",
                 f"Level {first}" if first == last else f"Levels {first}-{last}",
-                sprite,
+                lambda key=key, draw=draw: draw(key),
+                first,
             )
-            for first, last, sprite in runs
+            for first, last, key in runs
         ]
     return pictures
 
@@ -222,17 +228,21 @@ def enemy_pictures(
 ) -> dict[int, Picture]:
     """Enemy type -> its sprite (`enemy_N`); a tank also gets its muzzle
     (`enemy_N_muzzle`) on top, unrotated, as Tank draws it before it aims."""
-    pictures = {}
-    for enemy_type in stats:
+
+    def draw(enemy_type: int) -> pygame.Surface:
         parts = [load_sprite(assets, f"enemy_{enemy_type}")]
         if enemy_type in TANK_TYPES:
             parts.append(load_sprite(assets, f"enemy_{enemy_type}_muzzle"))
-        pictures[enemy_type] = Picture(
+        return compose(parts)
+
+    return {
+        enemy_type: Picture(
             f"{IMAGE_PREFIX}enemy-{enemy_type}.png",
             enemy_name(enemy_type),
-            compose(parts),
+            lambda enemy_type=enemy_type: draw(enemy_type),
         )
-    return pictures
+        for enemy_type in stats
+    }
 
 
 def all_pictures(config: Config) -> dict[str, pygame.Surface]:
@@ -253,7 +263,7 @@ def same_picture(path: Path, surface: pygame.Surface) -> bool:
     libpng builds."""
     try:
         on_disk = pygame.image.load(path)
-    except (pygame.error, FileNotFoundError):
+    except (pygame.error, OSError):
         return False
     return on_disk.get_size() == surface.get_size() and pixels(on_disk) == pixels(
         surface

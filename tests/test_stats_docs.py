@@ -175,9 +175,9 @@ def test_ground_tower_picture_is_the_platform_with_the_turret_on_top(config, ass
     import pygame
 
     for tower_type in gen_stats.GROUND_TOWER_TYPES:
-        for i, picture in enumerate(config.tower_pictures[tower_type], start=1):
+        for picture in config.tower_pictures[tower_type]:
             platform = raw(assets, f"tower_{tower_type}_platform")
-            turret = raw(assets, f"tower_{tower_type}_lvl{i}")
+            turret = raw(assets, f"tower_{tower_type}_lvl{picture.first_level}")
             # What GroundTower draws: platform, then the unrotated turret,
             # both centered on the tower's position.
             expected = pygame.Surface(picture.surface.get_size(), pygame.SRCALPHA)
@@ -191,7 +191,8 @@ def test_ground_tower_picture_is_the_platform_with_the_turret_on_top(config, ass
 
 
 def test_plane_picture_is_the_sprite_without_the_shadow(config, assets):
-    for level, picture in enumerate(config.tower_pictures[gen_stats.PLANE_TYPE], 1):
+    for picture in config.tower_pictures[gen_stats.PLANE_TYPE]:
+        level = picture.first_level
         plane = raw(assets, f"tower_{gen_stats.PLANE_TYPE}_lvl{level}")
         assert gen_stats.pixels(picture.surface) == gen_stats.pixels(
             gen_stats.compose([plane])
@@ -277,3 +278,23 @@ def test_wiki_copy_has_the_images_its_pages_link(tmp_path, config, images):
     assert "![Level 1](images/stats-tower-2-level-1.png)" in text
     for name in images:
         assert (tmp_path / "images" / name).exists()
+
+
+def test_a_directory_in_place_of_an_image_is_stale(tmp_path, images):
+    gen_stats.write_images(tmp_path, images)
+    name = sorted(images)[0]
+    (tmp_path / gen_stats.IMAGES_DIR / name).unlink()
+    (tmp_path / gen_stats.IMAGES_DIR / name).mkdir()
+    assert gen_stats.stale_images(tmp_path, images) == [f"images/{name}"]
+
+
+def test_text_pages_do_not_decode_any_png(monkeypatch):
+    import pygame
+
+    def no_load(*args, **kwargs):
+        raise AssertionError("a PNG was decoded")
+
+    monkeypatch.setattr(pygame.image, "load", no_load)
+    config = gen_stats.load_config()
+    gen_stats.pages(config=config)
+    gen_stats.wiki_pages(config)

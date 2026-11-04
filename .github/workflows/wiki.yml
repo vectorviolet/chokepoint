@@ -89,8 +89,11 @@ jobs:
             [ -e "$RUNNER_TEMP/wiki-pages/$page" ] || git rm -q -- "$page"
           done
           mkdir -p images
+          # No match must mean nothing to copy, not an error under pipefail.
+          shopt -s nullglob
           cp "$RUNNER_TEMP"/wiki-pages/*.md .
-          cp "$RUNNER_TEMP"/wiki-pages/images/*.png images/
+          pictures=("$RUNNER_TEMP"/wiki-pages/images/*.png)
+          [ ${#pictures[@]} -eq 0 ] || cp "${pictures[@]}" images/
           git add -- Stats*.md images/stats-*.png
           if git diff --cached --quiet; then
             echo "Wiki pages unchanged; nothing to publish."
