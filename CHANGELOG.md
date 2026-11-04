@@ -14,6 +14,10 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ## [Unreleased]
 
+### Development
+
+- README: a status badge row (CI, release, license, coverage, Python) under the title, and the official itch.io badge in the Download section ([#153](https://github.com/vectorviolet/chokepoint/pull/153)).
+
 ## [0.4.0] – 2026-11-04
 
 Lines link their PR, or the commit for changes pushed straight to `main` before PRs were required.
