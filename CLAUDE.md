@@ -169,8 +169,8 @@ YAML keys for text objects: `type: text`, `position`, `text_key` (a key in `conf
 
 Every player-visible string is in `config/lang/en.yaml` (the fallback) and `tr.yaml`, through
 pygamine's localization (`pygamine/docs/decisions/0001-localization.md`): panels use `text_key:`,
-code uses `tr("key", **params)` (`from pygamine.util.localization import tr`), money goes through
-`util/text.py` (`money()`, `money_short()`, `reward()`). Logs, debug overlays and balance tools stay
+code uses `tr("key", **params)` (`from pygamine.util.localization import tr`), money and every decimal number go through
+`util/text.py` (`money()`, `money_short()`, `reward()`, `decimal()`; Turkish uses a decimal comma, from `format.decimal_separator`). Logs, debug overlays and balance tools stay
 English. `Game.__init__` loads the folder and sets the saved language (`language` in the settings
 file; English if missing or unknown). A language switch must go through `Game.set_language(code)`
 (the GAME tab's Language row, `_cycle_language`): pygamine re-renders every `text_key` label, then

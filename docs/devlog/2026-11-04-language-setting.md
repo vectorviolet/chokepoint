@@ -57,6 +57,8 @@ Fira Sans is wider than Comic Neue, so its sizes were checked:
   the plane upgrade label, the victory subtitle) go through keys with `{placeholders}`
   (`hud.round`, `format.money`, ...), and `Game.set_language()` rebuilds them on a switch.
   Tower names and buy-tooltip lines moved out of `config/towers.yaml` into the language files.
+- **Numbers:** `util/text.decimal()` formats every decimal with the language's `format.decimal_separator`:
+  "1.67/s" in English, "1,67/sn" in Turkish; "5K $" becomes "5 bin $" and "1,5 bin $".
 - **What stays English:** logs, debug overlays and the balance tools; the credits' proper names
   (people, packs, URLs).
 - **The row** is `LANGUAGE < ENGLISH >` on the GAME tab, cycling through the languages found in

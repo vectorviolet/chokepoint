@@ -21,7 +21,7 @@ from pygamine.util.localization import localization, tr
 
 from ui import hp_bar
 from util.constants import TICKS_PER_SECOND, TILE_SIZE
-from util.text import money
+from util.text import decimal, money
 
 ARROW = "→"  # Anton and Fira Sans both have this glyph; the values use Anton
 
@@ -78,11 +78,11 @@ def flight_speed(px_per_tick: int) -> float:
 
 
 def _tiles(px: int) -> str:
-    return f"{px / TILE_SIZE:g}"
+    return decimal(px / TILE_SIZE)
 
 
 def _rate(reload_ms: int) -> str:
-    return f"{fire_rate(reload_ms):.2f}"
+    return decimal(fire_rate(reload_ms), ".2f")
 
 
 def _preview(current: str, upcoming: str | None, unit: str | None = None) -> str:
@@ -144,12 +144,13 @@ def _plane_texts(tower, now, nxt, preview) -> dict[str, str]:
         "range": preview("range", _tiles, "tower_info.tiles"),
         "min_range": preview(
             "reload_ms",
-            lambda v: f"{flight_speed(v):.1f}",
+            lambda v: decimal(flight_speed(v), ".1f"),
             "tower_info.tiles_per_second",
         ),
         "damage": preview("damage", str),
         "fire_rate": tr(
-            "tower_info.per_second", value=f"{bomb_rate(tower.bomb_interval_ms):.2f}"
+            "tower_info.per_second",
+            value=decimal(bomb_rate(tower.bomb_interval_ms), ".2f"),
         ),
         "hp": "-",
     }

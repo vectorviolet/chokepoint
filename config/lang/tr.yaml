@@ -52,6 +52,7 @@ settings:
   "off": "KAPALI"
 
 format:
+  decimal_separator: ","
   money: "{amount} $"
   money_thousands: "{amount} bin $"
   reward: "+${amount}"

@@ -16,7 +16,7 @@ from pygamine import SaveStore
 from pygamine.util.localization import Localization, localization, missing_glyphs, tr
 from ui.tower_info import ARROW
 from util.config_loader import LANG_DIR, tower_types
-from util.text import money, money_short, reward
+from util.text import decimal, money, money_short, reward
 
 ROOT = Path(__file__).resolve().parent.parent
 # Every font a language's strings can be drawn in (config/assets.yaml).
@@ -98,6 +98,37 @@ def test_every_english_key_is_used_or_built_from_a_known_pattern():
 def test_the_languages_have_a_display_name():
     for file in LANG_DIR.glob("*.yaml"):
         assert yaml.safe_load(file.read_text(encoding="utf-8"))["_meta"]["name"]
+
+
+def test_decimals_use_the_languages_separator():
+    assert decimal(1.5) == "1.5"
+    assert decimal(1.6667, ".2f") == "1.67"
+    assert money_short(1500) == "1.5K $"
+    localization.set_language("tr")
+    assert decimal(1.5) == "1,5"
+    assert decimal(1.6667, ".2f") == "1,67"
+    assert decimal(3) == "3"
+    assert money_short(1500) == "1,5 bin $"
+
+
+def test_the_tower_panel_shows_decimal_commas_in_turkish(tower_config, assets):
+    from gameplay.towers import TowerFactory
+    from ui.tower_info import stat_texts
+
+    class Audio:
+        def play_sfx(self, *args, **kwargs):
+            pass
+
+    cannon = TowerFactory.create(3, 5, 5, tower_config, assets, Audio(), 3008)
+    plane = TowerFactory.create(4, 5, 5, tower_config, assets, Audio(), 3008)
+    assert stat_texts(cannon)["min_range"] == "1.5 tiles"
+    assert stat_texts(plane)["fire_rate"] == "2.00/s"
+    localization.set_language("tr")
+    assert stat_texts(cannon)["min_range"] == "1,5 kare"
+    assert stat_texts(cannon)["fire_rate"].endswith("/sn")
+    assert "," in stat_texts(cannon)["fire_rate"]
+    assert stat_texts(plane)["fire_rate"] == "2,00/sn"
+    assert "," in stat_texts(plane)["min_range"]  # flight speed, tiles/s
 
 
 def test_every_tower_in_towers_yaml_has_its_texts_in_every_language():
