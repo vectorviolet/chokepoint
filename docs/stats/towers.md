@@ -8,6 +8,8 @@ Per level. **Cost** is what reaching that level costs (the buy price at level 1,
 
 ## 1. Rapid gun
 
+![Level 1](images/stats-tower-1-level-1.png)
+
 Cheap and fires fast. Short range, low damage, no upgrades.
 
 | Level | Cost | Total spent | Sell refund | Range (px) | Blind spot (px) | Damage | Reload | Shots/s | DPS | DPS per $ | HP |
@@ -15,6 +17,8 @@ Cheap and fires fast. Short range, low damage, no upgrades.
 | 1 | $100 | $100 | $70 | 160 (2.5 tiles) | - | 12 | 600 ms | 1.67 | 20.0 | 0.200 | 50 |
 
 ## 2. Homing missile
+
+![Level 1](images/stats-tower-2-level-1.png) ![Level 2](images/stats-tower-2-level-2.png) ![Level 3](images/stats-tower-2-level-3.png)
 
 Missiles home in; damage grows fast with upgrades. Slow reload; full power needs costly upgrades.
 
@@ -26,6 +30,8 @@ Missiles home in; damage grows fast with upgrades. Slow reload; full power needs
 
 ## 3. Heavy cannon
 
+![Level 1](images/stats-tower-3-level-1.png) ![Level 2](images/stats-tower-3-level-2.png)
+
 Long range, heavy hits, sturdy. Slow to fire, expensive, can't hit enemies up close.
 
 | Level | Cost | Total spent | Sell refund | Range (px) | Blind spot (px) | Damage | Reload | Shots/s | DPS | DPS per $ | HP |
@@ -34,6 +40,8 @@ Long range, heavy hits, sturdy. Slow to fire, expensive, can't hit enemies up cl
 | 2 | $560 | $840 | $588 | 288 (4.5 tiles) | 96 (1.5 tiles) | 170 | 1,800 ms | 0.56 | 94.4 | 0.112 | 200 |
 
 ## 4. Plane
+
+![Level 1](images/stats-tower-4-level-1.png) ![Level 2](images/stats-tower-4-level-2.png)
 
 Splash bombs along its flight; tanks can't hit it. Flies once to the map's right edge, then it's gone.
 
