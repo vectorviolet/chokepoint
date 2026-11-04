@@ -24,6 +24,8 @@ import pygame
 from pygame.math import Vector2
 from pygamine import clamp01
 
+from util.text import reward
+
 TEXT_LIFE_MS = 800  # game time
 TEXT_RISE = 48  # world px over the text's life
 TEXT_COLOR = (255, 159, 0)  # the coin sprite's gold
@@ -155,7 +157,7 @@ class KillFeedback:
         return self._pop_ms < POP_MS
 
     def _render_label(self, amount: int) -> pygame.Surface:
-        text = f"+${amount}"
+        text = reward(amount)
         fill = self._font.render(text, True, TEXT_COLOR)
         outline = self._font.render(text, True, TEXT_OUTLINE)
         label = pygame.Surface(

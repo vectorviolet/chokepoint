@@ -3,7 +3,8 @@ one line each for what it's good and bad at.
 
 The tooltip's objects are declared in config/panels.yaml (`buy_tooltip_*` on
 the game panel), so they scale and are styled with the rest of the HUD; the
-texts come from config/towers.yaml (`name` + `tooltip`). This module fills
+texts come from the language files (`tower_<type>.name`, `.strength` and
+`.weakness` in config/lang). This module fills
 them in, widens the background to the longest line, and moves the tooltip
 above the hovered button, clamped to the screen. It's hidden while the HUD
 is hidden or sliding (Tab), and takes no clicks or hover itself.
@@ -12,8 +13,8 @@ is hidden or sliding (Tab), and takes no clicks or hover itself.
 import pygame
 from pygamine import PanelManager
 
+from pygamine.util.localization import tr
 from ui.hud_slide import BUY_BUTTONS
-from util.config_loader import TowerTooltip
 
 BG = "buy_tooltip_bg"
 TEXTS = (
@@ -34,9 +35,7 @@ class BuyTooltip:
         self,
         panel_manager: PanelManager,
         canvas: tuple[int, int],
-        tooltips: dict[int, TowerTooltip],
     ) -> None:
-        self.tooltips = tooltips
         self.tower_type: int | None = None
         self.rebind(panel_manager, canvas)
 
@@ -78,8 +77,6 @@ class BuyTooltip:
     def show(self, tower_type: int | None) -> None:
         """Open the tooltip for `tower_type` above its button, or close it with
         None. Cheap to call every frame: nothing changes when it's the same."""
-        if tower_type is not None and tower_type not in self.tooltips:
-            tower_type = None
         if tower_type == self.tower_type:
             return
         self.tower_type = tower_type
@@ -87,13 +84,17 @@ class BuyTooltip:
             obj.active = tower_type is not None
         if tower_type is None:
             return
-        tip = self.tooltips[tower_type]
         title, _, _, strength, weakness = self._texts
-        title.set_text(tip.name)
-        strength.set_text(tip.strength)
-        weakness.set_text(tip.weakness)
+        title.set_text(tr(f"tower_{tower_type}.name"))
+        strength.set_text(tr(f"tower_{tower_type}.strength"))
+        weakness.set_text(tr(f"tower_{tower_type}.weakness"))
         self._fit_width()
         self._place(self._buttons[tower_type - 1].rect)
+
+    def refresh_language(self) -> None:
+        """Re-fill the open tooltip's texts after a language change."""
+        shown, self.tower_type = self.tower_type, None
+        self.show(shown)
 
     def _fit_width(self) -> None:
         """Widen (or narrow) the background to the longest line."""

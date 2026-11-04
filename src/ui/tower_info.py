@@ -17,11 +17,13 @@ like the in-world HP bars).
 
 import pygame
 from pygamine import PanelManager, clamp01
+from pygamine.util.localization import localization, tr
 
 from ui import hp_bar
 from util.constants import TICKS_PER_SECOND, TILE_SIZE
+from util.text import decimal, money
 
-ARROW = "→"  # Anton has this glyph (Comic Neue doesn't): values use Anton
+ARROW = "→"  # Anton and Fira Sans both have this glyph; the values use Anton
 
 # Stat rows in display order: (key, label object, value object).
 ROWS = ("kills", "earned", "range", "min_range", "damage", "fire_rate", "hp")
@@ -34,27 +36,20 @@ TOWER_INFO_OBJECTS = (
     "tower_info_hp_bar",
 )
 
-# The label column's texts, for ground towers and for planes.
-GROUND_LABELS = {
-    "kills": "Kills",
-    "earned": "Earned",
-    "range": "Range",
-    "min_range": "Blind spot",
-    "damage": "Damage",
-    "fire_rate": "Fire rate",
-    "hp": "HP",
-}
+# The label column's text keys (config/lang), for ground towers and planes.
+GROUND_LABELS = {key: f"tower_info.{key}" for key in ROWS}
 PLANE_LABELS = {
     **GROUND_LABELS,
-    "range": "Splash",
-    "min_range": "Speed",
-    "fire_rate": "Bombs",  # "Bomb rate" runs into its value
+    "range": "tower_info.plane_range",  # the bombs' splash radius
+    "min_range": "tower_info.plane_speed",
+    "fire_rate": "tower_info.plane_bombs",  # "Bomb rate" runs into its value
 }
 
 
 def labels(tower) -> dict[str, str]:
-    """The label texts for `tower`'s panel, keyed by row."""
-    return PLANE_LABELS if getattr(tower, "is_flying", False) else GROUND_LABELS
+    """The label texts for `tower`'s panel, keyed by row, in the current language."""
+    keys = PLANE_LABELS if getattr(tower, "is_flying", False) else GROUND_LABELS
+    return {row: tr(key) for row, key in keys.items()}
 
 
 def fire_rate(reload_ms: int) -> float:
@@ -83,18 +78,26 @@ def flight_speed(px_per_tick: int) -> float:
 
 
 def _tiles(px: int) -> str:
-    return f"{px / TILE_SIZE:g}"
+    return decimal(px / TILE_SIZE)
 
 
 def _rate(reload_ms: int) -> str:
-    return f"{fire_rate(reload_ms):.2f}"
+    return decimal(fire_rate(reload_ms), ".2f")
 
 
-def _preview(current: str, upcoming: str | None, unit: str = "") -> str:
-    """ "current" or, when an upgrade changes it, "current → next"."""
+def _preview(current: str, upcoming: str | None, unit: str | None = None) -> str:
+    """ "current" or, when an upgrade changes it, "current → next". `unit`
+    is a language key whose text wraps the whole preview as `{value}`."""
     if upcoming is None or upcoming == current:
-        return f"{current}{unit}"
-    return f"{current} {ARROW} {upcoming}{unit}"
+        text = current
+    else:
+        text = f"{current} {ARROW} {upcoming}"
+    return text if unit is None else tr(unit, value=text)
+
+
+def _title(tower) -> str:
+    key = "tower_info.level_max" if tower.is_max_level() else "tower_info.level"
+    return tr(key, level=tower.level, max_level=tower.max_level)
 
 
 def stat_texts(tower) -> dict[str, str]:
@@ -103,7 +106,7 @@ def stat_texts(tower) -> dict[str, str]:
     now = tower.stats_at(tower.level)
     nxt = None if tower.is_max_level() else tower.stats_at(tower.level + 1)
 
-    def preview(key: str, fmt, unit: str = "") -> str:
+    def preview(key: str, fmt, unit: str | None = None) -> str:
         return _preview(fmt(now[key]), fmt(nxt[key]) if nxt else None, unit)
 
     if getattr(tower, "is_flying", False):
@@ -116,18 +119,17 @@ def stat_texts(tower) -> dict[str, str]:
             str(nxt["max_hp"]) if nxt else None,
         )
     if now["min_range"] or (nxt and nxt["min_range"]):
-        min_range = preview("min_range", _tiles, " tiles")
+        min_range = preview("min_range", _tiles, "tower_info.tiles")
     else:
         min_range = "-"  # no blind spot (every tower but the heavy cannon)
-    level = f"Level {tower.level} / {tower.max_level}"
     return {
-        "title": level + ("  (max)" if tower.is_max_level() else ""),
+        "title": _title(tower),
         "kills": str(tower.kills),
-        "earned": f"{tower.money_earned} $",
-        "range": preview("range", _tiles, " tiles"),
+        "earned": money(tower.money_earned),
+        "range": preview("range", _tiles, "tower_info.tiles"),
         "min_range": min_range,
         "damage": preview("damage", str),
-        "fire_rate": preview("reload_ms", _rate, "/s"),
+        "fire_rate": preview("reload_ms", _rate, "tower_info.per_second"),
         "hp": hp,
     }
 
@@ -135,17 +137,21 @@ def stat_texts(tower) -> dict[str, str]:
 def _plane_texts(tower, now, nxt, preview) -> dict[str, str]:
     """stat_texts() for a plane: splash radius, flight speed and bomb rate
     in the range / blind spot / fire rate rows, and no HP."""
-    level = f"Level {tower.level} / {tower.max_level}"
     return {
-        "title": level + ("  (max)" if tower.is_max_level() else ""),
+        "title": _title(tower),
         "kills": str(tower.kills),
-        "earned": f"{tower.money_earned} $",
-        "range": preview("range", _tiles, " tiles"),
+        "earned": money(tower.money_earned),
+        "range": preview("range", _tiles, "tower_info.tiles"),
         "min_range": preview(
-            "reload_ms", lambda v: f"{flight_speed(v):.1f}", " tiles/s"
+            "reload_ms",
+            lambda v: decimal(flight_speed(v), ".1f"),
+            "tower_info.tiles_per_second",
         ),
         "damage": preview("damage", str),
-        "fire_rate": f"{bomb_rate(tower.bomb_interval_ms):.2f}/s",
+        "fire_rate": tr(
+            "tower_info.per_second",
+            value=decimal(bomb_rate(tower.bomb_interval_ms), ".2f"),
+        ),
         "hp": "-",
     }
 
@@ -156,6 +162,7 @@ class TowerInfoPanel:
 
     def __init__(self, panel_manager: PanelManager) -> None:
         self.tower = None
+        self._label_set: tuple[str, bool] | None = None
         self.rebind(panel_manager)
 
     def rebind(self, panel_manager: PanelManager) -> None:
@@ -166,6 +173,7 @@ class TowerInfoPanel:
         self._values = {key: panel[f"tower_info_{key}_value"] for key in ROWS}
         self._labels = {key: panel[f"tower_info_{key}_label"] for key in ROWS}
         self._hp_bar = panel["tower_info_hp_bar"]
+        self._label_set = None  # new label objects
         self.show(self.tower)
 
     @property
@@ -185,8 +193,11 @@ class TowerInfoPanel:
         self._title.set_text(texts["title"])
         for key, obj in self._values.items():
             obj.set_text(texts[key])
-        for key, text in labels(tower).items():
-            self._labels[key].set_text(text)
+        label_set = (localization.language, getattr(tower, "is_flying", False))
+        if label_set != self._label_set:  # not every frame: they only change then
+            self._label_set = label_set
+            for key, text in labels(tower).items():
+                self._labels[key].set_text(text)
 
     def draw_hp_fill(self, surface: pygame.Surface) -> None:
         """The HP bar's fill, over its background object (drawn with the

@@ -9,12 +9,16 @@ class FakeText:
         self.text = None
         self.color = None
         self.state_texts = {}
+        self.params = None
 
     def set_text(self, text, *, state=None):
         if state is None:
             self.text = text
         else:
             self.state_texts[state] = text
+
+    def set_params(self, **params):
+        self.params = params  # a text_key label; the real one re-renders itself
 
     def set_color(self, color):
         self.color = color
@@ -108,7 +112,7 @@ def test_on_level_changed_updates_level_text(tower_config):
 
     game_state.advance_level()
 
-    assert panel["level_text"].text == "Round 2"
+    assert panel["level_text"].params == {"level": 2}
 
 
 def test_on_lives_changed_updates_live_text(tower_config):
@@ -131,7 +135,7 @@ def test_refresh_resyncs_from_directly_mutated_game_state(tower_config):
 
     assert panel["coin_text"].text == "42"
     assert panel["live_text"].text == "3"
-    assert panel["level_text"].text == "Round 5"
+    assert panel["level_text"].params == {"level": 5}
 
 
 def test_rebind_panel_refetches_text_objects_and_reapplies_prices(tower_config):
@@ -156,7 +160,10 @@ def test_plane_upgrade_button_shows_its_configured_price_on_hover(tower_config):
     price = tower_config.prices[3][1]
 
     expected = f"{price / 1000:g}K $" if price >= 1000 else f"{price} $"
-    assert panel["upgrade_plane_button_text"].state_texts == {"hover": expected}
+    assert panel["upgrade_plane_button_text"].state_texts == {
+        "hover": expected,
+        "default": "UPG PLANES",
+    }
 
 
 def test_buy_buttons_are_only_updated_when_their_look_changes(tower_config):

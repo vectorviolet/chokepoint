@@ -31,7 +31,7 @@ LAST_COIN_LANDS = COIN_FLIGHT_MS + (COINS_PER_KILL[1] - 1) * COIN_STAGGER_MS
 def feedback(assets):
     return KillFeedback(
         assets.get_image("coin_sheet"),
-        assets.font_path("comic_neue_bold"),
+        assets.font_path("fira_sans_bold"),
         random.Random(1),
     )
 

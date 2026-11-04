@@ -138,12 +138,12 @@ hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what a
 | `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "credits", "game"); switching is `panel_manager.current_panel = "name"` |
 | `tilemap` | `Tilemap` | 47×34 tile grid loaded from a Tiled `.tmx`; pre-rendered once after splash |
 | `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears. `on_wave_cleared` fires once per wave as its last enemy goes; `Game` opens the victory popup there when round `WIN_WAVE` is cleared (before the counter moves on; its subtitle is built from `WIN_WAVE`), and otherwise uses it for auto-pause between waves (the HUD's hourglass toggle, the global `auto_pause_between_waves` setting), which pauses the run there until start is pressed |
-| `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners. Grays out the buy buttons of towers you can't afford (`refresh_buy_buttons()`, also the plane's level-2 look) and flashes the money counter red on a refused pick (`flash_money()`, real time via `update()`). Once bought, UPG PLANES shows as maxed (`refresh_plane_upgrade()`: grayed, "MAX" on hover, clicks ignored) |
+| `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners. Grays out the buy buttons of towers you can't afford (`refresh_buy_buttons()`, also the plane's level-2 look) and flashes the money counter red on a refused pick (`flash_money()`, real time via `update()`). Once bought, UPG PLANES shows as maxed (`refresh_plane_upgrade()`: grayed, "MAX" on hover, clicks ignored); `refresh_language()` rebuilds its texts, the prices and the round counter |
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference. A tower you can't afford can't be picked (button or number key): `on_denied` is told instead (`Game._deny_purchase`: a denied sound and the money flash). `keep_placing` (the HUD's toggle, flipped by a Shift press; the global `keep_placing` setting, `Game.keep_placing`) keeps placement mode on after a placement while the type is still affordable. Over a tile that can't be built on, the preview is tinted red |
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
 | `hud_slide` | `HudSlide` | Tab slides the in-game HUD (counters, control buttons, tower bar) off the screen edges and back, drawn-only and on real time; money/lives counters peek back for 1.5 s when they change. `toggle()` is the entry point for a future on-screen button |
 | `tower_info` | `TowerInfoPanel` | The selected tower's info panel (`tower_info_*` objects in `config/panels.yaml`): kills, money earned, range, blind spot (the heavy cannon's minimum range; "-" for the rest), damage, fire rate, HP bar, and "current → next" upgrade previews below max level. A click on a flying plane (its sprite padded like an enemy's; planes win over enemies and ground towers under the cursor) opens it on that plane: Splash, Speed and Bombs (per second) rows instead of Range, Blind spot and Fire rate, HP "-" with no bar, previews for the global UPG PLANES upgrade, no sell/upgrade buttons; it closes when the plane leaves the map. Refreshed every frame from `_selected_tower()`; slides away with the HUD on Tab. Kills/money are credited to the tower whose shot or bomb landed the killing blow (`Enemy.decrease_hp(..., source=tower)`) and saved with it |
-| `buy_tooltip` | `BuyTooltip` | Hovering a buy button shows the tower's name and one-line strength/weakness (`name` + `tooltip` per tower in `config/towers.yaml`, loaded by `config_loader.load_tower_tooltips()`) on the `buy_tooltip_*` objects in `config/panels.yaml`, sized to the text and placed above the button, clamped to the screen. Hidden while the HUD is hidden or sliding; takes no clicks |
+| `buy_tooltip` | `BuyTooltip` | Hovering a buy button shows the tower's name and one-line strength/weakness (`tower_<type>.name` / `.strength` / `.weakness` in `config/lang/<code>.yaml`, shown in the current language; `config_loader.load_tower_tooltips()` reads one language's file for the stats pages) on the `buy_tooltip_*` objects in `config/panels.yaml`, sized to the text and placed above the button, clamped to the screen. Hidden while the HUD is hidden or sliding; takes no clicks |
 | `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none |
 | `life_lost_feedback` | `LifeLostFeedback` | A bell (its own reserved mixer channel 2, outside pygamine's SFX pool, at master × SFX volume: `GameAudio.effective_sfx_volume()`) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
 | `place_sell_feedback` | `PlaceSellFeedback` | Placing a tower: a thud and a dust puff on its tile; selling: a coin clink and coins bursting from the tile. Sounds via `audio.play_sfx` (the SFX pool); effects in world space through the camera, on real time (cosmetic: they play out while paused and ignore x2/x4), capped at `MAX_EFFECTS`. Told by the placement controller (`feedback=`); the menu demo has none |
@@ -161,9 +161,30 @@ Three factory types are registered in `game.py`:
 - `"animated"` → `panel_factory.make_animated_factory(assets)` → creates animated sprite objects
 
 YAML keys for image objects: `position`, `size`, `asset`, `hover`, `states`, `nine_slice`, `extends`.  
-YAML keys for text objects: `type: text`, `position`, `text`, `font`, `font_size`, `color`.
+YAML keys for text objects: `type: text`, `position`, `text_key` (a key in `config/lang`; with `text_params` for `{placeholders}`) or a literal `text` for text that is never translated (numbers, `<` `>`, the credits' names), `font`, `font_size`, `color`.
 
 `nine_slice` uses `core.image.nine_slice_scale()` — `corner` is the corner region size **in source pixels**. Only edges/center are stretched; corners are pixel-perfect.
+
+### Localization
+
+Every player-visible string is in `config/lang/en.yaml` (the fallback) and `tr.yaml`, through
+pygamine's localization (`pygamine/docs/decisions/0001-localization.md`): panels use `text_key:`,
+code uses `tr("key", **params)` (`from pygamine.util.localization import tr`), money and every decimal number go through
+`util/text.py` (`money()`, `money_short()`, `reward()`, `decimal()`; Turkish uses a decimal comma, from `format.decimal_separator`). Logs, debug overlays and balance tools stay
+English. `Game.__init__` loads the folder and sets the saved language (`language` in the settings
+file; English if missing or unknown). A language switch must go through `Game.set_language(code)`
+(the GAME tab's Language row, `_cycle_language`): pygamine re-renders every `text_key` label, then
+`_refresh_language_texts()` rebuilds the texts the game sets itself with `set_text(tr(...))` (toggle
+labels, window mode, the pause menu's music button, prices, the plane upgrade label, the open
+tooltip and tower panel). Texts in a `states:` block aren't key-driven (engine limit): set them from
+code and refresh them there (UPG PLANES). A round counter or subtitle with a number is a `text_key`
+with `text_params`, updated with `set_params()`. To add a language, drop `<code>.yaml` in
+`config/lang` with the same keys and `{placeholders}`; the Language row finds it. To add a string,
+add its key to **both** files: `tests/test_localization.py` fails on a missing key or placeholder, a
+key nothing uses, and a glyph the fonts (Anton, Fira Sans Regular and Bold) can't draw;
+`tests/test_localization_fit.py` measures every text in both languages. Turkish captions and every language's `_meta.name`
+(shown on the Language row) are written in capitals by hand (İ and I, never a case function). Every tower in
+`towers.yaml` needs its `tower_<type>.name/strength/weakness` keys (tested). The folder is `config_loader.LANG_DIR`. codespell skips `config/lang/tr.yaml`.
 
 ### Settings tabs
 
@@ -180,7 +201,7 @@ To fill CONTROLS (a row is two edits: its objects and its entry): copy a row in 
 the tab's group (`parent: <key>_tab`), and add one `SettingsRow(button, handler, arg)` per `<` / `>`
 button to that tab's `rows` in `SETTINGS_TABS` (the Game method that handles it, called as
 `handler(arg)`; the same list gives the keyboard focus order and the click dispatch), then set
-the tab's `shown=True` (its button appears). A new setting also needs its reset line in
+the tab's `shown=True` (its button appears). The GAME tab's Language row (`language_*` objects, `_cycle_language`, saved as `language`) is not a toggle: Reset returns it to English. A new setting also needs its reset line in
 `Game._reset_settings` and its saving in `_save_settings`. The `< ON/OFF >` toggle rows (DISPLAY: Reduce flashing; GAME: Skip intro, Pause on focus loss) are the `TOGGLE_SETTINGS` list in `settings_tabs.py`: add a key there (plus its default under `gameplay` in `config/settings.yaml` and its `<key>_back_button` / `_next_button` / `_value_text` objects) and `Game.toggles` loads, saves, resets and labels it; the tab lists its buttons with `toggle_rows(key)` (both arrows call `_toggle_setting(key)`, which calls `Game.set_toggle`). Skip intro is read once at startup (no `SplashScreen` is built when on, so `run()` opens the menu at once). Pause on focus loss: a `WINDOWFOCUSLOST` event only marks a pending loss, and `Game._sync_focus()` (each `update()`) opens the pause menu if `pygame.key.get_focused()` is still False, in a battle with no popup open (so F11's focus blip doesn't pause; it never resumes on focus back, and a mouse press within `REFOCUS_CLICK_WINDOW_MS` of refocusing a focus-loss pause is swallowed). `Game._window_focused` is read from `get_focused()` each update and stops camera edge scrolling whatever the toggle says. Reduce flashing is `Game.set_toggle("reduce_flashing", on)`, which sets the `reduce_flashing` flag of the game's and the menu demo's feedback classes (`BattleSimulation.set_reduce_flashing()`). `link_hierarchy()` (run once per panel
 load) makes a parent's `active` cover its `parent:` children, which the panel loader doesn't do
 itself.
@@ -213,7 +234,8 @@ The battle part (`BattleSimulation._draw_battle`) is shared by the game and the 
 | File | Loaded by | Structure |
 |------|-----------|-----------|
 | `config/assets.yaml` | `AssetManager.load_manifest()` | `{images: {key: {folder, name}}, sounds: {key: {folder, name}}}` |
-| `config/towers.yaml` | `config_loader.load_tower_config()`, `load_tower_tooltips()` | Produces `TowerConfig` dataclass with `.prices`, `.max_levels`, `.ranges`, `.damages`, `.speeds`; plus each tower's buy-tooltip `name` and `tooltip: {strength, weakness}` |
+| `config/towers.yaml` | `config_loader.load_tower_config()` | Produces `TowerConfig` dataclass with `.prices`, `.max_levels`, `.ranges`, `.damages`, `.speeds` |
+| `config/lang/<code>.yaml` | `pygamine.util.localization` (`Game.__init__`) | Every player-visible string, nested keys with `{placeholders}`; `en.yaml` is the fallback |
 | `config/enemies.yaml` | `config_loader.load_enemy_stats()` | HP/speed/kill_money/damage per enemy type |
 | `config/waves.yaml` | `config_loader.load_wave_compositions()` | `{wave_num: [[enemy_type, count], ...]}` |
 | `config/panels.yaml` | `PanelLoaderExt.load()` | Panels + groups + optional `object_templates` |

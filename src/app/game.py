@@ -29,12 +29,13 @@ from pygamine import (
     make_scrolling_panel_factory,
 )
 from util.config_loader import (
+    LANG_DIR,
     gameplay_settings,
     load_settings,
     load_tower_config,
-    load_tower_tooltips,
 )
 from pygamine import Camera
+from pygamine.util.localization import DEFAULT_LANGUAGE, localization, tr
 from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS, WIN_WAVE
 
 # A mouse press this soon after the window regains focus after a focus-loss
@@ -67,12 +68,6 @@ from gameplay.combat.wave_manager import WaveManager
 from gameplay.battle import BattleSimulation
 from gameplay.menu_demo import MenuDemo
 
-WINDOW_MODE_LABELS = {
-    "fullscreen": "FULLSCREEN",
-    "borderless": "BORDERLESS",
-    "windowed": "WINDOWED",
-}
-
 # Toggled together via _set_victory_popup_active() -- the panel/GuiObject
 # system has no group-visibility concept, so each object's .active is set
 # individually (see config/panels.yaml's victory_* objects).
@@ -88,9 +83,6 @@ _VICTORY_POPUP_OBJECTS = (
     "victory_main_menu",
     "victory_main_menu_text",
 )
-
-# The victory popup's subtitle, built from WIN_WAVE so it can't drift from it.
-VICTORY_SUBTITLE = f"Round {WIN_WAVE} cleared"
 
 _GAMEOVER_POPUP_OBJECTS = (
     "gameover_overlay",
@@ -142,6 +134,16 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
         self.settings_store = SaveStore("settings")
         saved_settings = self.settings_store.load()
+        # The language tables, and the saved language (English if there is
+        # none or it isn't available: a hand-edited file, a removed language).
+        localization.load(LANG_DIR)
+        saved_language = saved_settings.get("language")
+        localization.set_language(
+            saved_language
+            if isinstance(saved_language, str)
+            and saved_language in localization.languages()
+            else DEFAULT_LANGUAGE
+        )
         # Missing (e.g. master in old settings files) or broken values load
         # at the shipped default; out-of-range ones are clamped to 0-1.
         for volume in VOLUME_SETTINGS:
@@ -287,12 +289,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._resume_on_unpause = False  # was the run going when the menu opened?
         self._settings_return_panel = "main_menu"  # where Settings' Back leads
         self._settings_tab = DEFAULT_TAB  # the open Settings tab (kept over resizes)
-        self.buy_tooltip = BuyTooltip(
-            self.panel_manager, self.size, load_tower_tooltips()
-        )
+        self.buy_tooltip = BuyTooltip(self.panel_manager, self.size)
         self.kill_feedback = KillFeedback(
             self.assets.get_image("coin_sheet"),
-            self.assets.font_path("comic_neue_bold"),
+            self.assets.font_path("fira_sans_bold"),
             rng=rng(),
         )
         self.life_lost_feedback = LifeLostFeedback(
@@ -349,6 +349,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         resize rebuilds those objects from scratch."""
         self._refresh_window_size_label()
         self._refresh_window_mode_label()
+        self._refresh_language_label()
         settings_panel = self.panel_manager["settings"]
         self.settings_tabs = SettingsTabs(settings_panel, self._settings_tab)
         for volume in VOLUME_SETTINGS:
@@ -447,7 +448,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
         loader.load("config/panels.yaml")
         link_hierarchy(self.panel_manager["settings"])
-        self.panel_manager["game"]["victory_subtitle_text"].set_text(VICTORY_SUBTITLE)
+        self.panel_manager["game"]["victory_subtitle_text"].set_params(wave=WIN_WAVE)
         self._bind_popup_objects()
 
     def _bind_popup_objects(self) -> None:
@@ -469,13 +470,44 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     def _refresh_window_mode_label(self) -> None:
         self.panel_manager["settings"]["window_mode_value_text"].set_text(
-            WINDOW_MODE_LABELS[self._window_mode]
+            tr(f"settings.window_mode_{self._window_mode}")
         )
 
     def _refresh_toggle_labels(self) -> None:
         settings = self.panel_manager["settings"]
         for key, on in self.toggles.items():
-            settings[f"{key}_value_text"].set_text("ON" if on else "OFF")
+            settings[f"{key}_value_text"].set_text(
+                tr("settings.on" if on else "settings.off")
+            )
+
+    def _refresh_language_label(self) -> None:
+        """The language row shows the current language's own name (its
+        `_meta.name`, written in capitals in the language file)."""
+        name = localization.languages()[localization.language]
+        self.panel_manager["settings"]["language_value_text"].set_text(name)
+
+    def set_language(self, code: str) -> None:
+        """Switches the language at once: every key-driven text re-renders
+        (pygamine), then the texts the game formats itself are rebuilt. Saved
+        with the other settings. Raises KeyError, changing nothing, for an
+        unknown code. Always switch through here, not localization alone, so
+        the texts built in code follow."""
+        localization.set_language(code)
+        self._refresh_language_texts()
+
+    def _refresh_language_texts(self) -> None:
+        """Re-sets every text the game builds in code, in the current language."""
+        self._refresh_window_mode_label()
+        self._refresh_toggle_labels()
+        self._refresh_language_label()
+        self._refresh_music_toggles()
+        self._refresh_game_language_texts()
+
+    def _refresh_game_language_texts(self) -> None:
+        """The in-run texts built in code: HUD, tower panel, open tooltip."""
+        self.hud.refresh_language()
+        self.tower_info.show(self.tower_info.tower)
+        self.buy_tooltip.refresh_language()
 
     def _refresh_volume_label(self, volume: VolumeSetting) -> None:
         self.panel_manager["settings"][volume.label].set_text(
@@ -520,13 +552,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 "music_on": not self.audio.is_music_paused,
                 "auto_pause_between_waves": self.auto_pause,
                 "keep_placing": self.keep_placing,
+                "language": localization.language,
                 **self.toggles,
             }
         )
 
     def _reset_settings(self) -> None:
-        """Restores window mode/size and the three volumes to config/settings.yaml's
-        shipped defaults (not merely the values from the last save), then
+        """Restores window mode/size, the three volumes and the language (English)
+        to the shipped defaults (not merely the values from the last save), then
         persists immediately -- Reset is a deliberate action, not a live drag,
         so it shouldn't wait for the player to also press Back."""
         self.reset_window_settings()
@@ -538,8 +571,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.keep_placing = self._default_keep_placing
         for key, default in self._default_toggles.items():
             self.set_toggle(key, default)
+        localization.set_language(DEFAULT_LANGUAGE)
 
-        self._bind_settings_ui()  # sliders, labels and window labels
+        self._bind_settings_ui()  # sliders, labels (language too) and window labels
+        self._refresh_game_language_texts()
         self._save_settings()
 
     # ── BattleSimulation hooks ───────────────────────────────────────────────

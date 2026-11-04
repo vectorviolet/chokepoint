@@ -1,5 +1,7 @@
 import pygame
 
+from pygamine.util.localization import localization, tr
+
 from app.settings_tabs import DEFAULT_TAB, SETTINGS_TABS
 from util.constants import GAME_SPEEDS
 
@@ -118,6 +120,13 @@ class GameEventsMixin:
         self.cycle_window_mode(step)
         self._refresh_window_mode_label()
         self._refresh_window_size_label()
+
+    def _cycle_language(self, step: int) -> None:
+        """The Language row's `<` / `>`: the previous / next language, wrapping."""
+        codes = list(localization.languages())
+        self.set_language(
+            codes[(codes.index(localization.language) + step) % len(codes)]
+        )
 
     def _toggle_setting(self, key: str) -> None:
         """A `< ON/OFF >` row's button (either arrow): flips toggle `key`."""
@@ -348,5 +357,5 @@ class GameEventsMixin:
                 panel["music_toggle_icon"].set_state("paused" if paused else None)
             if "pause_music_text" in panel:  # the pause menu's Music button
                 panel["pause_music_text"].set_text(
-                    "MUSIC: OFF" if paused else "MUSIC: ON"
+                    tr("pause.music_off" if paused else "pause.music_on")
                 )

@@ -1,0 +1,119 @@
+# English strings: every player-visible text of the game, addressed by
+# dotted keys (pygamine's localization, ADR 0001 there). English is the
+# fallback language. tr.yaml must have exactly the same keys and
+# {placeholders}; tests/test_localization.py checks it, plus the fonts' glyphs.
+# Logs, debug overlays and the balance tools stay English and are not here.
+# Quote every value (a bare ON or 10 would not be a string).
+_meta:
+  name: "ENGLISH"  # shown on the Language row: written in capitals by hand
+
+common:
+  back: "BACK"
+  main_menu: "MAIN MENU"
+  play_again: "PLAY AGAIN"
+
+menu:
+  play: "PLAY"
+  credits: "CREDITS"
+  settings: "SETTINGS"
+  exit: "EXIT"
+  new_game: "NEW GAME"
+  continue: "CONTINUE"
+
+credits:
+  title: "CREDITS"
+  developer: "Developer"
+  art: "Art"
+  ui: "UI"
+  sound: "Sound"
+  vfx: "VFX"
+  music: "Music"
+  license_cc_by: "Licensed under CC BY 3.0"
+  fonts: "Fonts"
+  built_with: "Built with"
+
+settings:
+  title: "SETTINGS"
+  tab_display: "DISPLAY"
+  tab_audio: "AUDIO"
+  tab_game: "GAME"
+  tab_controls: "CONTROLS"
+  window_size: "WINDOW SIZE"
+  window_mode: "WINDOW MODE"
+  window_mode_fullscreen: "FULLSCREEN"
+  window_mode_borderless: "BORDERLESS"
+  window_mode_windowed: "WINDOWED"
+  reduce_flashing: "REDUCE FLASHING"
+  skip_intro: "SKIP INTRO"
+  pause_on_focus_loss: "PAUSE ON FOCUS LOSS"
+  language: "LANGUAGE"
+  master_volume: "MASTER VOLUME"
+  sfx_volume: "SFX VOLUME"
+  music_volume: "BGM VOLUME"
+  reset: "RESET TO DEFAULT"
+  "on": "ON"
+  "off": "OFF"
+
+format:
+  decimal_separator: "."
+  money: "{amount} $"
+  money_thousands: "{amount}K $"
+  reward: "+${amount}"
+
+hud:
+  round: "Round {level}"
+  upgrade_planes: "UPG PLANES"
+  maxed: "MAX"
+
+tower_info:
+  kills: "Kills"
+  earned: "Earned"
+  range: "Range"
+  min_range: "Blind spot"
+  damage: "Damage"
+  fire_rate: "Fire rate"
+  hp: "HP"
+  plane_range: "Splash"
+  plane_speed: "Speed"
+  plane_bombs: "Bombs"
+  level: "Level {level} / {max_level}"
+  level_max: "Level {level} / {max_level}  (max)"
+  tiles: "{value} tiles"
+  tiles_per_second: "{value} tiles/s"
+  per_second: "{value}/s"
+
+buy_tooltip:
+  good: "Good"
+  weak: "Weak"
+
+# Buy button tooltips (ui/buy_tooltip.py): the tower's name and one line each.
+tower_1:
+  name: "Rapid gun"
+  strength: "Cheap and fires fast"
+  weakness: "Short range, low damage, no upgrades"
+tower_2:
+  name: "Homing missile"
+  strength: "Missiles home in; damage grows fast with upgrades"
+  weakness: "Slow reload; full power needs costly upgrades"
+tower_3:
+  name: "Heavy cannon"
+  strength: "Long range, heavy hits, sturdy"
+  weakness: "Slow to fire, expensive, can't hit enemies up close"
+tower_4:
+  name: "Plane"
+  strength: "Splash bombs along its flight; tanks can't hit it"
+  weakness: "Flies once to the map's right edge, then it's gone"
+
+pause:
+  title: "PAUSED"
+  music_on: "MUSIC: ON"
+  music_off: "MUSIC: OFF"
+
+victory:
+  title: "YOU WON!"
+  subtitle: "Round {wave} cleared"
+  continue_endless: "CONTINUE (ENDLESS)"
+
+gameover:
+  title: "GAME OVER"
+  subtitle: "You ran out of lives"

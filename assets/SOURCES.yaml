@@ -14,10 +14,10 @@ packs:
     url: https://fonts.google.com/specimen/Anton
     license: OFL-1.1
     used_for: "display font"
-  font-comic-neue:
-    name: "Comic Neue"
-    author: "Craig Rozynski"
-    url: https://fonts.google.com/specimen/Comic+Neue
+  font-fira-sans:
+    name: "Fira Sans"
+    author: "Mozilla Foundation, Telefonica S.A."
+    url: https://fonts.google.com/specimen/Fira+Sans
     license: OFL-1.1
     used_for: "text font"
   kenney-impact-sounds:
@@ -98,19 +98,18 @@ files:
   "fonts/Anton-Regular.ttf":
     source: font-anton
     original: "ofl/anton/Anton-Regular.ttf"
-  "fonts/ComicNeue-Bold.ttf":
-    source: font-comic-neue
-    original: "ofl/comicneue/ComicNeue-Bold.ttf"
-  "fonts/ComicNeue-Regular.ttf":
-    source: font-comic-neue
-    original: "ofl/comicneue/ComicNeue-Regular.ttf"
+  "fonts/FiraSans-Bold.ttf":
+    source: font-fira-sans
+    original: "ofl/firasans/FiraSans-Bold.ttf"
+  "fonts/FiraSans-Regular.ttf":
+    source: font-fira-sans
+    original: "ofl/firasans/FiraSans-Regular.ttf"
   "fonts/OFL-Anton.txt":
     source: font-anton
     original: "ofl/anton/OFL.txt"
-  "fonts/OFL-ComicNeue.txt":
-    source: font-comic-neue
-    original: "ofl/comicneue/OFL.txt"
-    modified: "whitespace only"
+  "fonts/OFL-FiraSans.txt":
+    source: font-fira-sans
+    original: "ofl/firasans/OFL.txt"
   "images/branding/logo.png":
     source: own
     note: "made by the developer in Canva: the Bungee font (SIL OFL) with the developer's own glitch effect"

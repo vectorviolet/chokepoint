@@ -4,6 +4,7 @@ import pygame
 from pygame.math import Vector2
 
 from util.constants import TILE_SIZE, HALF_TILE
+from util.text import money
 from gameplay.rotatable_object import RotatableObject
 from pygamine import StateObject
 from domain.game_state import GameState, TowerConfig
@@ -37,7 +38,7 @@ class BaseTower(RotatableObject):
         )
         self.assets = assets
         self.audio = audio
-        self._price_font = pygame.font.Font(assets.font_path("comic_neue"), 17)
+        self._price_font = pygame.font.Font(assets.font_path("fira_sans"), 17)
         self.tower_type = tower_type
         self.row = row
         self.col = col
@@ -217,7 +218,7 @@ class BaseTower(RotatableObject):
         sell_btn = StateObject(
             None, screen + SELL_BTN_OFFSET, BTN_SIZE, self.assets.image_path("btn_sell")
         )
-        sell_text = self._price_font.render(f"{self.sell_price} $", True, "white")
+        sell_text = self._price_font.render(money(self.sell_price), True, "white")
 
         if self.is_max_level():
             StateObject(
@@ -235,7 +236,7 @@ class BaseTower(RotatableObject):
             )
             upgrade_color = "green" if game_state.money >= self.upgrade_price else "red"
             upgrade_text = self._price_font.render(
-                f"{self.upgrade_price} $", True, upgrade_color
+                money(self.upgrade_price), True, upgrade_color
             )
             surface.blit(upgrade_text, screen + Vector2(-50, -60))
             upgrade_btn.draw(surface)
