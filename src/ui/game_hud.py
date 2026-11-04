@@ -71,7 +71,7 @@ class GameHUD:
         icon.add_surface(MAXED, _grayed(icon.images[None]))
 
     def refresh_plane_upgrade(self) -> None:
-        """Once planes are upgraded (the max level), the UPG PLANES button
+        """Once planes are upgraded (the max level), the plane-upgrade button
         and its icon are grayed and clicks on it do nothing."""
         state = MAXED if self._game_state.plane_level >= 2 else None
         for obj in (self._plane_upgrade_button, self._plane_upgrade_icon):

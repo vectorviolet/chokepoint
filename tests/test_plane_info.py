@@ -327,7 +327,7 @@ def test_a_selected_plane_has_no_sell_button(game, plane):
 
 def test_the_panel_follows_the_plane_upgrade(game, plane):
     click(game, screen_pos(game, plane))
-    game.game_state.plane_level = 2  # UPG PLANES bought
+    game.game_state.plane_level = 2  # plane upgrade bought
 
     game._tick()  # the plane picks up the new level on its update
     frame(game)

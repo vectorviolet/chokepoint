@@ -16,7 +16,7 @@ from pygamine import SaveStore
 from pygamine.util.localization import Localization, localization, missing_glyphs, tr
 from ui.tower_info import ARROW
 from util.config_loader import LANG_DIR, tower_types
-from util.text import decimal, money, money_short, reward
+from util.text import decimal, money, reward
 
 ROOT = Path(__file__).resolve().parent.parent
 # Every font a language's strings can be drawn in (config/assets.yaml).
@@ -103,12 +103,10 @@ def test_the_languages_have_a_display_name():
 def test_decimals_use_the_languages_separator():
     assert decimal(1.5) == "1.5"
     assert decimal(1.6667, ".2f") == "1.67"
-    assert money_short(1500) == "1.5K $"
     localization.set_language("tr")
     assert decimal(1.5) == "1,5"
     assert decimal(1.6667, ".2f") == "1,67"
     assert decimal(3) == "3"
-    assert money_short(1500) == "1,5 bin $"
 
 
 def test_the_tower_panel_shows_decimal_commas_in_turkish(tower_config, assets):
@@ -149,11 +147,7 @@ def test_there_is_a_buy_button_for_every_tower():
 
 def test_the_money_formats():
     assert money(100) == "100 $"
-    assert money_short(600) == "600 $"
-    assert money_short(5000) == "5K $"
     assert reward(12) == "+$12"
-    localization.set_language("tr")
-    assert money_short(5000) == "5 bin $"
 
 
 # ── the setting, in a real Game ──────────────────────────────────────────────

@@ -416,6 +416,13 @@ def buy_plane_upgrade(game, mouse):
     game.played.clear()
 
 
+def opaque_colors(image):
+    """For each visible pixel of `image`: True if it's gray, False if colored."""
+    w, h = image.get_size()
+    pixels = (image.get_at((x, y)) for x in range(w) for y in range(h))
+    return {c.r == c.g == c.b for c in pixels if c.a > 0}
+
+
 def assert_maxed(game):
     button = panel(game)["upgrade_plane_button"]
     assert button.state == "maxed"
@@ -425,8 +432,8 @@ def assert_maxed(game):
     assert c.r == c.g == c.b  # the grayscale look of an unaffordable buy button
     icon = panel(game)["upgrade_plane_button_icon"]
     assert icon.state == "maxed"
-    c = icon.images["maxed"].get_at((icon.images["maxed"].get_width() // 2, 4))
-    assert c.r == c.g == c.b
+    assert False in opaque_colors(icon.images[None])  # the icon has color (the arrow)
+    assert opaque_colors(icon.images["maxed"]) == {True}  # the maxed look: all gray
 
 
 def test_before_the_upgrade_it_shows_the_plane_icon_and_no_text(game):
@@ -543,7 +550,15 @@ def test_u_once_maxed_does_nothing(game):
     assert game.played == []
 
 
-@pytest.mark.parametrize("extra", [{"repeat": True}, {"mod": pygame.KMOD_LCTRL}])
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"repeat": True},
+        {"mod": pygame.KMOD_LCTRL},
+        {"mod": pygame.KMOD_LALT},
+        {"mod": pygame.KMOD_LMETA},
+    ],
+)
 def test_u_repeats_and_chords_are_ignored(game, extra):
     set_money(game, game.tower_config.prices[3][1] + 50)
 
@@ -569,3 +584,15 @@ def test_u_waits_while_a_popup_is_open(game):
     key(game, pygame.K_u)
 
     assert game.game_state.plane_level == 1
+
+
+def test_u_works_while_the_hud_is_hidden(game):
+    """Like the other hotkeys: a hidden HUD doesn't stop U."""
+    set_money(game, game.tower_config.prices[3][1] + 50)
+    key(game, pygame.K_TAB)
+    game.hud_slide.update(SLIDE_MS + 50)
+
+    key(game, pygame.K_u)
+
+    assert game.game_state.plane_level == 2
+    assert game.played == [str(game.click_sound_path)]

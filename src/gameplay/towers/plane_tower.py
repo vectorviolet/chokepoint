@@ -12,7 +12,7 @@ BOMB_DROP_INTERVAL_MS = 500
 class PlaneTower(BaseTower):
     draws_own_bullets = True  # bombs fall from under the plane, not over it
     # Flies over the map: selected by a click on its sprite (not its tile),
-    # with no sell/upgrade buttons -- planes upgrade together (UPG PLANES).
+    # with no sell/upgrade buttons -- planes upgrade together (the plane-upgrade button).
     is_flying = True
     bomb_interval_ms = BOMB_DROP_INTERVAL_MS
 
@@ -106,7 +106,7 @@ class PlaneTower(BaseTower):
         return rect
 
     # No sell or upgrade buttons on a selected plane: it can't be sold, and
-    # every plane upgrades at once through the HUD's UPG PLANES button.
+    # every plane upgrades at once through the HUD's plane-upgrade button.
 
     def hits_action_button(self, mouse_pos: tuple, camera) -> bool:
         return False
