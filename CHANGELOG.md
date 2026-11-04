@@ -193,7 +193,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   or game over popups; the popups now cover everything from the run
   ([#93](https://github.com/vectorviolet/chokepoint/issues/93)).
 - A tower destroyed by tanks can no longer be sold or upgraded in the frame before it is removed
-  ([#110](https://github.com/vectorviolet/chokepoint/pull/145)).
+  ([#145](https://github.com/vectorviolet/chokepoint/pull/145)).
 
 ### Development
 
