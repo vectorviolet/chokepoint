@@ -194,7 +194,10 @@ class BaseTower(RotatableObject):
     def sell(
         self, mouse_pos: tuple, game_state: GameState, towers: list, camera
     ) -> None:
-        if game_state.selected_tower != self:
+        """Sells the selected tower on a click on its sell button. A destroyed
+        tower (HP 0, not yet removed by the battle's next tick) can't be sold
+        and pays no refund; its destruction effect plays as it is removed."""
+        if game_state.selected_tower != self or self.should_remove():
             return
         if self._sell_hit_rect(camera).collidepoint(mouse_pos):
             game_state.increase_money(self.sell_price)

@@ -482,20 +482,29 @@ def test_a_tower_loaded_at_zero_hp_explodes_once_when_removed(game):
     assert len(game.death_feedback.decals) == 1
 
 
-def test_a_tower_sold_before_its_removal_still_explodes(game):
-    """Its HP runs out and the player sells it in the same frame, before
-    the tick that would remove it: its blast and rubble already show."""
+def test_a_tower_destroyed_this_frame_cannot_be_sold_but_still_explodes(game):
+    """Its HP runs out and the player clicks Sell in the same frame, before
+    the tick that would remove it: no sale and no refund, and the blast and
+    rubble show as the battle removes it."""
     tower = ground_tower(game)
     tower.hp = 1
     tank = Tank(1, TANK, 1, [tower.position + Vector2(200, 0)], game.assets)
     TankBullet(tank, tower, tower.position).update(game)
     game.game_state.selected_tower = tower
+    money = game.game_state.money
     controller = game.tower_controller
     assert controller._handle_tower_actions(tower._sell_hit_rect(game.camera).center)
 
-    assert tower not in game.towers
+    assert tower in game.towers
+    assert game.game_state.money == money
     assert blasts(game) == [(tuple(tower.position), TOWER_BLAST_SIZE)]
     assert len(game.death_feedback.decals) == 1
+
+    game._tick()
+
+    assert tower not in game.towers
+    assert game.game_state.money == money
+    assert len(game.death_feedback.tower_blasts) == 1
 
 
 def test_a_tank_is_the_enemy_with_the_big_blast(assets):

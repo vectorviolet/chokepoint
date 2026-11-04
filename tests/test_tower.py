@@ -159,6 +159,19 @@ def test_sell_does_nothing_when_tower_is_not_selected(tower_config, assets):
     assert tower in towers
 
 
+def test_a_destroyed_tower_cannot_be_sold_for_a_refund(tower_config, assets):
+    tower = make_tower(tower_config, assets)
+    towers = [tower]
+    gs = GameState(start_money=0, start_lives=10)
+    gs.selected_tower = tower
+    tower.hp = 0  # a tank shell took the last HP; the battle hasn't removed it yet
+
+    tower.sell(_click_at(SELL_BTN_OFFSET, tower.position), gs, towers, IdentityCamera())
+
+    assert gs.money == 0
+    assert tower in towers
+
+
 # ── sell price ───────────────────────────────────────────────────────────────
 
 
