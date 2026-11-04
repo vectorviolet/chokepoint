@@ -67,7 +67,8 @@ Types 5–6 are armed: while advancing, they fire on the nearest ground tower in
 | 3 | Heavy cannon   | 2      | $280       | Long range and heavy hits; cannot target enemies within its 1.5-tile blind spot |
 | 4 | Plane          | 2      | $600       | Flies over the map, dropping bombs along its path |
 
-Planes reach level 2 through the one-time **$5000 UPG PLANES** upgrade. It applies globally,
+Planes reach level 2 through the one-time **$5000** plane upgrade (the plane-with-arrow HUD button,
+or **U**). It applies globally,
 including to planes already flying. A plane makes one pass toward the right edge; its bombs
 deal splash damage when they land. Fired projectiles keep flying after their source is sold,
 destroyed or removed from the map.
