@@ -150,6 +150,10 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   prompts). No game changes yet; key bindings and tooltips come in their own PRs. The game reads and
   sets `PanelManager.current_panel`, which is now a property in pygamine and behaves the same
   ([#142](https://github.com/vectorviolet/chokepoint/pull/142)).
+- The plane-upgrade icon has the plane in the center with the upgrade arrow overlapping it, so it
+  looks centered on its button
+  ([#141](https://github.com/vectorviolet/chokepoint/issues/141),
+  [devlog](docs/devlog/2026-11-04-planes-icon.md)).
 
 ### Removed
 

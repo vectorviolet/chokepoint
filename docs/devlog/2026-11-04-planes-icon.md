@@ -1,5 +1,5 @@
 # UPG PLANES button as an icon, with key U
-<!-- index | refs: #131, PR #137 -->
+<!-- index | refs: #131, #141, PR #137 -->
 
 **Date:** 2026-11-04 · **Area:** UI, controls · **Issue:** [#131](https://github.com/vectorviolet/chokepoint/issues/131)
 
@@ -41,6 +41,27 @@ The owner decided on the icon and on U (issue #131). Claude chose how it is buil
   has the input.
 - The strings `hud.upgrade_planes` and `hud.maxed` and the text object are removed: nothing else
   used them.
+
+## Update: centered plane (#141)
+
+In the #137 review the owner noticed the icon looked off-center on its button: the plane sat in the
+lower left and the arrow in the upper right. On 2026-11-04 the owner decided to put the plane in
+the middle of the image and let the arrow overlap it
+([#141](https://github.com/vectorviolet/chokepoint/issues/141)). Claude recomposed it from the same
+two Kenney sprites at the same display size (48 px in the 60 px button): the plane (92 px wide,
+dark outline) is centered on the 128 px canvas, and a smaller yellow arrow (52 px wide) sits at its
+upper right over the right wing, drawn on top.
+
+<table>
+<tr>
+<td><img src="img/141-before.png" width="160"><br>Before: plane low left, arrow high right.</td>
+<td><img src="img/141-after.png" width="160"><br>After: plane centered, arrow over its wing.</td>
+</tr>
+</table>
+
+The arrow had to shrink (52 px instead of 64 px: at 64 px it hid the plane's nose), so it
+reads slightly smaller than before. The icon is still shown at 48 px; going to 32 px is a separate
+1.1 card.
 
 ## Rejected alternatives
 
