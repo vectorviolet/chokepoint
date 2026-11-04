@@ -253,6 +253,28 @@ def test_selling_a_tower_tells_the_feedback_its_tile(controller):
     assert spy.sold == [Vector2(tower.position)]
 
 
+def test_a_tower_destroyed_this_frame_cannot_be_sold_by_a_click(controller):
+    c, spy, gs, camera = controller
+    c.buying_tower_type = 1
+    screen = camera.world_to_screen((5 * TILE_SIZE + 5, 5 * TILE_SIZE + 5))
+    click(c, (screen.x, screen.y))
+    tower = c._towers[0]
+    gs.selected_tower = tower
+    money = gs.money
+    tower.hp = 0  # destroyed in the enemy update, removed only on the next tick
+
+    sell = (
+        camera.world_to_screen(tower.position)
+        + SELL_BTN_OFFSET
+        + Vector2(BTN_SIZE[0] / 2, BTN_SIZE[1] / 2)
+    )
+    click(c, (sell.x, sell.y))
+
+    assert gs.money == money
+    assert tower in c._towers
+    assert not spy.sold
+
+
 # ── in the game ───────────────────────────────────────────────────────────────
 
 
