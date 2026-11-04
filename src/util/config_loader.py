@@ -35,6 +35,29 @@ def gameplay_settings(settings: dict | None = None) -> dict:
     return (load_settings() if settings is None else settings)["gameplay"]
 
 
+def parse_hp(hp, where: str) -> int:
+    """One HP value from a config file. The HP bars divide by it, so it must
+    be a whole number of at least 1; raises ValueError naming `where` if
+    not (so a bad config fails at startup, not when a bar is drawn)."""
+    if type(hp) is not int or hp < 1:
+        raise ValueError(
+            f"{where}: hp must be a whole number of at least 1, got {hp!r}"
+        )
+    return hp
+
+
+def parse_hps(tower: dict) -> list[int] | None:
+    """A tower's per-level `hps`, or None when it has none (planes). Raises
+    ValueError naming the tower type unless every level is a valid HP."""
+    hps = tower.get("hps")
+    if hps is None:
+        return None
+    where = f"config/towers.yaml: tower type {tower['type']}"
+    if not isinstance(hps, list):
+        raise ValueError(f"{where}: hps must be a list, got {hps!r}")
+    return [parse_hp(hp, where) for hp in hps]
+
+
 def load_tower_config() -> TowerConfig:
     with open(_CONFIG_DIR / "towers.yaml") as f:
         data = yaml.safe_load(f)
@@ -46,7 +69,7 @@ def load_tower_config() -> TowerConfig:
         ranges=[t["ranges"] for t in towers],
         damages=[t["damages"] for t in towers],
         speeds=[t["speeds"] for t in towers],
-        hps=[t.get("hps") for t in towers],
+        hps=[parse_hps(t) for t in towers],
         shoot_sounds=[t.get("shoot_sound") for t in towers],
         min_ranges=[parse_min_ranges(t) for t in towers],
     )
@@ -122,7 +145,7 @@ def load_enemy_stats() -> dict[int, EnemyStats]:
 
     return {
         int(k): EnemyStats(
-            hp=v["hp"],
+            hp=parse_hp(v["hp"], f"config/enemies.yaml: enemy type {k}"),
             speed=float(v["speed"]),
             kill_money=v["kill_money"],
             damage=v["damage"],
