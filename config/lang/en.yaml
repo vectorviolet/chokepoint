@@ -62,8 +62,6 @@ format:
 
 hud:
   round: "Round {level}"
-  upgrade_planes: "UPG PLANES"
-  maxed: "MAX"
 
 tower_info:
   kills: "Kills"

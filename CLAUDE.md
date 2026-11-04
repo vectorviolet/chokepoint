@@ -138,7 +138,7 @@ hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what a
 | `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "credits", "game"); switching is `panel_manager.current_panel = "name"` |
 | `tilemap` | `Tilemap` | 47×34 tile grid loaded from a Tiled `.tmx`; pre-rendered once after splash |
 | `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears. `on_wave_cleared` fires once per wave as its last enemy goes; `Game` opens the victory popup there when round `WIN_WAVE` is cleared (before the counter moves on; its subtitle is built from `WIN_WAVE`), and otherwise uses it for auto-pause between waves (the HUD's hourglass toggle, the global `auto_pause_between_waves` setting), which pauses the run there until start is pressed |
-| `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners. Grays out the buy buttons of towers you can't afford (`refresh_buy_buttons()`, also the plane's level-2 look) and flashes the money counter red on a refused pick (`flash_money()`, real time via `update()`). Once bought, UPG PLANES shows as maxed (`refresh_plane_upgrade()`: grayed, "MAX" on hover, clicks ignored); `refresh_language()` rebuilds its texts, the prices and the round counter |
+| `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners. Grays out the buy buttons of towers you can't afford (`refresh_buy_buttons()`, also the plane's level-2 look) and flashes the money counter red on a refused pick (`flash_money()`, real time via `update()`). Once bought, the plane-upgrade button (a plane icon with an up arrow, no text; click or U) shows as maxed (`refresh_plane_upgrade()`: button and icon grayed, clicks ignored); `refresh_language()` rebuilds its texts, the prices and the round counter |
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference. A tower you can't afford can't be picked (button or number key): `on_denied` is told instead (`Game._deny_purchase`: a denied sound and the money flash). `keep_placing` (the HUD's toggle, flipped by a Shift press; the global `keep_placing` setting, `Game.keep_placing`) keeps placement mode on after a placement while the type is still affordable. Over a tile that can't be built on, the preview is tinted red |
 | `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
 | `hud_slide` | `HudSlide` | Tab slides the in-game HUD (counters, control buttons, tower bar) off the screen edges and back, drawn-only and on real time; money/lives counters peek back for 1.5 s when they change. `toggle()` is the entry point for a future on-screen button |
@@ -175,9 +175,9 @@ English. `Game.__init__` loads the folder and sets the saved language (`language
 file; English if missing or unknown). A language switch must go through `Game.set_language(code)`
 (the GAME tab's Language row, `_cycle_language`): pygamine re-renders every `text_key` label, then
 `_refresh_language_texts()` rebuilds the texts the game sets itself with `set_text(tr(...))` (toggle
-labels, window mode, the pause menu's music button, prices, the plane upgrade label, the open
+labels, window mode, the pause menu's music button, prices, the open
 tooltip and tower panel). Texts in a `states:` block aren't key-driven (engine limit): set them from
-code and refresh them there (UPG PLANES). A round counter or subtitle with a number is a `text_key`
+code and refresh them there. A round counter or subtitle with a number is a `text_key`
 with `text_params`, updated with `set_params()`. To add a language, drop `<code>.yaml` in
 `config/lang` with the same keys and `{placeholders}`; the Language row finds it. To add a string,
 add its key to **both** files: `tests/test_localization.py` fails on a missing key or placeholder, a

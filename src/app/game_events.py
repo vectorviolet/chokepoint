@@ -236,10 +236,27 @@ class GameEventsMixin:
             self.panel_manager.current_panel = "main_menu"
 
     def _handle_upgrade_plane_button(self, event) -> None:
-        panel = self.panel_manager["game"]
-        button = panel["upgrade_plane_button"]
-        if not self._activate(button, event, sound=False):
-            return
+        """The HUD's plane-upgrade button, or a U press: the same action
+        either way (_upgrade_planes). Like the other hotkeys, U works while
+        the HUD is hidden, ignores key repeat and Ctrl/Alt/Meta chords, and
+        waits while a popup or the pause menu has the input (they return
+        before this is reached)."""
+        button = self.panel_manager["game"]["upgrade_plane_button"]
+        chord = pygame.KMOD_CTRL | pygame.KMOD_ALT | pygame.KMOD_META
+        is_hotkey = (
+            event.type == pygame.KEYDOWN
+            and event.key == pygame.K_u
+            and not getattr(event, "repeat", False)
+            and not getattr(event, "mod", 0) & chord
+        )
+        if self._activate(button, event, sound=False) or is_hotkey:
+            self._upgrade_planes(button)
+
+    def _upgrade_planes(self, button) -> None:
+        """UPG PLANES from the button or the U key: buys the upgrade with
+        its click sound, or plays the denied sound and flashes the money
+        counter if it's unaffordable. Nothing at all once it's bought (the
+        button is grayed)."""
         if self.game_state.plane_level != 1:
             return  # maxed: grayed, and a click does nothing (not even a sound)
         if not self._buy_plane_upgrade():

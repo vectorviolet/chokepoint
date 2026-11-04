@@ -13,7 +13,7 @@ freely available.
 
 | Pack | Author | License | Used for | Files |
 |---|---|---|---|---|
-| [Tower Defense (Top-Down)](https://kenney.nl/assets/tower-defense-top-down) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | towers, enemies, projectiles, map tiles | 36 |
+| [Tower Defense (Top-Down)](https://kenney.nl/assets/tower-defense-top-down) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | towers, enemies, projectiles, map tiles | 37 |
 | [Smoke Particles](https://kenney.nl/assets/smoke-particles) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | explosions, smoke | 22 |
 | [UI Pack](https://kenney.nl/assets/ui-pack) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | buttons, menu sounds | 7 |
 | [Impact Sounds](https://kenney.nl/assets/impact-sounds) | Kenney | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | shot, hit, life-lost, tower placed and sold sounds | 6 |

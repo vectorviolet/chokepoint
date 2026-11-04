@@ -48,11 +48,11 @@ def make_panel():
     }
     for i in range(4):
         panel[f"fee_text_{i + 1}"] = FakeText()
-    panel["upgrade_plane_button_text"] = FakeText()
     for i in range(3):
         panel[f"buy_tower_{i + 1}"] = FakeBuyButton()
     panel["buy_tower_4"] = FakeBuyButton((None, "lvl2"))
     panel["upgrade_plane_button"] = FakeBuyButton()
+    panel["upgrade_plane_button_icon"] = FakeBuyButton()
     return panel
 
 
@@ -155,15 +155,20 @@ def test_rebind_panel_refetches_text_objects_and_reapplies_prices(tower_config):
     assert new_panel["coin_text"].text == "100"
 
 
-def test_plane_upgrade_button_shows_its_configured_price_on_hover(tower_config):
-    hud, panel, _ = make_hud(tower_config)
-    price = tower_config.prices[3][1]
+def test_plane_upgrade_button_and_icon_gray_out_together_once_bought(tower_config):
+    hud, panel, game_state = make_hud(tower_config)
+    assert panel["upgrade_plane_button"].state is None
+    assert panel["upgrade_plane_button_icon"].state is None
 
-    expected = f"{price / 1000:g}K $" if price >= 1000 else f"{price} $"
-    assert panel["upgrade_plane_button_text"].state_texts == {
-        "hover": expected,
-        "default": "UPG PLANES",
-    }
+    game_state.plane_level = 2
+    hud.refresh_plane_upgrade()
+
+    assert panel["upgrade_plane_button"].state == "maxed"
+    assert panel["upgrade_plane_button_icon"].state == "maxed"
+    game_state.plane_level = 1
+    hud.refresh_plane_upgrade()
+    assert panel["upgrade_plane_button"].state is None
+    assert panel["upgrade_plane_button_icon"].state is None
 
 
 def test_buy_buttons_are_only_updated_when_their_look_changes(tower_config):

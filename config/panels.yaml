@@ -1,5 +1,5 @@
 # Labels the game always sets from code (the ON/OFF and window mode values, the pause
-# menu's music button, the tower info labels, the plane upgrade, the language value)
+# menu's music button, the tower info labels, the language value)
 # carry plain placeholder text here, not a text_key: Game and ui/*.py fill them from
 # config/lang on every change. Everything else uses text_key (pygamine keeps those in
 # step with the language itself).
@@ -795,15 +795,11 @@ panels:
         states:
           x2_active: "x2"
           x4_active: "x4"
-      upgrade_plane_button_text:
-        extends: button_text
+      upgrade_plane_button_icon:  # a plane with an up arrow; grayed once bought (ui/game_hud.py)
         parent: upgrade_plane_button
-        font_size: 21
-        # Both texts are language-dependent: ui/game_hud.py sets "UPG PLANES"
-        # (not hovered) and the price, or MAX once bought (hovered).
-        states:
-          default: ""
-          hover: ""
+        position: [CENTER, CENTER]
+        size: [48, 48]
+        asset: icon_upgrade_planes
 
       tower_panel_bg:
         anchor: bottom

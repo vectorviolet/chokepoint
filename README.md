@@ -95,6 +95,7 @@ A workflow also mirrors them to the project wiki.
 | Toggle continuous placement | Press Shift, or click the circular-arrows HUD button; stays on until toggled off |
 | Upgrade or sell a tower | Click the tower, then the arrow (upgrade) or money bag (sell) |
 | Start / pause the rounds | Space, or the play button |
+| Upgrade the planes | U, or the plane-with-arrow HUD button |
 | Toggle auto-pause between rounds | Hourglass HUD button |
 | Game speed (x1 / x2 / x4) | Speed button |
 | Scroll the map | Move the mouse to a screen edge |

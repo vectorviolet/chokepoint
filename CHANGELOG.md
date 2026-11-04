@@ -93,6 +93,10 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   player-visible text now comes from `config/lang/`
   ([#128](https://github.com/vectorviolet/chokepoint/pull/128),
   [devlog](docs/devlog/2026-11-04-language-setting.md)).
+- The UPG PLANES button is now an icon (a plane with an arrow, no text, grayed once bought) and the
+  U key upgrades the planes the same way
+  ([#131](https://github.com/vectorviolet/chokepoint/issues/131),
+  [devlog](docs/devlog/2026-11-04-planes-icon.md)).
 
 ### Changed
 

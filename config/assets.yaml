@@ -20,6 +20,7 @@ images:
   icon_pause:         {folder: hud/icons, name: icon_pause}
   icon_hourglass:    {folder: hud/icons, name: icon_hourglass}
   icon_keep_placing: {folder: hud/icons, name: icon_keep_placing}
+  icon_upgrade_planes: {folder: hud/icons, name: icon_upgrade_planes}
 
   # ── Tower buy panel icons ─────────────────────────────────────────────
   buy_tower_1:       {folder: hud/tower_bar, name: buy_tower1}

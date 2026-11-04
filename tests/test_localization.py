@@ -208,7 +208,7 @@ def test_the_arrows_switch_every_visible_text_at_once(game):
     assert text(game, "credits", "back_text") == "GERİ"
     assert text(game, "game", "gameover_title_text") == "OYUN BİTTİ"
     # Texts the game builds in code: toggles, window mode, the pause menu's
-    # music button, the round counter, the victory subtitle, the plane upgrade.
+    # music button, the round counter, the victory subtitle.
     assert text(game, "settings", "skip_intro_value_text") == "KAPALI"
     assert text(game, "settings", "window_mode_value_text") in {
         "TAM EKRAN",
@@ -218,15 +218,12 @@ def test_the_arrows_switch_every_visible_text_at_once(game):
     assert text(game, "game", "pause_music_text") == "MÜZİK: AÇIK"
     assert text(game, "game", "level_text") == f"Tur {game.game_state.level}"
     assert text(game, "game", "victory_subtitle_text") == "25. tur tamamlandı"
-    upgrade = game.panel_manager["game"]["upgrade_plane_button_text"]
-    assert upgrade.states["default"] == "UÇAK GELİŞTİR"
 
     click(game, "language_back_button")  # and back, with no restart
     assert localization.language == "en"
     assert text(game, "settings", "settings_title_text") == "SETTINGS"
     assert text(game, "game", "level_text") == f"Round {game.game_state.level}"
     assert text(game, "game", "pause_music_text") == "MUSIC: ON"
-    assert upgrade.states["default"] == "UPG PLANES"
 
 
 def test_both_arrows_wrap_around_the_languages(game):

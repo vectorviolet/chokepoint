@@ -59,8 +59,6 @@ format:
 
 hud:
   round: "Tur {level}"
-  upgrade_planes: "UÇAK GELİŞTİR"
-  maxed: "MAKS"
 
 tower_info:
   kills: "Öldürme"
