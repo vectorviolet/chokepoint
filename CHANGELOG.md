@@ -150,6 +150,10 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   prompts). No game changes yet; key bindings and tooltips come in their own PRs. The game reads and
   sets `PanelManager.current_panel`, which is now a property in pygamine and behaves the same
   ([#142](https://github.com/vectorviolet/chokepoint/pull/142)).
+- The plane-upgrade icon has the plane in the center with the upgrade arrow overlapping it, so it
+  looks centered on its button
+  ([#147](https://github.com/vectorviolet/chokepoint/pull/147),
+  [devlog](docs/devlog/2026-11-04-planes-icon.md)).
 
 ### Removed
 
@@ -192,6 +196,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
 - The kill-reward coins and the money counter's pop are no longer drawn over the pause menu, victory
   or game over popups; the popups now cover everything from the run
   ([#93](https://github.com/vectorviolet/chokepoint/issues/93)).
+- A tower destroyed by tanks can no longer be sold or upgraded in the frame before it is removed
+  ([#145](https://github.com/vectorviolet/chokepoint/pull/145)).
 - A config enemy or tower HP below 1 or not a whole number is now rejected at startup, so an HP
   bar can never divide by zero ([#146](https://github.com/vectorviolet/chokepoint/pull/146)).
 

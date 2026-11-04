@@ -172,15 +172,30 @@ class BaseTower(RotatableObject):
 
     def hits_action_button(self, mouse_pos: tuple, camera) -> bool:
         """Whether mouse_pos is on this tower's upgrade (below max level) or
-        sell button -- the buttons shown while it's selected."""
+        sell button -- the buttons shown while it's selected. A destroyed
+        tower shows and takes neither."""
+        if self.is_destroyed():
+            return False
         if self._sell_hit_rect(camera).collidepoint(mouse_pos):
             return True
         return not self.is_max_level() and self._upgrade_hit_rect(camera).collidepoint(
             mouse_pos
         )
 
+    def is_destroyed(self) -> bool:
+        """Its HP has run out (a tank's hit took it to 0 or below) but the
+        battle hasn't removed it yet, which it does on its next tick. Such a
+        tower can't be sold or upgraded, and shows no sell/upgrade buttons.
+        Unlike should_remove(), which a plane also answers when it leaves
+        the map, this is only about HP."""
+        return self.hp is not None and self.hp <= 0
+
     def upgrade(self, mouse_pos: tuple, game_state: GameState, camera) -> None:
-        if self.is_max_level() or game_state.money < self.upgrade_price:
+        if (
+            self.is_destroyed()
+            or self.is_max_level()
+            or game_state.money < self.upgrade_price
+        ):
             return
         if not self._upgrade_hit_rect(camera).collidepoint(mouse_pos):
             return
@@ -194,7 +209,10 @@ class BaseTower(RotatableObject):
     def sell(
         self, mouse_pos: tuple, game_state: GameState, towers: list, camera
     ) -> None:
-        if game_state.selected_tower != self:
+        """Sells the selected tower on a click on its sell button. A destroyed
+        tower (`is_destroyed()`) can't be sold and pays no refund; its
+        destruction effect plays as the battle removes it."""
+        if game_state.selected_tower != self or self.is_destroyed():
             return
         if self._sell_hit_rect(camera).collidepoint(mouse_pos):
             game_state.increase_money(self.sell_price)
@@ -213,6 +231,8 @@ class BaseTower(RotatableObject):
     def draw_selected_ui(
         self, surface: pygame.Surface, game_state: GameState, camera
     ) -> None:
+        if self.is_destroyed():
+            return  # no refund or upgrade price on a dead tower
         screen = camera.world_to_screen(self.position)
 
         sell_btn = StateObject(
