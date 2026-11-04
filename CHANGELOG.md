@@ -90,7 +90,8 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#125](https://github.com/vectorviolet/chokepoint/pull/125),
   [devlog](docs/devlog/2026-11-04-settings-toggles.md)).
 - A Language setting (English or Türkçe) on the Settings GAME tab, applied at once and saved; every
-  player-visible text now comes from `config/lang/` ([#120](https://github.com/vectorviolet/chokepoint/issues/120),
+  player-visible text now comes from `config/lang/`
+  ([#128](https://github.com/vectorviolet/chokepoint/pull/128),
   [devlog](docs/devlog/2026-11-04-language-setting.md)).
 
 ### Changed
@@ -135,7 +136,7 @@ Lines link their PR, or the commit for changes pushed straight to `main` before 
   ([#121](https://github.com/vectorviolet/chokepoint/pull/121),
   [devlog](docs/devlog/2026-11-03-settings-tabs.md)).
 - Text uses Fira Sans instead of Comic Neue, which lacks the Turkish letters Ğ ğ İ
-  ([#120](https://github.com/vectorviolet/chokepoint/issues/120),
+  ([#128](https://github.com/vectorviolet/chokepoint/pull/128),
   [devlog](docs/devlog/2026-11-04-language-setting.md)).
 
 ### Removed

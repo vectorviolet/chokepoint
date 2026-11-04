@@ -1,7 +1,7 @@
 # Language setting: English and Türkçe, and the move to Fira Sans
-<!-- index | refs: #120 -->
+<!-- index | refs: #120, PR #128 -->
 
-**Date:** 2026-11-04 · **Area:** UI, localization · **Issue:** [#120](https://github.com/vectorviolet/chokepoint/issues/120)
+**Date:** 2026-11-04 · **Area:** UI, localization · **Issue:** [#120](https://github.com/vectorviolet/chokepoint/issues/120) · **PR:** [#128](https://github.com/vectorviolet/chokepoint/pull/128)
 
 ## Context
 
