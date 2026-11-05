@@ -6,7 +6,6 @@ folder holds what goes into it:
 - `description.html`: the page's description. Paste it into the description field in HTML
   mode. It uses only headings, paragraphs, lists, links, `strong`, `code` and one image, with no inline
   styles or tables, so it reads well on phones.
-- `cover.png`, `cover_itchio.png`: the cover image (itch.io shows covers at 630×500).
 
 The release workflow uploads the builds with Butler; it never touches the page text.
 
@@ -34,7 +33,7 @@ Fields that live outside the description, following itch.io's
   uploaded one, so it loads fast and doesn't break if the file moves in the repo.
 - **Theme:** colors that match the game (the logo's green), not plain black on white.
 
-The cover, a trailer and new screenshots are tracked in #13.
+The cover (itch.io shows covers at 630×500), a trailer and new screenshots are tracked in #13.
 
 When the game changes in a way players see (controls, features, towers), update
 `description.html` in the same PR and paste it again.
