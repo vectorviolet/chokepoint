@@ -3,6 +3,7 @@ from pygame import Rect
 
 from domain.game_state import GameState
 from gameplay.combat.tower_placement import TowerPlacementController
+from gameplay.tilemap import Tilemap
 from pygamine import Camera
 from gameplay.towers import TowerFactory
 from util.constants import TILE_SIZE
@@ -201,6 +202,19 @@ def test_is_placeable_ground_type_requires_a_buildable_cell(tower_config, assets
 
     assert controller._is_placeable(5, 5) is False
     assert controller._is_placeable(5, 6) is True
+
+
+def test_map_obstacles_prevent_ground_tower_placement(tower_config, assets):
+    tilemap = Tilemap("assets/maps/tiled_tilemap.tmx")
+    controller, _, _ = make_controller(
+        tower_config, assets, buildable_grid=tilemap.buildable_grid
+    )
+    controller.buying_tower_type = GROUND_TYPE
+
+    # Tile object 102 and image-less rectangle 101 both occupy grass cells.
+    assert controller._is_placeable(16, 11) is False
+    assert controller._is_placeable(16, 14) is False
+    assert controller._is_placeable(16, 12) is True
 
 
 def test_is_placeable_rejects_a_cell_already_occupied_by_a_blocking_tower(
