@@ -59,6 +59,11 @@ and multi-cell bounds, map edges, repeated rendering, and camera zoom. Existing
 menu-demo tests check that its towers stand only on buildable cells. All tests
 and simulations use temporary saves.
 
+The existing targeting comparison keeps its original road-only construction
+grid so its seeded battle still exercises tank fire. The new blocked cells had
+changed the random tower layout enough that one seed no longer did so; its
+assertions comparing spatial targeting with full scans remain intact.
+
 Paying to clear obstacles and saving cleared state remain in [#20](https://github.com/vectorviolet/chokepoint/issues/20).
 Existing saves retain their saved tower positions; this change does not relocate
 towers from an older map layout.
