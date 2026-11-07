@@ -1,7 +1,9 @@
+import pygame
 import pytest
 from pygame.math import Vector2
 
 from gameplay.tilemap import Tilemap
+from pygamine import Camera
 
 TMX_PATH = "assets/maps/tiled_tilemap.tmx"
 
@@ -50,3 +52,123 @@ def test_spawn_tile_sits_on_the_road_or_at_least_within_bounds(tilemap):
     # object, not a tile), but it must resolve to a real grid cell.
     col, row = tilemap.get_spawn_tile()
     assert (col, row) != (None, None)
+
+
+@pytest.fixture
+def obstacle_map(tmp_path):
+    """Load real TMX objects so pytmx's tile-object anchor conversion is covered."""
+    tileset = pygame.Surface((32, 16))
+    tileset.fill("green")
+    tileset.fill("red", pygame.Rect(16, 0, 16, 16))
+    pygame.image.save(tileset, str(tmp_path / "tiles.png"))
+
+    def load(objects):
+        path = tmp_path / "obstacles.tmx"
+        path.write_text(
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<map version="1.10" orientation="orthogonal" renderorder="right-down" '
+            'width="4" height="4" tilewidth="16" tileheight="16" infinite="0">\n'
+            ' <tileset firstgid="1" name="tiles" tilewidth="16" tileheight="16" '
+            'tilecount="2" columns="2">\n'
+            '  <image source="tiles.png" width="32" height="16"/>\n'
+            " </tileset>\n"
+            ' <layer id="1" name="Base" width="4" height="4">\n'
+            '  <data encoding="csv">1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1</data>\n'
+            " </layer>\n"
+            f' <objectgroup id="2" name="Obstacles">{objects}</objectgroup>\n'
+            "</map>\n",
+            encoding="utf-8",
+        )
+        return Tilemap(path)
+
+    return load
+
+
+def blocked_cells(tilemap):
+    return {
+        (row, col)
+        for row, cells in enumerate(tilemap.buildable_grid)
+        for col, buildable in enumerate(cells)
+        if not buildable
+    }
+
+
+@pytest.mark.parametrize("alpha", [False, True])
+@pytest.mark.parametrize(
+    "size, top, blocked",
+    [(16, 32, {(2, 2)}), (32, 16, {(1, 2), (1, 3), (2, 2), (2, 3)})],
+)
+def test_tile_obstacle_renders_at_the_blocked_cells(
+    obstacle_map, alpha, size, top, blocked
+):
+    # Tiled stores a tile object's bottom edge; pytmx exposes its top edge.
+    tilemap = obstacle_map(
+        f'<object id="1" gid="2" x="32" y="48" width="{size}" height="{size}"/>'
+    )
+    surface = tilemap.pre_render(alpha=alpha)
+    expected = pygame.Surface((64, 64))
+    expected.fill("green")
+    expected.fill("red", pygame.Rect(32, top, size, size))
+
+    assert pygame.image.tobytes(surface, "RGBA") == pygame.image.tobytes(
+        expected, "RGBA"
+    )
+    assert bool(surface.get_flags() & pygame.SRCALPHA) == alpha
+    assert blocked_cells(tilemap) == blocked
+
+
+@pytest.mark.parametrize(
+    "bounds, blocked",
+    [
+        ((16, 16, 16, 16), {(1, 1)}),
+        ((15.5, 15.5, 17, 17), {(r, c) for r in range(3) for c in range(3)}),
+        ((-8, -8, 16, 16), {(0, 0)}),
+        ((56, 56, 16, 16), {(3, 3)}),
+        ((-32, -32, 16, 16), set()),
+        ((15.5, 15.5, 0, 16), set()),
+        ((15.5, 15.5, 16, 0), set()),
+    ],
+)
+def test_rectangle_obstacle_blocks_its_footprint_without_an_image(
+    obstacle_map, bounds, blocked
+):
+    x, y, width, height = bounds
+    tilemap = obstacle_map(
+        f'<object id="1" x="{x}" y="{y}" width="{width}" height="{height}"/>'
+    )
+    expected = pygame.Surface((64, 64))
+    expected.fill("green")
+
+    assert blocked_cells(tilemap) == blocked
+    assert pygame.image.tobytes(tilemap.pre_render(), "RGBA") == pygame.image.tobytes(
+        expected, "RGBA"
+    )
+
+
+def test_repeated_pre_render_keeps_obstacles_in_place(obstacle_map):
+    tilemap = obstacle_map(
+        '<object id="1" gid="2" x="32" y="48" width="16" height="16"/>'
+    )
+    first = pygame.image.tobytes(tilemap.pre_render(), "RGBA")
+
+    for _ in range(3):
+        assert pygame.image.tobytes(tilemap.pre_render(), "RGBA") == first
+    assert blocked_cells(tilemap) == {(2, 2)}
+
+
+def test_draw_keeps_obstacles_aligned_when_zoom_changes(obstacle_map):
+    tilemap = obstacle_map(
+        '<object id="1" gid="2" x="32" y="48" width="16" height="16"/>'
+    )
+    camera = Camera(pygame.Rect(0, 0, 128, 128), map_width=64, map_height=64)
+    surface = pygame.Surface((128, 128))
+
+    for scale in (1.0, 2.0, 0.5, 1.0):
+        camera.scale = scale
+        surface.fill("black")
+        tilemap.draw(surface, camera)
+        left, top, size = int(32 * scale), int(32 * scale), int(16 * scale)
+        assert surface.get_at((left, top)) == pygame.Color("red")
+        assert surface.get_at((left + size - 1, top + size - 1)) == pygame.Color("red")
+        assert surface.get_at((left - 1, top)) == pygame.Color("green")
+        assert surface.get_at((left, top - 1)) == pygame.Color("green")
