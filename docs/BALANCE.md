@@ -5,6 +5,11 @@ owner's call) can be judged by data first and then confirmed by a few playtests.
 number changed for this document.** The full per-wave tables are in
 [`docs/balance/report.md`](balance/report.md), with one CSV per strategy next to it.
 
+**Note:** the sections below (Machine, Results and the four observations) describe the waves as
+they were before #10. Waves 4 to 6 and 10 to 25 were reworked afterwards (see the
+[devlog entry](devlog/2026-11-09-wave-balance.md)); `docs/balance/` and its charts show the
+current waves.
+
 ## How to run it
 
 From the repo root:

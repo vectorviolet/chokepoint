@@ -13,30 +13,30 @@ waves:
   1:  [{type: 1, count: 6}]                                                       # tutorial: 1× Type-1 tower handles it
   2:  [{type: 1, count: 9}]                                                       # need 2nd tower or a Type-2
   3:  [{type: 1, count: 8},  {type: 2, count: 1}]                                 # first fast runner
-  4:  [{type: 1, count: 10}, {type: 2, count: 2}]
-  5:  [{type: 1, count: 8},  {type: 2, count: 3}]
-  6:  {spawn_interval: 800, groups: [{type: 1, count: 12}, {type: 2, count: 2}]}  # density spike
+  4:  [{type: 1, count: 9},  {type: 2, count: 1}]
+  5:  [{type: 1, count: 7},  {type: 2, count: 2}]
+  6:  {spawn_interval: 1000, groups: [{type: 1, count: 9}, {type: 2, count: 2}]}  # a bit denser than waves 4-5, not a spike
   7:  [{type: 1, count: 7},  {type: 2, count: 3}, {type: 3, count: 1}]            # first bruiser — needs Type-3 or Type-2 L2
   8:  [{type: 1, count: 8},  {type: 2, count: 3}, {type: 3, count: 1}]
   9:  [{type: 1, count: 9},  {type: 2, count: 4}, {type: 3, count: 2}]
-  10: [{type: 1, count: 6},  {type: 2, count: 4}, {type: 3, count: 2}, {type: 4, count: 1}]
-  11: [{type: 1, count: 7},  {type: 2, count: 4}, {type: 3, count: 2}, {type: 4, count: 1}]
-  12: [{type: 1, count: 8},  {type: 2, count: 4}, {type: 3, count: 3}, {type: 4, count: 1}]
-  13: [{type: 1, count: 6},  {type: 2, count: 5}, {type: 3, count: 3}, {type: 4, count: 1}]
-  14: [{type: 1, count: 7},  {type: 2, count: 5}, {type: 3, count: 3}, {type: 4, count: 2}]
-  15: {spawn_interval: 750, groups: [{type: 1, count: 12}, {type: 2, count: 6}, {type: 3, count: 3}, {type: 4, count: 2}]}
-  16: [{type: 1, count: 6},  {type: 2, count: 6}, {type: 3, count: 4}, {type: 4, count: 2}]
-  17: [{type: 1, count: 6},  {type: 2, count: 6}, {type: 3, count: 4}, {type: 4, count: 2}]
-  18: [{type: 1, count: 7},  {type: 2, count: 7}, {type: 3, count: 4}, {type: 4, count: 3}]
-  19: [{type: 1, count: 8},  {type: 2, count: 7}, {type: 3, count: 5}, {type: 4, count: 3}]
-  20: {spawn_interval: 700, groups: [{type: 1, count: 10}, {type: 2, count: 8}, {type: 3, count: 5}, {type: 4, count: 3}]}
-  21: [{type: 1, count: 6},  {type: 2, count: 8}, {type: 3, count: 5}, {type: 4, count: 3}]
-  22: [{type: 1, count: 7},  {type: 2, count: 8}, {type: 3, count: 6}, {type: 4, count: 4}]
-  23: [{type: 1, count: 8},  {type: 2, count: 9}, {type: 3, count: 6}, {type: 4, count: 4}]
-  24: [{type: 1, count: 6},  {type: 2, count: 9}, {type: 3, count: 7}, {type: 4, count: 4}]
-  25: {spawn_interval: 650, groups: [{type: 1, count: 10}, {type: 2, count: 10}, {type: 3, count: 7}, {type: 4, count: 5}, {type: 5, count: 1}]}  # first tank
+  10: [{type: 1, count: 6}, {type: 2, count: 5}, {type: 3, count: 3}]
+  11: [{type: 1, count: 8}, {type: 2, count: 6}, {type: 3, count: 4}, {type: 4, count: 1}]
+  12: [{type: 1, count: 8}, {type: 2, count: 7}, {type: 3, count: 5}, {type: 4, count: 2}]
+  13: [{type: 1, count: 8}, {type: 2, count: 8}, {type: 3, count: 6}, {type: 4, count: 2}]
+  14: [{type: 1, count: 8}, {type: 2, count: 9}, {type: 3, count: 7}, {type: 4, count: 3}]
+  15: {spawn_interval: 600, groups: [{type: 1, count: 12}, {type: 2, count: 10}, {type: 3, count: 8}, {type: 4, count: 4}, {type: 5, count: 1}]}  # first tank
+  16: [{type: 1, count: 6}, {type: 2, count: 10}, {type: 3, count: 8}, {type: 4, count: 4}, {type: 5, count: 1}]
+  17: [{type: 1, count: 6}, {type: 2, count: 11}, {type: 3, count: 9}, {type: 4, count: 5}, {type: 5, count: 1}]
+  18: [{type: 1, count: 6}, {type: 2, count: 12}, {type: 3, count: 10}, {type: 4, count: 5}, {type: 5, count: 2}]
+  19: [{type: 1, count: 7}, {type: 2, count: 12}, {type: 3, count: 10}, {type: 4, count: 6}, {type: 5, count: 2}]
+  20: {spawn_interval: 550, groups: [{type: 1, count: 10}, {type: 2, count: 14}, {type: 3, count: 11}, {type: 4, count: 8}, {type: 5, count: 3}]}
+  21: [{type: 2, count: 14}, {type: 3, count: 11}, {type: 4, count: 8}, {type: 5, count: 3}]
+  22: [{type: 2, count: 15}, {type: 3, count: 12}, {type: 4, count: 9}, {type: 5, count: 3}, {type: 6, count: 1}]  # first heavy tank
+  23: [{type: 2, count: 15}, {type: 3, count: 12}, {type: 4, count: 9}, {type: 5, count: 4}, {type: 6, count: 1}]
+  24: [{type: 2, count: 16}, {type: 3, count: 13}, {type: 4, count: 10}, {type: 5, count: 4}, {type: 6, count: 2}]
+  25: {spawn_interval: 500, groups: [{type: 2, count: 18}, {type: 3, count: 14}, {type: 4, count: 10}, {type: 5, count: 5}, {type: 6, count: 2}]}
   26: [{type: 2, count: 8}, {type: 3, count: 6}, {type: 4, count: 4}, {type: 5, count: 1}]
   27: [{type: 2, count: 8}, {type: 3, count: 7}, {type: 4, count: 4}, {type: 5, count: 2}]
-  28: [{type: 2, count: 9}, {type: 3, count: 7}, {type: 4, count: 5}, {type: 5, count: 2}, {type: 6, count: 1}]  # first heavy tank
+  28: [{type: 2, count: 9}, {type: 3, count: 7}, {type: 4, count: 5}, {type: 5, count: 2}, {type: 6, count: 1}]
   29: [{type: 2, count: 9}, {type: 3, count: 8}, {type: 4, count: 5}, {type: 5, count: 2}, {type: 6, count: 1}]
   30: {spawn_interval: 600, groups: [{type: 2, count: 10}, {type: 3, count: 8}, {type: 4, count: 6}, {type: 5, count: 3}, {type: 6, count: 2}]}

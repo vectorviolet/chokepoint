@@ -18,6 +18,10 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 - Map obstacles authored in Tiled, drawn at their world positions and blocking ground-tower placement across their full bounds; ground towers in an older save that stand on a blocked cell are removed on load and refunded in full ([#167](https://github.com/vectorviolet/chokepoint/pull/167), [devlog](docs/devlog/2026-11-07-map-obstacles.md)).
 
+### Changed
+
+- Wave balance (#10): waves 4 to 6 are gentler, so a normal build no longer leaks there, and waves 10 to 25 are tougher: the first heavy arrives in wave 11, the first tank in wave 15 and the first heavy tank in wave 22, with more enemies and tighter spacing ([#170](https://github.com/vectorviolet/chokepoint/pull/170), [devlog](docs/devlog/2026-11-09-wave-balance.md)).
+
 ### Development
 
 - Balance report: `docs/balance/` and `docs/BALANCE.md` regenerated on the obstacle map, with four charts (lives, income, enemy threat, pressure) drawn by `scripts/balance_charts.py` (matplotlib joins the dev group); no balance number changed ([#169](https://github.com/vectorviolet/chokepoint/pull/169)).
