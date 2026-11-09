@@ -36,8 +36,8 @@ waves:
   23: [{type: 2, count: 15}, {type: 3, count: 12}, {type: 4, count: 9}, {type: 5, count: 4}, {type: 6, count: 1}]
   24: [{type: 2, count: 16}, {type: 3, count: 13}, {type: 4, count: 10}, {type: 5, count: 4}, {type: 6, count: 2}]
   25: {spawn_interval: 500, groups: [{type: 2, count: 18}, {type: 3, count: 14}, {type: 4, count: 10}, {type: 5, count: 5}, {type: 6, count: 2}]}
-  26: [{type: 2, count: 8}, {type: 3, count: 6}, {type: 4, count: 4}, {type: 5, count: 1}]
-  27: [{type: 2, count: 8}, {type: 3, count: 7}, {type: 4, count: 4}, {type: 5, count: 2}]
-  28: [{type: 2, count: 9}, {type: 3, count: 7}, {type: 4, count: 5}, {type: 5, count: 2}, {type: 6, count: 1}]
-  29: [{type: 2, count: 9}, {type: 3, count: 8}, {type: 4, count: 5}, {type: 5, count: 2}, {type: 6, count: 1}]
-  30: {spawn_interval: 600, groups: [{type: 2, count: 10}, {type: 3, count: 8}, {type: 4, count: 6}, {type: 5, count: 3}, {type: 6, count: 2}]}
+  26: {spawn_interval: 500, groups: [{type: 2, count: 18}, {type: 3, count: 15}, {type: 4, count: 10}, {type: 5, count: 5}, {type: 6, count: 2}]}
+  27: {spawn_interval: 500, groups: [{type: 2, count: 18}, {type: 3, count: 15}, {type: 4, count: 11}, {type: 5, count: 5}, {type: 6, count: 2}]}
+  28: {spawn_interval: 500, groups: [{type: 2, count: 19}, {type: 3, count: 15}, {type: 4, count: 11}, {type: 5, count: 5}, {type: 6, count: 3}]}
+  29: {spawn_interval: 500, groups: [{type: 2, count: 19}, {type: 3, count: 16}, {type: 4, count: 11}, {type: 5, count: 6}, {type: 6, count: 3}]}
+  30: {spawn_interval: 500, groups: [{type: 2, count: 19}, {type: 3, count: 16}, {type: 4, count: 12}, {type: 5, count: 6}, {type: 6, count: 3}]}

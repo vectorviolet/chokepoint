@@ -80,7 +80,7 @@ The full 40-wave simulation with B (seed 70, x4, saves redirected), against the 
 
 | strategy | before | after |
 |---|---|---|
-| gun_spam | died wave 32, 4 lives lost in 1-10 | died wave 32, 0 lives lost in 1-25 (all 10 lost in wave 32), 834 towers lost (450) |
+| gun_spam | died wave 32, 4 lives lost in 1-10 | died wave 28, 0 lives lost in 1-26 (5 lost in wave 27 and 5 in wave 28), 753 towers lost (450) |
 | gun_cannon | cleared 40, 6 lives left | cleared 40, 10 lives left |
 | missile | cleared 40, 3 lives left | cleared 40, 8 lives left (2 lost, in wave 10) |
 | plane_spam | died wave 29 | died wave 25 (all 10 lives lost in wave 25) |
@@ -92,10 +92,40 @@ the simulation B's extra pressure only shows as the plane-only build dying in wa
 planes at wave 20 and meets the first of the waves with 5 tanks and 2 heavy tanks) and the minimal
 build dying a wave earlier. The builds with guns, cannons or missiles still lose no lives in
 waves 11 to 25, because the bots rebuild within half a second of game time at x4, which a player
-can't do. Whether 11 to 25 now feels tight but fair is for the play-test to say. Waves 26 to 40 were
-never simulated for B before this run: the same builds clear them, gun_spam still dies in wave 32
-(now losing all 10 lives in that one wave), and the tank wear is higher (834 towers lost for
-gun_spam, 626 for gun_cannon). Income is higher too (599,939 earned by wave 40 against 514,954), since
-there are more and tougher enemies to kill.
+can't do. Whether 11 to 25 now feels tight but fair is for the play-test to say. Waves 26 to 40 are described under the review follow-up below.
+
+### Review follow-up: waves 26 to 30
+
+The review of the PR pointed out that B's wave 25 (101,010 HP) was followed by the old wave 26 at
+28,124 HP, so the difficulty fell by three quarters right after the win wave and only climbed
+back to wave 25's level at wave 32. The owner decided to rescale waves 26 to 30 and to keep wave 25
+as it is (to be judged in the play-test); the menu demo showing tanks is fine. Waves 26 to 30 now
+start from wave 25's mix and add a few enemies a wave, at 500 ms spacing like wave 25 (no new enemy
+types; kill money per HP is untouched):
+
+| wave | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 (endless) | 32 (endless) |
+|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|
+| total HP before | 90,176 | 101,010 | 28,124 | 36,296 | 52,814 | 55,800 | 80,430 | 88,267 | 116,547 |
+| total HP now | 90,176 | 101,010 | 105,764 | 112,566 | 128,374 | 140,200 | 148,032 | 157,920 | 188,251 |
+
+The endless generator keeps wave 30's mix and adds to every group, so waves 31 and 32 can't dip
+below wave 30; the generator is unchanged. The cost is that endless waves start from a stronger
+wave 30 too.
+
+The full 40-wave run with the rescaled waves (seed 70, x4):
+
+| strategy | waves 26 to 40 |
+|---|---|
+| gun_spam | dies in wave 28, losing 5 lives in wave 27 and 5 in wave 28 (it died in wave 32 before); 66,155 money unspent, 753 towers lost |
+| gun_cannon | clears 40 with 10 lives; 858 towers lost in all (580 on main), up to 77 in one wave from wave 26 on; 314,786 money unspent |
+| missile | clears 40 with 8 lives; 260 towers lost (176) |
+| plane_spam | died in wave 25, before these waves |
+| mixed | clears 40 with 10 lives; 522 towers lost (396) |
+| minimal | died in wave 11 |
+
+The tank wear is heavier, and the builds that clear 40 do it with a lot of money left over
+(gun_cannon 314,786, missile 78,395), so the bots still rebuild everything the tanks destroy; a
+player can't rebuild that fast, so real runs will be tighter than here. Earnings reach 854,326 by
+wave 40 (514,954 on main) because the enemies carry more HP and money.
 
 Charts of the full run are in [`docs/balance/`](../balance/report.md).
