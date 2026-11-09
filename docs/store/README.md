@@ -27,7 +27,7 @@ Fields that live outside the description, following itch.io's
 - **AI disclosure:** answer it on the edit page to match the description's line (Claude Code
   was a coding assistant; check what itch.io's form asks about code, graphics, sound and text).
 - **Screenshots:** at least 4, uploaded to the page's gallery in this order (all in
-  `docs/screenshots/`, 1280 px wide): `02_gameplay.png`, `08_placing_tower.png`,
+  `docs/screenshots/`, 1920x1080): `02_gameplay.png`, `08_placing_tower.png`,
   `11_tank_fight.png`, `12_plane_bombing.png`, `03_upgrades.png` and `01_menu.png`. Optional
   extras: `14_turkish.png` (the Turkish UI), `15_victory.png`, `17_hud_hidden.png` (a clean
   battlefield) and `plane-run.gif` (`docs/`, a bombing run). itch.io shows them apart from the

@@ -50,9 +50,7 @@ VOLUMES = {"master_volume": 0.8, "music_volume": 0.6, "sfx_volume": 0.8}
 # The GIF's one palette is built from this many frames spread evenly over the
 # clip, each shrunk by this factor first (only their colors matter).
 PALETTE_SAMPLES = 12
-PALETTE_SAMPLE_REDUCE = 2
-# Screenshots and the GIF are shrunk to at most this wide (docs/devlog rule).
-MAX_WIDTH = 1280
+PALETTE_SAMPLE_REDUCE = 4
 # The tank fight: a tank (round TANK_LEVEL) this far (px) behind the staged
 # towers' middle; staging runs at most MAX_STAGE_FRAMES frames to reach a shot.
 TANK_LEVEL = 25
@@ -79,18 +77,10 @@ def grab_frame(game) -> Image.Image:
     )
 
 
-def fit_width(image: Image.Image) -> Image.Image:
-    """`image` shrunk (never grown) to at most MAX_WIDTH wide."""
-    if image.width <= MAX_WIDTH:
-        return image
-    height = round(image.height * MAX_WIDTH / image.width)
-    return image.resize((MAX_WIDTH, height), Image.Resampling.LANCZOS)
-
-
 def save_image(game, out: Path, name: str) -> None:
     path = out / "screenshots" / name
     path.parent.mkdir(parents=True, exist_ok=True)
-    fit_width(grab_frame(game)).save(path, optimize=True)
+    grab_frame(game).save(path, optimize=True)
     print(f"Captured {path}")
 
 
@@ -138,7 +128,6 @@ def save_gif(frames: list[Image.Image], path: Path, fps: int) -> None:
     """One 256-color palette for the whole clip, built from frames sampled
     across it, so colors that only appear later (fire, coins, HP bars) are
     in it too."""
-    frames = [fit_width(frame) for frame in frames]
     samples = [
         frames[i].reduce(PALETTE_SAMPLE_REDUCE) for i in palette_indices(len(frames))
     ]

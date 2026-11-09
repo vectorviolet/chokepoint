@@ -22,7 +22,7 @@ the frame where the destroyed tower's blast has started and its rubble is down).
 
 | File | What it shows |
 |---|---|
-| `docs/preview.gif` | The README and itch.io GIF: six seconds of a round-15 wave, 1280x720 |
+| `docs/preview.gif` | The README and itch.io GIF: six seconds of a round-15 wave, 1920x1080 |
 | `docs/plane-run.gif` | A plane crossing the wave and bombing it (optional extra) |
 | `docs/screenshots/01_menu.png` to `04_pause.png` | Retaken: menu over the demo battle, gameplay, tower info with upgrade previews, pause menu |
 | `05_settings_display.png`, `06_settings_audio.png`, `07_settings_game.png` | The settings tabs |
@@ -34,11 +34,11 @@ the frame where the destroyed tower's blast has started and its rubble is down).
 | `15_victory.png`, `16_game_over.png` | The two end popups |
 | `17_hud_hidden.png` | The HUD hidden with Tab: a clean battlefield |
 
-Screenshots are shrunk to 1280 px wide (the devlog rule), and the GIFs are 1280x720 with one
-shared palette each: `preview.gif` is about 0.75 MB. The tooltip and the range ring can't both
-show at once in the real game (one cursor), so they are separate shots (`08` and `10`). The map
-now has trees and rocks; they are in every shot, and the placement shots show that they are not
-build tiles.
+The store media (screenshots and GIFs) is full 1080p, with one shared palette per GIF:
+`preview.gif` is about 1 MB. Only the copies in this devlog's `img/` folder are shrunk (the 1280 px
+rule). The tooltip and the range ring can't both show at once in the real game (one cursor), so
+they are separate shots (`08` and `10`). The map now has trees and rocks; they are in every shot,
+and the placement shots show that they are not build tiles.
 
 I opened every image and fixed what looked wrong: the cursor stayed over a buy button, so a tooltip
 leaked into later shots (it now rests over bare map); the placement shot first landed on a crowded
@@ -75,7 +75,7 @@ current cover. The itch.io upload is by hand and also pending.
 
 ## Result
 
-<img src="../screenshots/11_tank_fight.png" width="640" alt="The tank fight shot">
+<img src="img/13-tank-fight.png" width="640" alt="The tank fight shot">
 
 ## Revisit if
 
