@@ -27,8 +27,8 @@ changing it with + or - changes each tick's motion and timing, so from then on t
 A watched run writes no CSV or report and also sends its saves to a temporary folder.
 
 The default run takes **8 to 11 minutes** on the machine below, depending on what else it is
-doing: 492 s on a quiet machine, 678 s for the run recorded here (gun_cannon 244 s, gun_spam
-157 s, missile 131 s, mixed 102 s, plane_spam 43 s, minimal 3 s). Late waves with hundreds of
+doing: 492 s on a quiet machine, 698 s for the run recorded here (mixed 241 s, gun_spam
+218 s, gun_cannon 128 s, missile 86 s, plane_spam 22 s, minimal 2 s). Late waves with hundreds of
 towers are the slow part. `tests/test_balance_sim.py` runs 3 waves of one strategy in CI.
 
 Like the smoke test, the script sends every save to a temporary folder and fails if the real
@@ -90,19 +90,19 @@ that loses may only mean the plan is poor.
 | RAM | 24 GB |
 | OS | Windows 11 Education 10.0.26200 |
 | Python | CPython 3.13.14 |
-| pygame-ce | 2.5.7 (SDL 2.32.10), `SDL_VIDEODRIVER=dummy` |
-| Commit | `origin/main` at 6e6463a plus this branch |
+| pygame-ce | 2.5.8 (SDL 2.32.10), `SDL_VIDEODRIVER=dummy` |
+| Commit | `origin/main` at 94b2dc5 plus this branch |
 | Options | `--waves 40 --seed 70 --game-speed 4` |
 
-## Results (2026-11-02)
+## Results (2026-11-09)
 
 | strategy | result | lives left | lives lost 1-10 | lost 11-25 | lost 26+ | spent | earned | money left | towers lost | ROI gun | ROI missile | ROI cannon | ROI plane |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| gun_spam | died in wave 32 | 0 | 4 | 0 | 6 | 85100 | 135068 | 50168 | 409 | 1.59 |  |  |  |
-| gun_cannon | cleared 40 of 40 | 6 | 4 | 0 | 0 | 492120 | 514954 | 23034 | 579 | 0.6 |  | 1.13 |  |
-| missile | cleared 40 of 40 | 3 | 7 | 0 | 0 | 510460 | 514711 | 4451 | 148 | 2.71 | 1.01 |  |  |
-| plane_spam | died in wave 29 | 0 | 4 | 0 | 6 | 65260 | 69564 | 4504 | 42 | 4.32 |  | 4.25 | 0.09 |
-| mixed | cleared 40 of 40 | 6 | 4 | 0 | 0 | 510760 | 514954 | 4394 | 348 | 0.65 | 1.46 | 0.94 | 0.03 |
+| gun_spam | died in wave 32 | 0 | 4 | 0 | 6 | 85700 | 133318 | 47818 | 450 | 1.56 |  |  |  |
+| gun_cannon | cleared 40 of 40 | 6 | 4 | 0 | 0 | 466440 | 514954 | 48714 | 580 | 0.43 |  | 1.23 |  |
+| missile | cleared 40 of 40 | 3 | 7 | 0 | 0 | 510400 | 514711 | 4511 | 176 | 3.56 | 1.01 |  |  |
+| plane_spam | died in wave 29 | 0 | 4 | 0 | 6 | 65260 | 69564 | 4504 | 47 | 4.27 |  | 4.26 | 0.09 |
+| mixed | cleared 40 of 40 | 6 | 4 | 0 | 0 | 510740 | 514954 | 4414 | 396 | 0.33 | 1.53 | 0.89 | 0.02 |
 | minimal | died in wave 12 | 0 | 9 | 1 | 0 | 1700 | 3052 | 1552 | 0 | 1.8 |  |  |  |
 
 Every run that kills everything earns the same total (514,954 by wave 40), since all income is
@@ -127,30 +127,31 @@ a leak, it loses lives in waves 4, 5, 6, 7 and 9, is down to 1 life by wave 10 a
 From wave 11 to 25 no strategy that buys normally loses a single life (0 for gun_spam,
 gun_cannon, missile, plane_spam and mixed). The income grows from about 700 to 6,400 a wave, and
 every build turns it straight into more towers. The guns-plus-cannons build the owner described
-(gun_cannon) clears waves 11 to 25 with cannons doing 69% of the damage and guns 31%. Even
+(gun_cannon) clears waves 11 to 25 with cannons doing 65% of the damage and guns 35%. Even
 minimal, which buys nothing after wave 9 unless it leaks, holds waves 10 and 11 with 17 guns.
 
 ### 3. From wave 25, tanks wear down the tower lines: confirmed in part
 
 Tanks (wave 25 on; their HP is 5,600 to 16,000 by then) destroy towers every wave, and more each
-wave: gun_cannon loses 7 towers in wave 27, 42 in wave 30 and 35 to 63 a wave from wave 32 on;
-mixed 15 in wave 30 and 36 to 45 a wave from wave 36. Guns alone can't answer them: tanks
-outrange them (tank range 280 and 320, gun 160), so gun_spam loses 13 to 135 guns a wave from
-wave 27 and dies in wave 32 with **50,168 money unspent**, because the map is full (442 tiles).
+wave: gun_cannon loses 9 towers in wave 27, 40 in wave 30 and 36 to 58 a wave from wave 32 on;
+mixed 15 in wave 30 and 39 to 64 a wave from wave 36. Guns alone can't answer them: tanks
+outrange them (tank range 280 and 320, gun 160), so gun_spam loses 15 to 148 guns a wave from
+wave 27 and dies in wave 32 with **47,818 money unspent**, because the map is full (407 build tiles; the obstacles
+of #166 took some away).
 Planes alone (plane_spam) die in wave 29.
 
 But the builds with cannons or missiles hold to wave 40 without losing a life: they rebuild what
-the tanks destroy and spend almost all their income doing it (gun_cannon spends 454,640 in
-waves 26 to 40 and ends with 657 towers). So in these runs the late game is an economy drain
+the tanks destroy and spend almost all their income doing it (gun_cannon spends 428,960 in
+waves 26 to 40 and ends with 612 towers). So in these runs the late game is an economy drain
 rather than a wall that can't be held. Caveat: the bots rebuild within half a second of game
 time, on the best tiles, at x4, every time; a player can't, so the pressure in a real run is
 higher than here.
 
 ### 4. Planes pay for themselves: refuted in these runs
 
-Planes earned 9% (plane_spam) and 3% (mixed) of what was spent on them: plane_spam spent 50,000
-on planes and UPG PLANES for 4,443 of kill money; mixed 74,400 for 2,345. They do land damage
-(18% of all damage in plane_spam's waves 26 to 29, 3% in mixed's late waves), but a bomb does 100
+Planes earned 9% (plane_spam) and 2% (mixed) of what was spent on them: plane_spam spent 50,000
+on planes and UPG PLANES for 4,513 of kill money; mixed 69,000 for 1,198. They do land damage
+(20% of all damage in plane_spam's waves 26 to 29, 3% in mixed's late waves), but a bomb does 100
 or 200 damage against enemies with hundreds to thousands of HP, so the towers further down the
 path take the killing blow and the money. Planes alone don't hold: plane_spam switched to planes
 at wave 20 and died in wave 29, while every ground build with cannons or missiles cleared 40.
