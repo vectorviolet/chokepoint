@@ -13,7 +13,8 @@ answered with Continue, as a player would. The bots (scripts/balance_bots.py)
 buy through the game's own placement rules and money.
 
 Output, in --out (default docs/balance): one CSV per strategy (a row per
-wave) and report.md (a summary table, then a table per strategy). Both are
+wave), four PNG charts (scripts/balance_charts.py) and report.md (the charts,
+a summary table, then a table per strategy). All are
 deterministic for a given --seed and options: the game itself has no
 randomness, and the seed only breaks ties between equally good build tiles.
 
@@ -66,6 +67,7 @@ from balance_bots import (  # noqa: E402
     plane_tile,
     rank_tiles,
 )
+from balance_charts import Chart, write_charts  # noqa: E402
 from pygame.math import Vector2  # noqa: E402
 from util.constants import HALF_TILE, TILE_SIZE  # noqa: E402
 
@@ -539,8 +541,29 @@ def wave_rows(result: RunResult) -> list[list]:
     return [[row[k] if row[k] != "" else "-" for k in keys] for row in result.rows]
 
 
+def _chart_lines(charts: list[Chart]) -> list[str]:
+    """The report's charts section: each picture with its caption."""
+    if not charts:
+        return []
+    lines = ["## Charts", ""]
+    for chart in charts:
+        lines += [f"![{chart.title}]({chart.file})", "", f"*{chart.caption}*", ""]
+    lines.append(
+        "A cross ends the line of a run that was lost; the dashed line is the win "
+        "wave (25). Each strategy has the same color in every chart."
+    )
+    lines.append("")
+    return lines
+
+
 def write_report(
-    results: list[RunResult], path: Path, *, waves: int, seed: int, game_speed: int
+    results: list[RunResult],
+    path: Path,
+    *,
+    waves: int,
+    seed: int,
+    game_speed: int,
+    charts: list[Chart] = (),
 ) -> None:
     from balance_bots import STRATEGIES
 
@@ -553,6 +576,7 @@ def write_report(
         "on it so far (purchases and upgrades; UPG PLANES counts for planes).",
         "Damage is enemy HP taken in that wave, overkill not counted.",
         "",
+        *_chart_lines(charts),
         "## Summary",
         "",
         *_md_table(SUMMARY_HEADER, summary_rows(results, waves), left=2),
@@ -607,8 +631,14 @@ def run(
         out.mkdir(parents=True, exist_ok=True)
         for result in results:
             write_csv(result, out / f"{result.strategy}.csv")
+        charts = write_charts(results, waves, out)
         write_report(
-            results, out / "report.md", waves=waves, seed=seed, game_speed=game_speed
+            results,
+            out / "report.md",
+            waves=waves,
+            seed=seed,
+            game_speed=game_speed,
+            charts=charts,
         )
     return results
 

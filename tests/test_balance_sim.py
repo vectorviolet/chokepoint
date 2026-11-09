@@ -35,7 +35,17 @@ def test_tiny_run_is_deterministic_and_writes_its_tables(sim, tmp_path):
         (result,) = sim.run(["gun_cannon"], waves=3, seed=5, out=out, report=_quiet)
         outputs.append({p.name: p.read_bytes() for p in sorted(out.iterdir())})
     assert outputs[0] == outputs[1]
-    assert sorted(outputs[0]) == ["gun_cannon.csv", "report.md"]
+    assert sorted(outputs[0]) == [
+        "gun_cannon.csv",
+        "income.png",
+        "lives_left.png",
+        "pressure.png",
+        "report.md",
+        "threat.png",
+    ]
+    report = outputs[0]["report.md"].decode()
+    assert "![Lives left per wave](lives_left.png)" in report
+    assert report.index("## Charts") < report.index("## Summary")
 
     assert [row["wave"] for row in result.rows] == [1, 2, 3]
     assert result.died_at is None
@@ -45,6 +55,55 @@ def test_tiny_run_is_deterministic_and_writes_its_tables(sim, tmp_path):
     assert first["killed"] + first["escaped"] == 6  # wave 1: six grunts
     assert first["dmg_gun"] > 0 and first["dmg_cannon"] == 0
     assert "| gun_cannon | cleared 3 of 3 |" in outputs[0]["report.md"].decode()
+
+
+def _fake_result(name, died_at, lives):
+    from types import SimpleNamespace
+
+    rows = [
+        {
+            "wave": wave,
+            "lives": lives[wave - 1],
+            "earned": 50 * wave,
+            "spent_total_gun": 200 * wave,
+            "spent_total_plane": 0,
+        }
+        for wave in range(1, len(lives) + 1)
+    ]
+    return SimpleNamespace(strategy=name, died_at=died_at, rows=rows)
+
+
+def test_charts_are_written_at_a_fixed_size_and_are_byte_stable(tmp_path):
+    charts = _load("balance_charts")
+    results = [
+        _fake_result("gun_spam", None, [10, 10, 9, 9]),
+        _fake_result("minimal", 3, [10, 4, 0]),
+    ]
+    for run in ("a", "b"):
+        (tmp_path / run).mkdir()
+        written = charts.write_charts(results, 4, tmp_path / run)
+    assert [c.file for c in written] == [
+        "lives_left.png",
+        "income.png",
+        "threat.png",
+        "pressure.png",
+    ]
+    for chart in written:
+        data = (tmp_path / "a" / chart.file).read_bytes()
+        assert data == (tmp_path / "b" / chart.file).read_bytes()
+        assert data[:8] == bytes([0x89]) + b"PNG\r\n" + bytes([0x1A]) + b"\n"
+        # The IHDR chunk: width and height.
+        assert (
+            int.from_bytes(data[16:20], "big"),
+            int.from_bytes(data[20:24], "big"),
+        ) == (charts.WIDTH_PX, charts.HEIGHT_PX)
+        assert b"Software" not in data
+
+
+def test_threat_is_the_total_scaled_hp_of_a_wave():
+    charts = _load("balance_charts")
+    # Wave 1: six grunts of 20 HP. Wave 2: nine grunts at 20 * 1.25 = 25 HP.
+    assert charts.threat_per_wave(2) == [6 * 20, 9 * 25]
 
 
 def test_money_spent_and_earned_add_up(sim):

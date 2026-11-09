@@ -23,6 +23,8 @@ dev = [
     "coverage-badge>=1.1",
     "ruff==0.17.3",
     "pillow",
+    # The balance report's charts (scripts/balance_charts.py).
+    "matplotlib>=3.9",
     "mypy==2.4.1",
     "types-pyyaml>=6.0.12.20261030",
     # Same version as `uvx codespell@...` in ci.yml's spelling job.
