@@ -14,6 +14,10 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ## [Unreleased]
 
+### Added
+
+- Map obstacles authored in Tiled, drawn at their world positions and blocking ground-tower placement across their full bounds; ground towers in an older save that stand on a blocked cell are removed on load and refunded in full ([#167](https://github.com/vectorviolet/chokepoint/pull/167), [devlog](docs/devlog/2026-11-07-map-obstacles.md)).
+
 ### Development
 
 - README: a status badge row (CI, release, license, coverage, Python) under the title, and the official itch.io badge in the Download section ([#153](https://github.com/vectorviolet/chokepoint/pull/153)).

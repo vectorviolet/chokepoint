@@ -400,7 +400,7 @@ def _run_demo(tilemap, assets, tower_config, seed, ticks):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize("seed", (3, 7))
+@pytest.mark.parametrize("seed", (1, 7))
 def test_a_whole_battle_plays_out_exactly_as_before(
     seed, assets, tower_config, monkeypatch
 ):

@@ -1,3 +1,5 @@
+import logging
+
 from pygame.math import Vector2
 
 from app.game_events import SPEED_BUTTON_STATES
@@ -5,6 +7,8 @@ from gameplay.combat.enemy import Enemy
 from gameplay.combat.tank import Tank
 from gameplay.combat.wave_manager import TANK_TYPES
 from gameplay.towers import TowerFactory
+
+logger = logging.getLogger(__name__)
 
 
 class GameSaveMixin:
@@ -122,6 +126,9 @@ class GameSaveMixin:
 
     def _restore_towers(self, saved: list) -> None:
         self.towers.clear()
+        refunded = 0
+        refunded_total = 0
+        grid = self.tilemap.buildable_grid
         for t in saved:
             tower = TowerFactory.create(
                 t["tower_type"],
@@ -133,6 +140,15 @@ class GameSaveMixin:
                 self.tilemap.map_width,
                 level=t["level"],
             )
+            if not tower.is_flying and not self._cell_is_buildable(
+                grid, t["row"], t["col"]
+            ):
+                # A save from before the map blocked this cell (an obstacle):
+                # the tower is dropped and everything spent on it comes back.
+                self.game_state.increase_money(tower.spent)
+                refunded += 1
+                refunded_total += tower.spent
+                continue
             tower.hp = t["hp"]
             # Saves from before the tower info panel have no record: start at 0.
             tower.kills = t.get("kills", 0)
@@ -140,6 +156,17 @@ class GameSaveMixin:
             tower.position = Vector2(t["position"])
             tower.rect.center = tower.position
             self.towers.append(tower)
+        if refunded:
+            logger.warning(
+                "Removed %d saved tower(s) standing on cells the map now blocks "
+                "and refunded %d coins in full.",
+                refunded,
+                refunded_total,
+            )
+
+    @staticmethod
+    def _cell_is_buildable(grid: list[list[bool]], row: int, col: int) -> bool:
+        return 0 <= row < len(grid) and 0 <= col < len(grid[row]) and grid[row][col]
 
     def _restore_enemies(self, saved: list) -> None:
         self.enemies.clear()
