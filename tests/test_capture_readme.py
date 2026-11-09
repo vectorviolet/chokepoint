@@ -89,8 +89,9 @@ def test_capture_is_complete_reproducible_and_keeps_out_of_real_saves(tmp_path):
     for name in NAMES:
         with Image.open(runs[0] / name) as image:
             assert image.size == SIZE
+            if name.endswith(".gif"):
+                assert image.info["loop"] == 0, name
             if name == "preview.gif":
-                assert image.info["loop"] == 0
                 # Pillow merges identical frames; their durations add up.
                 total = 0
                 for i in range(image.n_frames):
