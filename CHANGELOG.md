@@ -27,6 +27,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 - README: rewritten as a front page, with `CONTRIBUTING.md` and `docs/ARCHITECTURE.md` taking the contributor and architecture material ([#158](https://github.com/vectorviolet/chokepoint/pull/158), [devlog](docs/devlog/2026-11-05-readme-front-page.md)).
 - itch.io: the store description (`docs/store/description.html`) is rewritten for players, with a checklist for the page's other fields in `docs/store/README.md` ([#163](https://github.com/vectorviolet/chokepoint/pull/163)).
 - Docs: removed the unused asset-pack samples and the obsolete store covers from `docs/store/` ([#165](https://github.com/vectorviolet/chokepoint/pull/165)).
+- Store media: `scripts/capture_readme.py` retakes the preview GIF and 17 screenshots (placing, tank fight, plane run, enemy HP, settings tabs, Turkish, popups, HUD hidden) plus a plane-run GIF and cover candidates; the README gallery and store notes use them ([devlog](docs/devlog/2026-11-09-store-media.md)).
 
 ## [0.4.0] – 2026-11-04
 

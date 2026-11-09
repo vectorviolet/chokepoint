@@ -54,9 +54,13 @@ Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch
 |---|---|
 | ![Main menu over an animated battle](docs/screenshots/01_menu.png) | ![Round 15 with mixed towers, enemy HP bars and flying reward coins](docs/screenshots/02_gameplay.png) |
 
-| Tower stats and upgrade previews | Pause menu |
+| Placing a tower: range ring and build tiles | Tank fight: tower HP bars and a destroyed tower |
 |---|---|
-| ![Selected missile tower showing range, HP and next-level stat previews](docs/screenshots/03_upgrades.png) | ![Pause menu with Back, Settings, Music and Main menu](docs/screenshots/04_pause.png) |
+| ![Placing a homing missile tower with its range ring over the build grid](docs/screenshots/08_placing_tower.png) | ![A tank shooting towers, with their HP bars and the explosion and rubble of a destroyed one](docs/screenshots/11_tank_fight.png) |
+
+| Plane bombing run with its info panel | Tower stats and upgrade previews |
+|---|---|
+| ![A plane's bombs bursting on a wave, with the plane's info panel](docs/screenshots/12_plane_bombing.png) | ![Selected missile tower showing range, HP and next-level stat previews](docs/screenshots/03_upgrades.png) |
 
 ## Towers and enemies
 
