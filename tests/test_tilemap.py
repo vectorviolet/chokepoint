@@ -253,8 +253,6 @@ def test_hidden_obstacle_object_neither_draws_nor_blocks(obstacle_map):
             "ellipse",
         ),
         ('<object id="7" x="0" y="0"><point/></object>', "point"),
-        ('<object id="7" x="15.5" y="15.5" width="0" height="16"/>', "no area"),
-        ('<object id="7" x="15.5" y="15.5" width="16" height="0"/>', "no area"),
     ],
 )
 def test_unsupported_obstacle_shapes_fail_loudly(obstacle_map, obj, message):
@@ -269,3 +267,14 @@ def test_unsupported_shapes_in_a_hidden_group_are_ignored(obstacle_map):
     )
 
     assert tilemap.obstacles == []
+
+
+@pytest.mark.parametrize("size", [(0, 16), (16, 0)])
+def test_zero_area_obstacles_load_and_block_nothing(obstacle_map, size):
+    width, height = size
+    tilemap = obstacle_map(
+        f'<object id="1" x="15.5" y="15.5" width="{width}" height="{height}"/>'
+    )
+
+    assert tilemap.obstacles == []
+    assert blocked_cells(tilemap) == set()

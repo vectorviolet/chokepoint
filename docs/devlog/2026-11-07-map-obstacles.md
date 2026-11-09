@@ -47,10 +47,10 @@ tile boundary does not block the next tile. Clip coverage to the map. Image-less
 rectangles block construction without drawing a sprite. Images are drawn at the
 floor of the bounds' top-left corner and sized to the same cells blocking uses.
 
-The supported authoring convention is unrotated tile objects and rectangles with
-an area in the `Obstacles` group. Anything else (rotation, polygons, polylines,
-ellipses, points, zero-size objects) fails an assert at load instead of being
-guessed at. A hidden group or object is skipped for drawing and blocking, like a
+The supported authoring convention is unrotated tile objects and rectangles in
+the `Obstacles` group. Rotation, polygons, polylines, ellipses and points fail an
+assert at load instead of being guessed at. Zero-area objects are ignored: they
+neither draw nor block, as the issue says. A hidden group or object is skipped for drawing and blocking, like a
 hidden tile layer.
 
 Decisions made by the owner during review:

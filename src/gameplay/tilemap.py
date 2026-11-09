@@ -16,8 +16,8 @@ TMX conventions this loader expects:
 - A tile layer named `Road` whose tiles describe the enemy path geometry.
 - Buildable tiles are outside the road, obstacles, and existing towers.
 - An object group named `Obstacles` containing unrotated tile objects or
-  rectangles with an area (rotation, polygons, polylines, ellipses, points and
-  zero-size objects fail an assert). Their bounds block construction, even
+  rectangles (rotation, polygons, polylines, ellipses and points fail an
+  assert; zero-area objects are ignored). Their bounds block construction, even
   when they have no image. A hidden group, or a hidden object, is ignored: it
   neither draws nor blocks.
 """
@@ -100,9 +100,8 @@ class Tilemap(TiledMap):
                     f"Obstacle object {obj.id} is a polygon, polyline, ellipse "
                     "or point; only tile objects and rectangles are supported"
                 )
-                assert obj.width > 0 and obj.height > 0, (
-                    f"Obstacle object {obj.id} has no area ({obj.width}x{obj.height})"
-                )
+                if obj.width <= 0 or obj.height <= 0:
+                    continue  # zero-area objects neither draw nor block
                 # pytmx already converts tile-object y from bottom to top.
                 bounds = pygame.FRect(obj.x, obj.y, obj.width, obj.height)
                 obstacles.append(Obstacle(self._obstacle_image(obj, bounds), bounds))
