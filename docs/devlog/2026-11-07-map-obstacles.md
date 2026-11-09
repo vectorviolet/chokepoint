@@ -23,7 +23,8 @@ no image was also ignored, leaving its cell available for construction.
 These are cropped map previews rendered from the actual TMX and tileset, with red
 outlines showing obstacle blockers. They illustrate the coordinate change; they
 are not screenshots of a running game. The empty outlined cell in the corrected
-preview is the owner's image-less rectangle, object 101.
+preview is an image-less rectangle (object 101) that the owner later removed from
+the shipped map; the code and tests still support such rectangles.
 
 Drawing obstacles individually every frame would support moving objects, but the
 current obstacles are static. They can share the existing map surface and camera
@@ -42,10 +43,26 @@ authored bounds differ from the source tile size.
 
 For construction, block every grid cell intersecting an obstacle's bounds.
 The right and bottom edges are exclusive, so a rectangle ending exactly at a
-tile boundary does not block the next tile. Clip coverage to the map and ignore
-zero-area objects. Image-less rectangles block construction without drawing a
-sprite. The supported authoring convention is unrotated tile objects and
-rectangles in the `Obstacles` group.
+tile boundary does not block the next tile. Clip coverage to the map. Image-less
+rectangles block construction without drawing a sprite. Images are drawn at the
+floor of the bounds' top-left corner and sized to the same cells blocking uses.
+
+The supported authoring convention is unrotated tile objects and rectangles with
+an area in the `Obstacles` group. Anything else (rotation, polygons, polylines,
+ellipses, points, zero-size objects) fails an assert at load instead of being
+guessed at. A hidden group or object is skipped for drawing and blocking, like a
+hidden tile layer.
+
+Decisions made by the owner during review:
+
+- The image-less rectangle (object 101) is removed from the shipped map.
+- Towers in an old save that stand on a cell the map now blocks are removed when
+  the save loads, and refunded in full (purchase plus upgrades, not the 70% sale
+  refund). The alternatives were keeping them in place and hiding the obstacle
+  under them. One line is logged with how many were refunded. Planes are
+  unaffected, and no sell sound or effect plays on load.
+- Obstacles are a 1.1 feature, but the owner allowed this PR to merge before 1.0
+  despite the feature freeze.
 
 ## Result
 
@@ -55,15 +72,13 @@ and plane placement rules keep their existing behavior. Obstacles are drawn
 above the ground and below towers through the normal cached map draw.
 
 Regression tests cover tile position and size, image-less rectangles, fractional
-and multi-cell bounds, map edges, repeated rendering, and camera zoom. Existing
-menu-demo tests check that its towers stand only on buildable cells. All tests
-and simulations use temporary saves.
+and multi-cell bounds, map edges, hidden groups and objects, unsupported shapes,
+repeated rendering, camera zoom, and the old-save refund. Existing
+menu-demo tests check that its towers stand only on buildable cells.
 
-The existing targeting comparison keeps its original road-only construction
-grid so its seeded battle still exercises tank fire. The new blocked cells had
-changed the random tower layout enough that one seed no longer did so; its
-assertions comparing spatial targeting with full scans remain intact.
+The targeting comparison runs on the real map grid. Seeds 1 and 7 both still make
+tanks fire there (seed 3 no longer did after the layout change, so it was replaced).
+All tests and simulations use temporary saves.
 
 Paying to clear obstacles and saving cleared state remain in [#20](https://github.com/vectorviolet/chokepoint/issues/20).
-Existing saves retain their saved tower positions; this change does not relocate
-towers from an older map layout.
+Old saves are handled on load as described above.

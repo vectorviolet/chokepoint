@@ -211,9 +211,8 @@ def test_map_obstacles_prevent_ground_tower_placement(tower_config, assets):
     )
     controller.buying_tower_type = GROUND_TYPE
 
-    # Tile object 102 and image-less rectangle 101 both occupy grass cells.
+    # Tile object 102 occupies the grass cell at row 16, col 11.
     assert controller._is_placeable(16, 11) is False
-    assert controller._is_placeable(16, 14) is False
     assert controller._is_placeable(16, 12) is True
 
 

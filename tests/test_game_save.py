@@ -4,6 +4,7 @@ FakeGame subclasses GameSaveMixin directly so _load_game()/_start_new_game()
 and only the methods Game/Application/GameEventsMixin would otherwise
 provide (_init_wave_manager, _set_*_popup_active, ...) are stubbed."""
 
+import logging
 from types import SimpleNamespace
 
 from pygame.math import Vector2
@@ -72,7 +73,16 @@ def make_game_panel():
 
 
 class FakeGame(GameSaveMixin):
-    def __init__(self, tower_config, assets, *, saved_data=None, money=500, lives=10):
+    def __init__(
+        self,
+        tower_config,
+        assets,
+        *,
+        saved_data=None,
+        money=500,
+        lives=10,
+        buildable_grid=None,
+    ):
         self.save_store = FakeSaveStore(saved_data)
         self.game_state = GameState(start_money=money, start_lives=lives)
         self.towers: list = []
@@ -80,7 +90,11 @@ class FakeGame(GameSaveMixin):
         self.tower_config = tower_config
         self.assets = assets
         self.audio = None
-        self.tilemap = SimpleNamespace(map_width=MAP_WIDTH, waypoints=WAYPOINTS)
+        if buildable_grid is None:
+            buildable_grid = [[True] * 20 for _ in range(20)]
+        self.tilemap = SimpleNamespace(
+            map_width=MAP_WIDTH, waypoints=WAYPOINTS, buildable_grid=buildable_grid
+        )
         self.wave_manager = WaveManager(WAYPOINTS, assets)
         self._starting_money = money
         self._starting_lives = lives
@@ -504,3 +518,81 @@ def test_an_old_save_without_a_tower_record_loads_with_zeros(tower_config, asset
     game._load_game()
 
     assert (game.towers[0].kills, game.towers[0].money_earned) == (0, 0)
+
+
+# ── towers on cells the map now blocks ───────────────────────────────────────
+
+
+def saved_tower(tower_config, assets, **kwargs):
+    tower = make_tower(tower_config, assets, **kwargs)
+    return {
+        "tower_type": tower.tower_type,
+        "row": tower.row,
+        "col": tower.col,
+        "level": tower.level,
+        "hp": tower.hp,
+        "position": [tower.position.x, tower.position.y],
+    }
+
+
+def test_load_refunds_and_removes_a_ground_tower_on_a_blocked_cell(
+    tower_config, assets, caplog
+):
+    grid = [[True] * 20 for _ in range(20)]
+    grid[3][4] = False
+    blocked = saved_tower(tower_config, assets, tower_type=2, level=3, row=3, col=4)
+    free = saved_tower(tower_config, assets, tower_type=2, level=3, row=3, col=5)
+    spent = make_tower(tower_config, assets, tower_type=2, level=3).spent
+    assert spent > make_tower(tower_config, assets, tower_type=2, level=3).sell_price
+    game = FakeGame(
+        tower_config,
+        assets,
+        saved_data={
+            "game_state": {"money": 100},
+            "towers": [blocked, free],
+        },
+        buildable_grid=grid,
+    )
+
+    with caplog.at_level(logging.WARNING, logger="app.game_save"):
+        game._load_game()
+
+    assert [(t.row, t.col) for t in game.towers] == [(3, 5)]
+    assert game.game_state.money == 100 + spent
+    assert [r.getMessage() for r in caplog.records] == [
+        f"Removed 1 saved tower(s) standing on cells the map now blocks "
+        f"and refunded {spent} coins in full."
+    ]
+
+
+def test_load_keeps_ground_towers_on_free_cells_and_logs_nothing(
+    tower_config, assets, caplog
+):
+    saved = saved_tower(tower_config, assets, tower_type=1, row=3, col=4)
+    game = FakeGame(
+        tower_config,
+        assets,
+        saved_data={"game_state": {"money": 100}, "towers": [saved]},
+    )
+
+    with caplog.at_level(logging.WARNING, logger="app.game_save"):
+        game._load_game()
+
+    assert len(game.towers) == 1
+    assert game.game_state.money == 100
+    assert caplog.records == []
+
+
+def test_load_never_removes_a_plane_even_over_a_blocked_cell(tower_config, assets):
+    saved = saved_tower(tower_config, assets, tower_type=4, row=3, col=4)
+    game = FakeGame(
+        tower_config,
+        assets,
+        saved_data={"game_state": {"money": 100}, "towers": [saved]},
+        buildable_grid=[[False] * 20 for _ in range(20)],
+    )
+
+    game._load_game()
+
+    assert len(game.towers) == 1
+    assert game.game_state.money == 100

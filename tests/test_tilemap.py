@@ -62,7 +62,7 @@ def obstacle_map(tmp_path):
     tileset.fill("red", pygame.Rect(16, 0, 16, 16))
     pygame.image.save(tileset, str(tmp_path / "tiles.png"))
 
-    def load(objects):
+    def load(objects, group_attrs=""):
         path = tmp_path / "obstacles.tmx"
         path.write_text(
             '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -75,7 +75,7 @@ def obstacle_map(tmp_path):
             ' <layer id="1" name="Base" width="4" height="4">\n'
             '  <data encoding="csv">1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1</data>\n'
             " </layer>\n"
-            f' <objectgroup id="2" name="Obstacles">{objects}</objectgroup>\n'
+            f' <objectgroup id="2" name="Obstacles"{group_attrs}>{objects}</objectgroup>\n'
             "</map>\n",
             encoding="utf-8",
         )
@@ -125,8 +125,6 @@ def test_tile_obstacle_renders_at_the_blocked_cells(
         ((-8, -8, 16, 16), {(0, 0)}),
         ((56, 56, 16, 16), {(3, 3)}),
         ((-32, -32, 16, 16), set()),
-        ((15.5, 15.5, 0, 16), set()),
-        ((15.5, 15.5, 16, 0), set()),
     ],
 )
 def test_rectangle_obstacle_blocks_its_footprint_without_an_image(
@@ -172,3 +170,102 @@ def test_draw_keeps_obstacles_aligned_when_zoom_changes(obstacle_map):
         assert surface.get_at((left + size - 1, top + size - 1)) == pygame.Color("red")
         assert surface.get_at((left - 1, top)) == pygame.Color("green")
         assert surface.get_at((left, top - 1)) == pygame.Color("green")
+
+
+def test_fractional_obstacle_image_covers_the_blocked_cells(obstacle_map):
+    # Bounds 15.5..32.5 block cells 0..2, so the art spans pixels 15..33 too.
+    tilemap = obstacle_map(
+        '<object id="1" gid="2" x="15.5" y="32.5" width="17" height="17"/>'
+    )
+    surface = tilemap.pre_render()
+
+    assert surface.get_at((15, 15)) == pygame.Color("red")
+    assert surface.get_at((32, 32)) == pygame.Color("red")
+    assert surface.get_at((14, 15)) == pygame.Color("green")
+    assert surface.get_at((33, 32)) == pygame.Color("green")
+    assert surface.get_at((15, 14)) == pygame.Color("green")
+    assert surface.get_at((32, 33)) == pygame.Color("green")
+
+
+def test_negative_fractional_obstacle_image_starts_at_the_floor(obstacle_map):
+    tilemap = obstacle_map(
+        '<object id="1" gid="2" x="-8.5" y="7.5" width="16" height="16"/>'
+    )
+    surface = tilemap.pre_render()
+
+    assert surface.get_at((0, 0)) == pygame.Color("red")
+    assert blocked_cells(tilemap) == {(0, 0)}
+
+
+def test_obstacles_are_typed_records(obstacle_map):
+    tilemap = obstacle_map(
+        '<object id="1" gid="2" x="32" y="48" width="16" height="16"/>'
+        '<object id="2" x="0" y="0" width="16" height="16"/>'
+    )
+
+    with_image, bare = tilemap.obstacles
+    assert with_image.image is not None
+    assert with_image.bounds == pygame.FRect(32, 32, 16, 16)
+    assert bare.image is None
+    with pytest.raises(AttributeError):
+        bare.image = None  # type: ignore[misc]
+
+
+def test_hidden_obstacle_group_neither_draws_nor_blocks(obstacle_map):
+    tilemap = obstacle_map(
+        '<object id="1" gid="2" x="32" y="48" width="16" height="16"/>',
+        group_attrs=' visible="0"',
+    )
+
+    assert tilemap.obstacles == []
+    assert blocked_cells(tilemap) == set()
+    assert tilemap.pre_render().get_at((32, 32)) == pygame.Color("green")
+
+
+def test_hidden_obstacle_object_neither_draws_nor_blocks(obstacle_map):
+    tilemap = obstacle_map(
+        '<object id="1" gid="2" x="32" y="48" width="16" height="16" visible="0"/>'
+        '<object id="2" x="0" y="0" width="16" height="16"/>'
+    )
+
+    assert len(tilemap.obstacles) == 1
+    assert blocked_cells(tilemap) == {(0, 0)}
+    assert tilemap.pre_render().get_at((32, 32)) == pygame.Color("green")
+
+
+@pytest.mark.parametrize(
+    "obj, message",
+    [
+        (
+            '<object id="7" x="0" y="0" width="16" height="16" rotation="90"/>',
+            "rotated",
+        ),
+        (
+            '<object id="7" x="0" y="0"><polygon points="0,0 16,0 16,16"/></object>',
+            "polygon",
+        ),
+        (
+            '<object id="7" x="0" y="0"><polyline points="0,0 16,16"/></object>',
+            "polygon",
+        ),
+        (
+            '<object id="7" x="0" y="0" width="16" height="16"><ellipse/></object>',
+            "ellipse",
+        ),
+        ('<object id="7" x="0" y="0"><point/></object>', "point"),
+        ('<object id="7" x="15.5" y="15.5" width="0" height="16"/>', "no area"),
+        ('<object id="7" x="15.5" y="15.5" width="16" height="0"/>', "no area"),
+    ],
+)
+def test_unsupported_obstacle_shapes_fail_loudly(obstacle_map, obj, message):
+    with pytest.raises(AssertionError, match=message):
+        obstacle_map(obj)
+
+
+def test_unsupported_shapes_in_a_hidden_group_are_ignored(obstacle_map):
+    tilemap = obstacle_map(
+        '<object id="7" x="0" y="0" width="16" height="16" rotation="90"/>',
+        group_attrs=' visible="0"',
+    )
+
+    assert tilemap.obstacles == []

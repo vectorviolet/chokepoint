@@ -14,16 +14,21 @@ TMX conventions this loader expects:
   and `"end"`.
 - An object group named `Paths` containing polyline objects, one per path.
 - A tile layer named `Road` whose tiles describe the enemy path geometry.
+- Buildable tiles are outside the road, obstacles, and existing towers.
 - An object group named `Obstacles` containing unrotated tile objects or
-  rectangles. Their bounds block construction, even when they have no image.
-  Buildable tiles are outside the road, obstacles, and existing towers.
+  rectangles with an area (rotation, polygons, polylines, ellipses, points and
+  zero-size objects fail an assert). Their bounds block construction, even
+  when they have no image. A hidden group, or a hidden object, is ignored: it
+  neither draws nor blocks.
 """
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from math import ceil, floor
 from pathlib import Path
 from typing import override
+from xml.etree import ElementTree
 
 import pygame
 from pygame.math import Vector2
@@ -36,6 +41,15 @@ _WAY_LAYER = "Road"
 _MARKERS_GROUP = "Markers"
 _PATHS_GROUP = "Paths"
 _OBSTACLES_GROUP = "Obstacles"
+_UNSUPPORTED_SHAPE_TAGS = ("polygon", "polyline", "ellipse", "point")
+
+
+@dataclass(frozen=True)
+class Obstacle:
+    """A static map obstacle: its art (None for a bare rectangle) and its bounds."""
+
+    image: pygame.Surface | None
+    bounds: pygame.FRect
 
 
 class Tilemap(TiledMap):
@@ -45,7 +59,8 @@ class Tilemap(TiledMap):
         super().__init__(tmx_path)
         self.waypoints: list[Vector2] = self._load_first_path()
         self._spawn_col, self._spawn_row = self._load_marker("spawn")
-        self.obstacles: list[dict] = self._load_obstacles()
+        self._unsupported_shape_ids = self._find_unsupported_shape_ids(tmx_path)
+        self.obstacles: list[Obstacle] = self._load_obstacles()
         self.buildable_grid: list[list[bool]] = self._compute_buildable()
 
     # ── loaders ───────────────────────────────────────────────────────────
@@ -65,42 +80,80 @@ class Tilemap(TiledMap):
                 return col, row
         return None, None
 
-    def _load_obstacles(self) -> list[dict]:
-        obstacles_list = []
-        for obj in self.iter_objects(_OBSTACLES_GROUP):
-            # pytmx already converts tile-object y from bottom to top.
-            bounds = pygame.FRect(obj.x, obj.y, obj.width, obj.height)
-            if bounds.width <= 0 or bounds.height <= 0:
+    def _load_obstacles(self) -> list[Obstacle]:
+        obstacles = []
+        # Hidden groups and objects are skipped, like hidden tile layers.
+        for layer in self.tmx.visible_layers:
+            if not (
+                isinstance(layer, pytmx.TiledObjectGroup)
+                and layer.name == _OBSTACLES_GROUP
+            ):
                 continue
-            image = getattr(obj, "image", None)
-            if image is not None:
-                size = (max(1, round(bounds.width)), max(1, round(bounds.height)))
-                if image.get_size() != size:
-                    image = pygame.transform.scale(image, size)
-            obstacles_list.append(
-                {
-                    "image": image,
-                    "pos": Vector2(bounds.topleft),
-                    "col": floor(bounds.left / self.tile_size),
-                    "row": floor(bounds.top / self.tile_size),
-                    "bounds": bounds,
-                    "properties": getattr(obj, "properties", {}),
-                }
-            )
+            for obj in layer:
+                if not obj.visible:
+                    continue
+                assert obj.rotation == 0, (
+                    f"Obstacle object {obj.id} is rotated; only unrotated "
+                    "tile objects and rectangles are supported"
+                )
+                assert obj.id not in self._unsupported_shape_ids, (
+                    f"Obstacle object {obj.id} is a polygon, polyline, ellipse "
+                    "or point; only tile objects and rectangles are supported"
+                )
+                assert obj.width > 0 and obj.height > 0, (
+                    f"Obstacle object {obj.id} has no area ({obj.width}x{obj.height})"
+                )
+                # pytmx already converts tile-object y from bottom to top.
+                bounds = pygame.FRect(obj.x, obj.y, obj.width, obj.height)
+                obstacles.append(Obstacle(self._obstacle_image(obj, bounds), bounds))
 
-        return obstacles_list
+        return obstacles
+
+    @staticmethod
+    def _obstacle_image(
+        obj: pytmx.TiledObject, bounds: pygame.FRect
+    ) -> pygame.Surface | None:
+        """The object's image sized to the whole cells blocking covers."""
+        image = obj.image
+        if image is None:
+            return None
+        size = (
+            ceil(bounds.right) - floor(bounds.left),
+            ceil(bounds.bottom) - floor(bounds.top),
+        )
+        if image.get_size() != size:
+            image = pygame.transform.scale(image, size)
+        return image
+
+    @staticmethod
+    def _find_unsupported_shape_ids(tmx_path: str | Path) -> set[int]:
+        """Ids of Obstacles objects pytmx can't tell from rectangles.
+
+        pytmx drops the `<ellipse/>` and `<point/>` children and gives polygons
+        a bounding box, so they would otherwise load as plain rectangles.
+        """
+        root = ElementTree.parse(tmx_path).getroot()
+        return {
+            int(obj.get("id", 0))
+            for group in root.iter("objectgroup")
+            if group.get("name") == _OBSTACLES_GROUP
+            for obj in group.iter("object")
+            if any(obj.find(tag) is not None for tag in _UNSUPPORTED_SHAPE_TAGS)
+        }
 
     def _compute_buildable(self) -> list[list[bool]]:
         grid = [[True for _ in range(self.cols)] for _ in range(self.rows)]
         for layer in self.tmx.layers:
-            if not isinstance(layer, pytmx.TiledTileLayer) or layer.name != _WAY_LAYER:
+            if not (
+                isinstance(layer, pytmx.TiledTileLayer) and layer.name == _WAY_LAYER
+            ):
                 continue
             for x, y, gid in layer.iter_data():
                 if gid != 0 and 0 <= y < self.rows and 0 <= x < self.cols:
                     grid[y][x] = False
 
         for obs in self.obstacles:
-            bounds = obs["bounds"]
+            bounds = obs.bounds
             first_col = max(0, floor(bounds.left / self.tile_size))
             first_row = max(0, floor(bounds.top / self.tile_size))
             end_col = min(self.cols, ceil(bounds.right / self.tile_size))
@@ -116,8 +169,8 @@ class Tilemap(TiledMap):
         """Bake static obstacle images into the map before the base class caches it."""
         surface = super().pre_render(alpha=alpha)
         for obs in self.obstacles:
-            if obs["image"] is not None:
-                surface.blit(obs["image"], obs["pos"])
+            if obs.image is not None:
+                surface.blit(obs.image, (floor(obs.bounds.left), floor(obs.bounds.top)))
         return surface
 
     # ── public API ────────────────────────────────────────────────────────

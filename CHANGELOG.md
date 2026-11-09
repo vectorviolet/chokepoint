@@ -16,7 +16,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ### Added
 
-- Map obstacles authored in Tiled, drawn at their world positions and blocking ground-tower placement across their full bounds ([#167](https://github.com/vectorviolet/chokepoint/pull/167), [devlog](docs/devlog/2026-11-07-map-obstacles.md)).
+- Map obstacles authored in Tiled, drawn at their world positions and blocking ground-tower placement across their full bounds; ground towers in an older save that stand on a blocked cell are removed on load and refunded in full ([#167](https://github.com/vectorviolet/chokepoint/pull/167), [devlog](docs/devlog/2026-11-07-map-obstacles.md)).
 
 ### Development
 

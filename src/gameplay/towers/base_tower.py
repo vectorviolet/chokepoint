@@ -83,9 +83,13 @@ class BaseTower(RotatableObject):
         return self._config.max_levels[self.tower_type - 1]
 
     @property
+    def spent(self) -> int:
+        """Everything paid for this tower: the purchase plus its upgrades."""
+        return sum(self._config.prices[self.tower_type - 1][: self.level])
+
+    @property
     def sell_price(self) -> int:
-        spent = sum(self._config.prices[self.tower_type - 1][: self.level])
-        return int(spent * SELL_REFUND)
+        return int(self.spent * SELL_REFUND)
 
     @property
     def upgrade_price(self) -> int:

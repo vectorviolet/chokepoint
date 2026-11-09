@@ -79,7 +79,6 @@
  </layer>
  <objectgroup id="3" name="Preview_TowerBase" visible="0"/>
  <objectgroup id="17" name="Obstacles">
-  <object id="101" x="896" y="1024" width="64" height="64"/>
   <object id="102" gid="131" x="704" y="1088" width="64" height="64"/>
   <object id="103" gid="131" x="1024" y="960" width="64" height="64"/>
   <object id="104" gid="131" x="1088" y="832" width="64" height="64"/>
