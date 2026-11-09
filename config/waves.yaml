@@ -5,9 +5,10 @@
 #   <wave>: {spawn_interval: <ms>, groups: [{type, count}]}   # dict form, custom interval
 # Default spawn_interval is WaveManager.SPAWN_INTERVAL_MS (1000).
 #
-# Design: enemy HP & kill_money scale +25% per wave. Each wave's total payout
-# should fund roughly one tower upgrade so the player is always one wave behind
-# the curve — buying just enough to survive the next one.
+# Design: enemy HP & kill_money scale +25% per wave. Waves 1-9 are gentle (a normal
+# opening should not leak); from wave 11 the heavies, the first tank (wave 15), the
+# first heavy tank (wave 22) and tighter spawn spacing make each wave ask for more
+# defense than the last (see docs/devlog/2026-11-09-wave-balance.md).
 
 waves:
   1:  [{type: 1, count: 6}]                                                       # tutorial: 1× Type-1 tower handles it
@@ -15,7 +16,7 @@ waves:
   3:  [{type: 1, count: 8},  {type: 2, count: 1}]                                 # first fast runner
   4:  [{type: 1, count: 9},  {type: 2, count: 1}]
   5:  [{type: 1, count: 7},  {type: 2, count: 2}]
-  6:  {spawn_interval: 1000, groups: [{type: 1, count: 9}, {type: 2, count: 2}]}  # a bit denser than waves 4-5, not a spike
+  6:  [{type: 1, count: 9},  {type: 2, count: 2}]
   7:  [{type: 1, count: 7},  {type: 2, count: 3}, {type: 3, count: 1}]            # first bruiser — needs Type-3 or Type-2 L2
   8:  [{type: 1, count: 8},  {type: 2, count: 3}, {type: 3, count: 1}]
   9:  [{type: 1, count: 9},  {type: 2, count: 4}, {type: 3, count: 2}]

@@ -20,7 +20,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ### Changed
 
-- Wave balance (#10): waves 4 to 6 are gentler, so a normal build no longer leaks there, and waves 10 to 25 are tougher: the first heavy arrives in wave 11, the first tank in wave 15 and the first heavy tank in wave 22, with more enemies and tighter spacing ([#170](https://github.com/vectorviolet/chokepoint/pull/170), [devlog](docs/devlog/2026-11-09-wave-balance.md)).
+- Wave balance (#10): waves 4 to 6 are gentler, so a normal build no longer leaks there, and waves 11 to 25 are tougher: the first heavy arrives in wave 11, the first tank in wave 15 and the first heavy tank in wave 22, with more enemies and tighter spacing ([#170](https://github.com/vectorviolet/chokepoint/pull/170), [devlog](docs/devlog/2026-11-09-wave-balance.md)).
 
 ### Development
 

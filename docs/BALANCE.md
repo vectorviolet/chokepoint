@@ -186,4 +186,5 @@ total HP a wave spawns after the +25% per wave scaling (the same for every strat
 **pressure** is that threat divided by all the money spent on towers so far, a proxy for the
 defense built: a line that rises means the defense falls behind, one that falls means it is
 pulling ahead. A wave where several lines jump up together is a wave that is hard for the money
-the player has, which is how waves 4 to 6 and the late tanks show up.
+the player has. In the pre-#10 run in this document that is waves 4 to 6 (lives) and the late tanks
+(pressure and towers lost); the current report shows the waves as reworked by #10.

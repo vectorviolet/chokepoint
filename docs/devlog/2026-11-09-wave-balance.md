@@ -1,7 +1,7 @@
 # Wave balance: smoother waves 4 to 6, more pressure in 11 to 25
 <!-- index | refs: #10, PR #170 -->
 
-**Date:** 2026-11-09 · **Area:** Gameplay, balance · **Issue:** [#10](https://github.com/vectorviolet/chokepoint/issues/10) · **PR:** not merged when this entry was written
+**Date:** 2026-11-09 · **Area:** Gameplay, balance · **Issue:** [#10](https://github.com/vectorviolet/chokepoint/issues/10) · **PR:** [#170](https://github.com/vectorviolet/chokepoint/pull/170) (open when this entry was written)
 
 ## Context
 
@@ -12,7 +12,8 @@ playtest impressions on the current map:
 - **The early spike is waves 4 to 6.** Every normal build leaks 1, 2 and 1 enemies in waves 4, 5 and
   6 (4 of 10 lives), always the same waves. The cause is money: waves 1 to 5 pay 24, 45, 63, 87 and
   84, so a player has about 4 to 5 guns by wave 4.
-- **Waves 10 to 25 cost nothing.** No normal build loses a life, an enemy or a tower there. Income
+- **Waves 11 to 25 cost nothing.** No normal build loses a life, an enemy or a tower there (wave 10 is
+  the missile build's own cliff: its first heavy costs it 3 lives). Income
   grows from 631 to 6,377 a wave and the bots turn all of it into towers.
 - **Heavies (type 4) are a cliff.** With 3 heavies in wave 12 instead of 1, gun_spam and missile die
   in wave 12; with 2 everything holds. They have to be tuned in steps of 1.
@@ -29,7 +30,8 @@ nothing was committed.
 - **B, A plus a rework of waves 10 to 25:** no heavy in wave 10, heavies 1, 2, 2, 3 in waves 11 to
   14 and 4 to 8 by wave 20, the first tank moved from wave 25 to wave 15, heavy tanks (type 6) from
   wave 22, tighter spawn spacing (600 ms from wave 15, 550 from wave 20, 500 in wave 25), types 2
-  and 3 about 1.5 times as many.
+  and 3 up to 1.8 and 2 times as many by wave 25 (18 fast runners instead of 10, 14 bruisers
+  instead of 7, 10 heavies instead of 5), and no grunts from wave 21.
 - **C, spacing only:** the same enemies, spawned slower in waves 4 to 6 and faster later, one tank
   in wave 20. Income stays identical to the old waves.
 
