@@ -29,17 +29,20 @@ nothing was committed.
   spacing). Waves 10 to 25 stay as they are.
 - **B, A plus a rework of waves 10 to 25:** no heavy in wave 10, heavies 1, 2, 2, 3 in waves 11 to
   14 and 4 to 8 by wave 20, the first tank moved from wave 25 to wave 15, heavy tanks (type 6) from
-  wave 22, tighter spawn spacing (600 ms from wave 15, 550 from wave 20, 500 in wave 25), types 2
+  wave 22, tighter spawn spacing (600 ms in wave 15, 550 in wave 20 and 500 in wave 25; the waves
+  between keep the 1,000 ms default), types 2
   and 3 up to 1.8 and 2 times as many by wave 25 (18 fast runners instead of 10, 14 bruisers
   instead of 7, 10 heavies instead of 5), and no grunts from wave 21.
-- **C, spacing only:** the same enemies, spawned slower in waves 4 to 6 and faster later, one tank
-  in wave 20. Income stays identical to the old waves.
+- **C, spacing and one tank:** the old enemy counts, spawned slower in waves 4 and 5 (1,100 ms)
+  and wave 6 (1,000 ms), and faster later (900 ms in waves 10 to 14, 800 in 15 to 19, 650 in 20 to
+  24, 550 in wave 25), plus one tank moved into wave 20. Income is the old income, plus that tank's.
 
 ![Enemy HP spawned per wave for the current waves, A and B](img/wave-balance-threat.png)
 
 *B's waves carry three times the HP of the current ones by wave 25 (about 101,000 against 33,000).
-A is the current curve with a small dip in waves 4 to 6; C has the same enemies as the current waves,
-so it is not drawn separately.*
+A is the current curve with a small dip in waves 4 to 6; C has the old enemy counts plus one
+tank in wave 20 (4,600 HP more there), so it follows the current line except for a bump in
+wave 20.*
 
 ![Lives left per wave for gun_cannon, by option](img/wave-balance-lives.png)
 
@@ -63,14 +66,14 @@ Headline numbers of the candidate runs (to wave 25):
 ## Decision
 
 **The owner chose B on 2026-11-09. The simulator recommended A**: it removes the early spike with the
-smallest change and puts no new risk in waves 10 to 25. B is the option that adds pressure to waves 11 to 25, which A and C leave as they are. `config/waves.yaml` is B exactly as simulated, with its
+smallest change and puts no new risk in waves 10 to 25. B is the option that adds pressure to waves 11 to 25, which A leaves as it is and C only changes in spacing (plus one tank). `config/waves.yaml` is B exactly as simulated, with its
 comments updated (the first tank is in wave 15, the first heavy tank in wave 22).
 
 ## Rejected alternatives
 
 - **A:** safe, but waves 11 to 25 stay as trivial as measured.
-- **C:** keeps income identical, but it still leaks 3 lives in waves 4 to 6 and its later waves only
-  differ in spacing.
+- **C:** keeps the old income (plus one tank), but it still leaks 3 lives in waves 4 to 6 and its
+  later waves only differ in spacing and that one tank.
 - **More heavies in wave 12 (3 instead of 2):** gun_spam and missile die in that one wave, so B keeps
   to 2.
 

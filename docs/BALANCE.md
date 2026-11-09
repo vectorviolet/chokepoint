@@ -5,7 +5,7 @@ owner's call) can be judged by data first and then confirmed by a few playtests.
 number changed for this document.** The full per-wave tables are in
 [`docs/balance/report.md`](balance/report.md), with one CSV per strategy next to it.
 
-**Note:** the sections below (Machine, Results and the four observations) describe the waves as
+**Note:** the sections below (Method's speed comparison, Machine, Results and the four observations) describe the waves as
 they were before #10. Waves 4 to 6 and 10 to 25 were reworked afterwards (see the
 [devlog entry](devlog/2026-11-09-wave-balance.md)); `docs/balance/` and its charts show the
 current waves.
@@ -44,8 +44,9 @@ Like the smoke test, the script sends every save to a temporary folder and fails
 - **The real game.** Each strategy plays a fresh run in a real `Game()`: the game's own waves,
   enemy stats and scaling, targeting, tank fire, money, lives and game over. Nothing is drawn; the
   fixed tick (`_tick()`) runs as fast as the CPU allows. The game speed is x4 by default, as a
-  player who fast-forwards would play; a plane_spam run at x1 gave the same result (died in wave
-  29; plane ROI 0.09 at both speeds).
+  player who fast-forwards would play; before #10, a plane_spam run at x1 gave the same result as
+  at x4 (died in wave 29; plane ROI 0.09 at both speeds). With the reworked waves it dies in wave
+  25 at x4; the x1 comparison was not repeated.
 - **Start:** 200 money, 10 lives (`config/settings.yaml`). The victory popup after wave 25 is
   answered with Continue. A run ends after `--waves` waves or when lives reach 0.
 - **Bots** (`scripts/balance_bots.py`) look at their money every 0.5 s of game time. Each is an
