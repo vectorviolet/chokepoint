@@ -5,6 +5,11 @@ owner's call) can be judged by data first and then confirmed by a few playtests.
 number changed for this document.** The full per-wave tables are in
 [`docs/balance/report.md`](balance/report.md), with one CSV per strategy next to it.
 
+**Note:** the sections below (Method's speed comparison, Machine, Results and the four observations) describe the waves as
+they were before #10. Waves 4 to 6 and 10 to 25 were reworked afterwards (see the
+[devlog entry](devlog/2026-11-09-wave-balance.md)); `docs/balance/` and its charts show the
+current waves.
+
 ## How to run it
 
 From the repo root:
@@ -39,8 +44,9 @@ Like the smoke test, the script sends every save to a temporary folder and fails
 - **The real game.** Each strategy plays a fresh run in a real `Game()`: the game's own waves,
   enemy stats and scaling, targeting, tank fire, money, lives and game over. Nothing is drawn; the
   fixed tick (`_tick()`) runs as fast as the CPU allows. The game speed is x4 by default, as a
-  player who fast-forwards would play; a plane_spam run at x1 gave the same result (died in wave
-  29; plane ROI 0.09 at both speeds).
+  player who fast-forwards would play; before #10, a plane_spam run at x1 gave the same result as
+  at x4 (died in wave 29; plane ROI 0.09 at both speeds). With the reworked waves it dies in wave
+  25 at x4; the x1 comparison was not repeated.
 - **Start:** 200 money, 10 lives (`config/settings.yaml`). The victory popup after wave 25 is
   answered with Continue. A run ends after `--waves` waves or when lives reach 0.
 - **Bots** (`scripts/balance_bots.py`) look at their money every 0.5 s of game time. Each is an
@@ -181,4 +187,5 @@ total HP a wave spawns after the +25% per wave scaling (the same for every strat
 **pressure** is that threat divided by all the money spent on towers so far, a proxy for the
 defense built: a line that rises means the defense falls behind, one that falls means it is
 pulling ahead. A wave where several lines jump up together is a wave that is hard for the money
-the player has, which is how waves 4 to 6 and the late tanks show up.
+the player has. In the pre-#10 run in this document that is waves 4 to 6 (lives) and the late tanks
+(pressure and towers lost); the current report shows the waves as reworked by #10.
