@@ -20,7 +20,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ### Development
 
-- Balance report: `docs/balance/` and `docs/BALANCE.md` regenerated on the obstacle map; no balance number changed ([#169](https://github.com/vectorviolet/chokepoint/pull/169)).
+- Balance report: `docs/balance/` and `docs/BALANCE.md` regenerated on the obstacle map, with four charts (lives, income, enemy threat, pressure) drawn by `scripts/balance_charts.py` (matplotlib joins the dev group); no balance number changed ([#169](https://github.com/vectorviolet/chokepoint/pull/169)).
 - README: a status badge row (CI, release, license, coverage, Python) under the title, and the official itch.io badge in the Download section ([#153](https://github.com/vectorviolet/chokepoint/pull/153)).
 - README: the game's logo replaces the text title, full width, with the badges centered under it ([#155](https://github.com/vectorviolet/chokepoint/pull/155)).
 - Stats reference and wiki: a picture next to each tower (platform with its turret, per level) and enemy, generated from the game's asset keys; `--check` compares decoded pixels ([156](https://github.com/vectorviolet/chokepoint/pull/156), [devlog](docs/devlog/2026-11-05-stats-pictures.md)).

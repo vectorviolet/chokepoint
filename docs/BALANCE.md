@@ -169,3 +169,16 @@ wave, money at the end, earned and spent in the wave, enemies killed and escaped
 standing and destroyed, damage dealt by each tower type, and each type's ROI so far. The CSVs
 add the kill money per type per wave, the totals spent and earned per type and each wave's game
 time (`wave_s`).
+
+## Reading the charts
+
+`docs/balance/report.md` opens with four charts (PNGs next to it, drawn by
+`scripts/balance_charts.py` from the same run; matplotlib is in the `dev` group). The x axis is
+the wave in all of them, each strategy keeps one color, a cross ends the line of a run that was
+lost, and the dashed line is wave 25, the win. **Lives left** shows where each strategy leaks;
+**income** is the kill money earned per wave; **enemy threat** is the difficulty curve itself, the
+total HP a wave spawns after the +25% per wave scaling (the same for every strategy);
+**pressure** is that threat divided by all the money spent on towers so far, a proxy for the
+defense built: a line that rises means the defense falls behind, one that falls means it is
+pulling ahead. A wave where several lines jump up together is a wave that is hard for the money
+the player has, which is how waves 4 to 6 and the late tanks show up.
