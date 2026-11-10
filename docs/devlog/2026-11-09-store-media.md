@@ -49,7 +49,7 @@ tank shot was taken while the tank flashed white from a hit, and a few frames be
 
 The old title was green on a green map: on the grass of the menu and of the store cover it was hard
 to read, and its glitch effect looked cyberpunk, not like a military game. The owner redesigned it in
-Canva: stencil letters in the game's palette (coin yellow `#F9C72C` fading to orange `#FF9F00`),
+Canva: stencil letters in Black Ops One (SIL Open Font License 1.1) in the game's palette (coin yellow `#F9C72C` fading to orange `#FF9F00`),
 a near-black outline (`#1E1B16`), a baked-in shadow, and a red crosshair (`#E74C3C`) on the O of
 POINT. It is a transparent PNG, cropped to its shadow and saved over
 `assets/images/branding/logo.png` (1600x187). The menu panel scales it, so only its box in

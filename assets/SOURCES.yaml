@@ -112,7 +112,7 @@ files:
     original: "ofl/firasans/OFL.txt"
   "images/branding/logo.png":
     source: own
-    note: "redesigned 2026-11 by the developer in Canva: a font and plain shapes only, no Canva stock elements; TODO: name the font and its license"
+    note: "redesigned 2026-11 by the developer in Canva: a font and plain shapes only, no Canva stock elements; lettering in Black Ops One (James Grieshaber, Eben Sorkin; SIL Open Font License 1.1, https://fonts.google.com/specimen/Black+Ops+One), rendered into the image, the font file isn't shipped"
   "images/ui/buttons/max.png":
     source: own
     note: "Canva, redrawn 2026-10-26"
