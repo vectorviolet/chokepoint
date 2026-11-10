@@ -6,8 +6,8 @@
 groups:
   menu_chrome:
     logo:
-      position: [CENTER, 60]
-      size: [1085, 175]
+      position: [CENTER, 83]
+      size: [1085, 127]  # the logo file's own proportions (1600x187)
       asset: logo
 
 object_templates:

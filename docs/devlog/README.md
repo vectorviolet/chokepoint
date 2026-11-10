@@ -50,6 +50,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-11-05 | [README as a front page](2026-11-05-readme-front-page.md) | Docs | #157 |
 | 2026-11-05 | [Tower and enemy pictures in the stats reference and wiki](2026-11-05-stats-pictures.md) | Docs, tooling | #95, PR #156 |
 | 2026-11-07 | [Map obstacles and blocked build tiles](2026-11-07-map-obstacles.md) | Gameplay, rendering | #166, PR #167 |
+| 2026-11-09 | [Store media: new screenshots, preview GIF and cover candidates](2026-11-09-store-media.md) | Docs, tooling | #13 |
 | 2026-11-09 | [Wave balance: smoother waves 4 to 6, more pressure in 11 to 25](2026-11-09-wave-balance.md) | Gameplay, balance | #10, PR #170 |
 <!-- index:end -->
 

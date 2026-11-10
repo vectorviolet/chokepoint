@@ -83,7 +83,7 @@ The full 40-wave simulation with B (seed 70, x4, saves redirected), against the 
 
 | strategy | before | after |
 |---|---|---|
-| gun_spam | died wave 32, 4 lives lost in 1-10 | died wave 28, 0 lives lost in 1-26 (5 lost in wave 27 and 5 in wave 28), 753 towers lost (450) |
+| gun_spam | died wave 32, 4 lives lost in 1-10 | died wave 28, 0 lives lost in 1-26 (5 lost in wave 27 and 5 in wave 28), 755 towers lost (450) |
 | gun_cannon | cleared 40, 6 lives left | cleared 40, 10 lives left |
 | missile | cleared 40, 3 lives left | cleared 40, 8 lives left (2 lost, in wave 10) |
 | plane_spam | died wave 29 | died wave 25 (all 10 lives lost in wave 25) |
@@ -119,15 +119,15 @@ The full 40-wave run with the rescaled waves (seed 70, x4):
 
 | strategy | waves 26 to 40 |
 |---|---|
-| gun_spam | dies in wave 28, losing 5 lives in wave 27 and 5 in wave 28 (it died in wave 32 before); 66,155 money unspent, 753 towers lost |
-| gun_cannon | clears 40 with 10 lives; 858 towers lost in all (580 on main), up to 77 in one wave from wave 26 on; 314,786 money unspent |
-| missile | clears 40 with 8 lives; 260 towers lost (176) |
+| gun_spam | dies in wave 28, losing 5 lives in wave 27 and 5 in wave 28 (it died in wave 32 before); 65,955 money unspent, 755 towers lost |
+| gun_cannon | clears 40 with 10 lives; 872 towers lost in all (580 on main), up to 77 in one wave from wave 26 on; 317,446 money unspent |
+| missile | clears 40 with 8 lives; 261 towers lost (176) |
 | plane_spam | died in wave 25, before these waves |
-| mixed | clears 40 with 10 lives; 522 towers lost (396) |
+| mixed | clears 40 with 10 lives; 552 towers lost (396) |
 | minimal | died in wave 11 |
 
 The tank wear is heavier, and the builds that clear 40 do it with a lot of money left over
-(gun_cannon 314,786, missile 78,395), so the bots still rebuild everything the tanks destroy; a
+(gun_cannon 317,446, missile 76,955), so the bots still rebuild everything the tanks destroy; a
 player can't rebuild that fast, so real runs will be tighter than here. Earnings reach 854,326 by
 wave 40 (514,954 on main) because the enemies carry more HP and money.
 
