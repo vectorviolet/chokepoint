@@ -21,7 +21,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 ### Changed
 
 - Wave balance (#10): waves 4 to 6 are gentler, so a normal build no longer leaks there, and waves 11 to 25 are tougher: the first heavy arrives in wave 11, the first tank in wave 15 and the first heavy tank in wave 22, with more enemies and tighter spacing, and waves 26 to 30 now keep climbing from wave 25 instead of dropping back ([#170](https://github.com/vectorviolet/chokepoint/pull/170), [devlog](docs/devlog/2026-11-09-wave-balance.md)).
-- New title logo (stencil letters in the game's palette with a crosshair on the O), on the main menu, the README and the store cover ([#168](https://github.com/vectorviolet/chokepoint/pull/168), [devlog](docs/devlog/2026-11-09-store-media.md)).
+- New title logo (stencil letters in the game's palette with a crosshair on the O), on the main menu, the README and the store cover; one decorative bush on the map's top grass strip is gone, so its tile can be built on ([#168](https://github.com/vectorviolet/chokepoint/pull/168), [devlog](docs/devlog/2026-11-09-store-media.md)).
 
 ### Development
 

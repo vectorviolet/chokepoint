@@ -70,7 +70,10 @@ the same file.
 itch.io shows covers at 630x500. Each candidate is a crop of a HUD-hidden battle on the upper road
 (the chokepoint itself; the lower road is out of frame), filled with upgraded towers of every ground
 type, planes, tanks and a wave, taken from the busiest of 160 frames. `--covers <folder>` writes them.
-The logo sits on a 60% dark band at the top, where it reads against the grass.
+The logo sits centered on a 60% dark band across the top that runs down to where the sand starts, so
+no strip of grass shows under it. One bush behind the title (obstacle 110 in the map's `Obstacles`
+layer, a big bush on the grass strip) was removed from `assets/maps/tiled_tilemap.tmx`: it showed
+as a dark blob under the middle of the title.
 
 <table>
 <tr>

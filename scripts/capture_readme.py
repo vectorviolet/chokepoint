@@ -78,7 +78,9 @@ LOGO_SHADOW_OFFSET = 3
 LOGO_SHADOW_BLUR = 3
 LOGO_SHADOW_OPACITY = 0.6
 LOGO_BAND_OPACITY = 0.6  # a black band across the cover behind the logo
-LOGO_BAND_PADDING = 6
+# The band runs from the top down to just past where the sand starts (about
+# 79 px at the covers' crop), so no strip of grass shows under it.
+LOGO_BAND_HEIGHT = 82
 LOGO_MARGIN = 8  # the logo sits at the top, over the grass above the sand
 
 
@@ -458,15 +460,18 @@ def cover(
         (logo_w, round(logo.height * logo_w / logo.width)), Image.Resampling.LANCZOS
     )
     x = (COVER_SIZE[0] - logo_w) // 2
+    y = LOGO_MARGIN
     if logo_style in ("band", "both"):
-        band_h = LOGO_MARGIN + logo.height + LOGO_BAND_PADDING
         band = Image.new(
-            "RGBA", (COVER_SIZE[0], band_h), (0, 0, 0, round(255 * LOGO_BAND_OPACITY))
+            "RGBA",
+            (COVER_SIZE[0], LOGO_BAND_HEIGHT),
+            (0, 0, 0, round(255 * LOGO_BAND_OPACITY)),
         )
         image.alpha_composite(band, (0, 0))
+        y = (LOGO_BAND_HEIGHT - logo.height) // 2  # centered in the band
     layered = logo_layers(logo, logo_style)
     inset = (layered.width - logo.width) // 2
-    image.alpha_composite(layered, (x - inset, LOGO_MARGIN - inset))
+    image.alpha_composite(layered, (x - inset, y - inset))
     return image.convert("RGB")
 
 
