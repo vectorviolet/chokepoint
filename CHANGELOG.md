@@ -18,8 +18,13 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 - Map obstacles authored in Tiled, drawn at their world positions and blocking ground-tower placement across their full bounds; ground towers in an older save that stand on a blocked cell are removed on load and refunded in full ([#167](https://github.com/vectorviolet/chokepoint/pull/167), [devlog](docs/devlog/2026-11-07-map-obstacles.md)).
 
+### Changed
+
+- Wave balance (#10): waves 4 to 6 are gentler, so a normal build no longer leaks there, and waves 11 to 25 are tougher: the first heavy arrives in wave 11, the first tank in wave 15 and the first heavy tank in wave 22, with more enemies and tighter spacing, and waves 26 to 30 now keep climbing from wave 25 instead of dropping back ([#170](https://github.com/vectorviolet/chokepoint/pull/170), [devlog](docs/devlog/2026-11-09-wave-balance.md)).
+
 ### Development
 
+- Balance report: `docs/balance/` and `docs/BALANCE.md` regenerated on the obstacle map, with four charts (lives, income, enemy threat, pressure) drawn by `scripts/balance_charts.py` (matplotlib joins the dev group); no balance number changed ([#169](https://github.com/vectorviolet/chokepoint/pull/169)).
 - README: a status badge row (CI, release, license, coverage, Python) under the title, and the official itch.io badge in the Download section ([#153](https://github.com/vectorviolet/chokepoint/pull/153)).
 - README: the game's logo replaces the text title, full width, with the badges centered under it ([#155](https://github.com/vectorviolet/chokepoint/pull/155)).
 - Stats reference and wiki: a picture next to each tower (platform with its turret, per level) and enemy, generated from the game's asset keys; `--check` compares decoded pixels ([156](https://github.com/vectorviolet/chokepoint/pull/156), [devlog](docs/devlog/2026-11-05-stats-pictures.md)).

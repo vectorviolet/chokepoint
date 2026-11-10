@@ -84,8 +84,8 @@ def test_spawns_first_enemy_once_interval_elapses(assets):
     assert isinstance(enemies[0], Enemy)
 
 
-def test_wave_25_spawns_the_first_tank_type_as_a_tank_instance(assets):
-    # config/waves.yaml wave 25 includes one type-5 (Tank) enemy.
+def test_a_wave_with_tanks_spawns_them_as_tank_instances(assets):
+    # config/waves.yaml wave 25 includes type-5 (Tank) enemies.
     wm = WaveManager(WAYPOINTS, assets)
     gs = make_started_state(level=25)
     enemies = []
