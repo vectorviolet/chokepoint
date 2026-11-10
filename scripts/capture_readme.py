@@ -66,13 +66,13 @@ IDLE_MOUSE = (5, 5)
 # itch.io's cover size, the logo's width as a share of it, its bottom margin,
 # and each candidate's framing: (focus as a fraction of the frame, zoom).
 COVER_SIZE = (630, 500)
-LOGO_WIDTH_SHARE = 0.6
+LOGO_WIDTH_SHARE = 0.8
 # The cover logo: one transparent PNG, scaled to this share of the cover's
 # width. To use a redesigned title, replace this file (or change the path).
 LOGO_PATH = ROOT / "assets" / "images" / "branding" / "logo.png"
 # "plain", "outline" (dark outline and drop shadow), "band" (a translucent
 # dark band behind it) or "both" (the outlined logo on the band).
-LOGO_STYLE = "both"
+LOGO_STYLE = "band"
 LOGO_OUTLINE_PX = 3  # a dark outline this thick around the letters
 LOGO_SHADOW_OFFSET = 3
 LOGO_SHADOW_BLUR = 3

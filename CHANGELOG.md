@@ -21,6 +21,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 ### Changed
 
 - Wave balance (#10): waves 4 to 6 are gentler, so a normal build no longer leaks there, and waves 11 to 25 are tougher: the first heavy arrives in wave 11, the first tank in wave 15 and the first heavy tank in wave 22, with more enemies and tighter spacing, and waves 26 to 30 now keep climbing from wave 25 instead of dropping back ([#170](https://github.com/vectorviolet/chokepoint/pull/170), [devlog](docs/devlog/2026-11-09-wave-balance.md)).
+- New title logo (stencil letters in the game's palette with a crosshair on the O), on the main menu, the README and the store cover ([#168](https://github.com/vectorviolet/chokepoint/pull/168), [devlog](docs/devlog/2026-11-09-store-media.md)).
 
 ### Development
 
@@ -33,6 +34,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 - itch.io: the store description (`docs/store/description.html`) is rewritten for players, with a checklist for the page's other fields in `docs/store/README.md` ([#163](https://github.com/vectorviolet/chokepoint/pull/163)).
 - Docs: removed the unused asset-pack samples and the obsolete store covers from `docs/store/` ([#165](https://github.com/vectorviolet/chokepoint/pull/165)).
 - Store media: `scripts/capture_readme.py` retakes the preview GIF and 17 screenshots (placing, tank fight, plane run, enemy HP, settings tabs, Turkish, popups, HUD hidden) plus a plane-run GIF and cover candidates; the README gallery and store notes use them ([devlog](docs/devlog/2026-11-09-store-media.md)).
+- Store cover: `docs/store/cover.png` (the owner's pick: a bomb run on the upper road) with the new logo, made by `scripts/capture_readme.py --covers` ([devlog](docs/devlog/2026-11-09-store-media.md)).
 
 ## [0.4.0] – 2026-11-04
 

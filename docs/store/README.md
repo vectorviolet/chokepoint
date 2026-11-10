@@ -36,11 +36,11 @@ Fields that live outside the description, following itch.io's
 - **Images:** `description.html` links the GIF from GitHub so it works when pasted as is. Better:
   upload `docs/preview.gif` through itch.io's editor and swap the image on the page for the
   uploaded one, so it loads fast and doesn't break if the file moves in the repo.
-- **Theme:** colors that match the game (the logo's green), not plain black on white.
-
-The cover (itch.io shows covers at 630×500) is still to be chosen from the candidates in the
-[store media devlog entry](../devlog/2026-11-09-store-media.md); there is no trailer for 1.0 (the GIF
-only). Tracked in #13.
+- **Theme:** colors that match the game (its green, and the logo's yellow and orange), not plain black on white.
+- **Cover:** `docs/store/cover.png` (630×500, itch.io's cover size): the bomb run on the upper road,
+  chosen by the owner; upload it through the edit page. How it was made: `scripts/capture_readme.py
+  --covers <folder>` (see the [store media devlog entry](../devlog/2026-11-09-store-media.md)).
+- **Trailer:** none for 1.0 (the GIF only). Tracked in #13.
 
 When the game changes in a way players see (controls, features, towers), update
 `description.html` in the same PR and paste it again.

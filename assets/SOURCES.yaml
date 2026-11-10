@@ -112,7 +112,7 @@ files:
     original: "ofl/firasans/OFL.txt"
   "images/branding/logo.png":
     source: own
-    note: "made by the developer in Canva: the Bungee font (SIL OFL) with the developer's own glitch effect"
+    note: "redesigned 2026-11 by the developer in Canva: a font and plain shapes only, no Canva stock elements; TODO: name the font and its license"
   "images/ui/buttons/max.png":
     source: own
     note: "Canva, redrawn 2026-10-26"

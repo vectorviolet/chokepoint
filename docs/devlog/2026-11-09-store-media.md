@@ -45,26 +45,52 @@ leaked into later shots (it now rests over bare map); the placement shot first l
 spot with the ring covering the towers; the game-over popup showed 10 lives (it now shows 0); the
 tank shot was taken while the tank flashed white from a hit, and a few frames before the rubble.
 
-## Cover candidates (decision pending)
+## Logo redesign
 
-itch.io shows covers at 630x500. Each candidate is cropped from a clean HUD-hidden frame (the
-script's `--covers <folder>` writes them) with the game's own logo (`assets/images/branding/logo.png`)
-over the bottom. No new assets are used.
+The old title was green on a green map: on the grass of the menu and of the store cover it was hard
+to read, and its glitch effect looked cyberpunk, not like a military game. The owner redesigned it in
+Canva: stencil letters in the game's palette (coin yellow `#F9C72C` fading to orange `#FF9F00`),
+a near-black outline (`#1E1B16`), a baked-in shadow, and a red crosshair (`#E74C3C`) on the O of
+POINT. It is a transparent PNG, cropped to its shadow and saved over
+`assets/images/branding/logo.png` (1600x187). The menu panel scales it, so only its box in
+`config/panels.yaml` changed to the new, wider and flatter proportions. The README and the cover use
+the same file.
 
 <table>
 <tr>
-<td><img src="img/13-cover-1.png" width="400" alt="Cover candidate 1: the whole staged battlefield with towers and kill coins"><br>1: the wave and all four tower types, full framing.</td>
-<td><img src="img/13-cover-2.png" width="400" alt="Cover candidate 2: a tank among towers, with the rubble of a destroyed one"><br>2: a tank and a destroyed tower's rubble, tighter framing.</td>
-<td><img src="img/13-cover-3.png" width="400" alt="Cover candidate 3: a plane's bomb explosion over a wave"><br>3: a plane's bombing run, tight on the explosion.</td>
+<td><img src="img/13-logo-old.png" width="400" alt="The old green logo with a glitch effect, on the map's grass"><br>Old: green with a glitch effect, on the grass.</td>
+<td><img src="img/13-logo-new.png" width="400" alt="The new stencil logo in yellow and orange with a red crosshair, on the map's grass"><br>New: stencil letters in the game's palette with a crosshair.</td>
 </tr>
 </table>
 
+(Both are mock-ups on the map's grass color, made from the two files.)
+
+## Cover candidates
+
+itch.io shows covers at 630x500. Each candidate is a crop of a HUD-hidden battle on the upper road
+(the chokepoint itself; the lower road is out of frame), filled with upgraded towers of every ground
+type, planes, tanks and a wave, taken from the busiest of 160 frames. `--covers <folder>` writes them.
+The logo sits on a 60% dark band at the top, where it reads against the grass.
+
+<table>
+<tr>
+<td><img src="img/13-cover-1.png" width="300" alt="Cover candidate 1: a tank fight on the upper road"><br>1: a tank fight.</td>
+<td><img src="img/13-cover-2.png" width="300" alt="Cover candidate 2: planes bombing the upper road, with an explosion"><br>2: a plane bombing run (chosen).</td>
+<td><img src="img/13-cover-3.png" width="300" alt="Cover candidate 3: a missile swarm on the upper road"><br>3: a missile swarm.</td>
+</tr>
+</table>
+
+An earlier round of candidates (wide shots with the lower road and few towers) was rejected by the
+owner as too empty and not the actual chokepoint.
+
 ## Decision
+
+The owner picked cover 2, the bomb run on the upper road only. It is committed as
+`docs/store/cover.png`; the itch.io upload is by hand. The logo sits on the dark band; the new logo
+already has its own outline and shadow, so it is not outlined again.
 
 README gallery: the menu, gameplay, placing a tower, the tank fight, the plane run and the upgrade
 panel (six shots, the GIF stays on top). The itch.io gallery list is in `docs/store/README.md`.
-The cover is the owner's to pick from the three above; until then the store page keeps its
-current cover. The itch.io upload is by hand and also pending.
 
 ## Rejected alternatives
 
