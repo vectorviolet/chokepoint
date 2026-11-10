@@ -252,6 +252,8 @@ def free_tile_near(game, anchor, rows_away: int) -> tuple[int, int]:
     taken = game.tower_controller.tower_positions
     for dc in range(8):
         for c in (col + dc, col - dc):
+            if not (0 <= row < len(grid) and 0 <= c < len(grid[row])):
+                continue
             if grid[row][c] and (row, c) not in taken:
                 return row, c
     raise RuntimeError("no free build tile for the placement shot")
@@ -614,11 +616,13 @@ def parse_args(argv=None) -> argparse.Namespace:
 
 def main(argv=None) -> None:
     args = parse_args(argv)
+    # Resolved before the chdir, so relative paths mean the caller's folder.
     out = args.out.resolve()
+    covers = args.covers.resolve() if args.covers else None
     os.chdir(ROOT)
     before = {path: snapshot(path) for path in real_save_dirs()}
     try:
-        capture(out, args.size, args.frames, args.level, args.covers)
+        capture(out, args.size, args.frames, args.level, covers)
     finally:
         pygame.quit()
         if any(snapshot(path) != saved for path, saved in before.items()):
