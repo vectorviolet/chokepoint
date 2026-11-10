@@ -14,6 +14,8 @@ The audio driver is the dummy one: the volumes shown on Settings play nothing.
 import argparse
 import os
 import sys
+from dataclasses import dataclass
+from itertools import cycle
 from pathlib import Path
 
 os.environ["SDL_VIDEODRIVER"] = "dummy"
@@ -25,7 +27,7 @@ sys.path.insert(0, str(ROOT / "src" / "pygamine"))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import pygame
-from PIL import Image
+from PIL import Image, ImageFilter
 
 from make_playtest_save import (
     add_tower,
@@ -64,9 +66,59 @@ IDLE_MOUSE = (5, 5)
 # itch.io's cover size, the logo's width as a share of it, its bottom margin,
 # and each candidate's framing: (focus as a fraction of the frame, zoom).
 COVER_SIZE = (630, 500)
-LOGO_WIDTH_SHARE = 0.7
-LOGO_MARGIN = 24
-COVER_FRAMING = (((0.5, 0.5), 1.0), ((0.5, 0.45), 1.4), ((0.55, 0.5), 1.6))
+LOGO_WIDTH_SHARE = 0.6
+# The cover logo: one transparent PNG, scaled to this share of the cover's
+# width. To use a redesigned title, replace this file (or change the path).
+LOGO_PATH = ROOT / "assets" / "images" / "branding" / "logo.png"
+# "plain", "outline" (dark outline and drop shadow), "band" (a translucent
+# dark band behind it) or "both" (the outlined logo on the band).
+LOGO_STYLE = "both"
+LOGO_OUTLINE_PX = 3  # a dark outline this thick around the letters
+LOGO_SHADOW_OFFSET = 3
+LOGO_SHADOW_BLUR = 3
+LOGO_SHADOW_OPACITY = 0.6
+LOGO_BAND_OPACITY = 0.6  # a black band across the cover behind the logo
+LOGO_BAND_PADDING = 6
+LOGO_MARGIN = 8  # the logo sits at the top, over the grass above the sand
+
+
+@dataclass(frozen=True)
+class CoverScene:
+    """One cover candidate: the pattern of tower types (each at its top level) filling
+    the build tiles along the upper road, planes and enemies on it, the wave round, and the crop
+    (center as fractions of the frame, zoom)."""
+
+    towers: tuple[int, ...]
+    planes: int
+    enemies: tuple[int, ...]
+    level: int
+    focus: tuple[float, float]
+    zoom: float
+
+
+# The cover frames come from COVER_FRAMES frames of each scene, after a warm-up.
+COVER_FRAMES = 160
+COVER_WARMUP = 20
+COVER_TOWER_SPACING = 1
+COVER_TOWER_COUNT = 24
+# Tiles from the road's middle: the two rows of build tiles above it, one below.
+COVER_TOWER_BAND = (0.9, 3.2)
+COVER_ENEMY_GAP = 70  # px along the road between the staged enemies
+COVER_ENEMY_LEAD = 150  # px the middle one stands before the road's center
+COVER_SCENES = (
+    # Tank fight: tanks and heavies under fire from every ground type.
+    CoverScene(
+        (3, 2, 1, 3, 2, 1, 2, 3, 1, 2), 0, (5, 4, 3, 5, 2, 4, 1), 25, (0.6, 0.43), 2.05
+    ),
+    # Plane bomb run: two planes over the road, guns and missiles below.
+    CoverScene(
+        (1, 2, 1, 3, 1, 2, 1, 2), 2, (1, 2, 1, 3, 2, 1, 4), 22, (0.6, 0.43), 2.05
+    ),
+    # Missile swarm: mostly missile towers and a fast crowd.
+    CoverScene(
+        (2, 2, 2, 2, 3, 2, 2, 1, 2, 2), 1, (2, 2, 3, 2, 4, 2, 3), 24, (0.6, 0.43), 2.05
+    ),
+)
 
 
 def grab_frame(game) -> Image.Image:
@@ -277,10 +329,119 @@ def pick_enemy(game, enemy_type: int):
     return max(candidates, key=lambda e: e.waypoint_index)
 
 
-def cover(frame: Image.Image, focus: tuple[float, float], zoom: float) -> Image.Image:
+def place_enemy(game, enemy_type: int, level: int, distance: float) -> None:
+    """An enemy of `enemy_type` `distance` px along the path from its start."""
+    from gameplay.combat.enemy import Enemy
+    from gameplay.combat.tank import Tank
+
+    cls = Tank if enemy_type in (5, 6) else Enemy
+    enemy = cls(
+        1000 + len(game.enemies),
+        enemy_type,
+        level,
+        game.tilemap.waypoints,
+        game.assets,
+    )
+    advance_enemy(enemy, distance)
+    game.enemies.append(enemy)
+
+
+def busyness(game) -> int:
+    """How much is going on: shots and bombs in flight, bursts, planes."""
+    from gameplay.towers import PlaneTower
+
+    shots = sum(len(t.bullets) for t in game.towers)
+    shots += sum(len(e.bullets) for e in game.enemies if hasattr(e, "bullets"))
+    shots += len(game.orphan_shots)
+    bursts = len(game.bomb_impacts.explosions) + len(game.death_feedback.enemy_blasts)
+    bursts += 2 * len(game.death_feedback.tower_blasts)
+    planes = sum(isinstance(t, PlaneTower) for t in game.towers)
+    return shots + 3 * bursts + 2 * planes
+
+
+def stage_cover_scene(game, frame_ms: float, scene: CoverScene) -> Image.Image:
+    """A crowded stretch of the upper road: upgraded towers of mixed types
+    on both sides, planes bombing, tanks and a wave on the road. Runs
+    COVER_FRAMES frames and returns the busiest one, HUD hidden, the camera
+    on the road; the cover crop leaves the lower road out."""
+    from gameplay.towers import PLANE_TYPE
+    from util.constants import TILE_SIZE
+
+    game._start_new_game()
+    game.auto_pause = False
+    center = battle_center(game)
+    fill_wave(game, scene.level)
+    tiles = tiles_beside_path(
+        game,
+        COVER_TOWER_COUNT,
+        anchor=center,
+        band_tiles=COVER_TOWER_BAND,
+        spacing_tiles=COVER_TOWER_SPACING,
+    )
+    for tower_type, (row, col) in zip(cycle(scene.towers), tiles):
+        max_level = game.tower_config.max_levels[tower_type - 1]
+        add_tower(game, tower_type, max_level, row, col)
+    game.game_state.plane_level = 2
+    row = int(center.y // TILE_SIZE)
+    for i in range(scene.planes):
+        col = int(center.x // TILE_SIZE) - 9 - i * 7
+        add_tower(game, PLANE_TYPE, 2, row, col)
+    ahead = game.tilemap.waypoints[0].distance_to(center)
+    for i, enemy_type in enumerate(scene.enemies):
+        place_enemy(
+            game,
+            enemy_type,
+            scene.level,
+            ahead - COVER_ENEMY_LEAD + (i - 3) * COVER_ENEMY_GAP,
+        )
+    game.game_state.money = MONEY
+    game.camera.update_with_mouse = lambda *_: None
+    game.camera.center_on(center)
+    game._set_started(True)
+    game._sync_game_ui()
+    hide_hud(game, frame_ms)
+    best, best_score = None, -1
+    for frame in range(COVER_FRAMES):
+        step(game, frame_ms, 1)
+        score = busyness(game)
+        if frame >= COVER_WARMUP and score > best_score:
+            best, best_score = grab_frame(game), score
+    assert best is not None
+    return best
+
+
+def logo_layers(logo: Image.Image, style: str) -> Image.Image:
+    """`logo` (RGBA) ready to composite: as is ("plain"), or on a dark
+    outline and a soft drop shadow ("outline"), padded by their size."""
+    if style in ("plain", "band"):
+        return logo
+    assert style in ("outline", "both"), f"unknown logo style {style!r}"
+    pad = LOGO_OUTLINE_PX + LOGO_SHADOW_OFFSET + LOGO_SHADOW_BLUR * 3
+    canvas = Image.new("RGBA", (logo.width + 2 * pad, logo.height + 2 * pad))
+    canvas.paste(logo, (pad, pad))
+    alpha = canvas.getchannel("A")
+    outline = alpha.filter(ImageFilter.MaxFilter(2 * LOGO_OUTLINE_PX + 1))
+    shadow = Image.new("L", canvas.size)
+    shadow.paste(outline, (LOGO_SHADOW_OFFSET, LOGO_SHADOW_OFFSET))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(LOGO_SHADOW_BLUR))
+    shadow = shadow.point(lambda v: round(v * LOGO_SHADOW_OPACITY))
+    layered = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    layered.paste((0, 0, 0, 255), mask=shadow)
+    dark = Image.new("RGBA", canvas.size, (10, 10, 10, 255))
+    layered.paste(dark, mask=outline)
+    layered.alpha_composite(canvas)
+    return layered
+
+
+def cover(
+    frame: Image.Image,
+    focus: tuple[float, float],
+    zoom: float,
+    logo_style: str = LOGO_STYLE,
+) -> Image.Image:
     """A COVER_SIZE crop of `frame` around `focus` (fractions of its size),
     `zoom` times tighter than the biggest crop of that shape, with the logo
-    near the bottom."""
+    at the top in `logo_style` (see LOGO_STYLE)."""
     width, height = frame.size
     crop_h = height / zoom
     crop_w = crop_h * COVER_SIZE[0] / COVER_SIZE[1]
@@ -289,14 +450,21 @@ def cover(frame: Image.Image, focus: tuple[float, float], zoom: float) -> Image.
     box = (round(left), round(top), round(left + crop_w), round(top + crop_h))
     image = frame.crop(box).resize(COVER_SIZE, Image.Resampling.LANCZOS)
     image = image.convert("RGBA")
-    logo = Image.open(ROOT / "assets" / "images" / "branding" / "logo.png")
+    logo = Image.open(LOGO_PATH)
     logo_w = round(COVER_SIZE[0] * LOGO_WIDTH_SHARE)
     logo = logo.convert("RGBA").resize(
         (logo_w, round(logo.height * logo_w / logo.width)), Image.Resampling.LANCZOS
     )
-    image.alpha_composite(
-        logo, ((COVER_SIZE[0] - logo_w) // 2, COVER_SIZE[1] - logo.height - LOGO_MARGIN)
-    )
+    x = (COVER_SIZE[0] - logo_w) // 2
+    if logo_style in ("band", "both"):
+        band_h = LOGO_MARGIN + logo.height + LOGO_BAND_PADDING
+        band = Image.new(
+            "RGBA", (COVER_SIZE[0], band_h), (0, 0, 0, round(255 * LOGO_BAND_OPACITY))
+        )
+        image.alpha_composite(band, (0, 0))
+    layered = logo_layers(logo, logo_style)
+    inset = (layered.width - logo.width) // 2
+    image.alpha_composite(layered, (x - inset, LOGO_MARGIN - inset))
     return image.convert("RGB")
 
 
@@ -316,7 +484,6 @@ def capture(
     from util.constants import TILE_SIZE, WIN_WAVE
 
     frame_ms = 1000 / FPS
-    clean: list[Image.Image] = []
     with saves_redirected():
         SaveStore("settings").save(
             {"window_size": list(size), "window_mode": "windowed", **VOLUMES}
@@ -408,19 +575,13 @@ def capture(
         stage_battle(game, frame_ms, level)
         hide_hud(game, frame_ms)
         save_image(game, out, "17_hud_hidden.png")
-        clean.append(grab_frame(game))
-        stage_tank_fight(game, frame_ms)
-        hide_hud(game, frame_ms)
-        clean.append(grab_frame(game))
-        stage_plane_run(game, frame_ms, level)
-        hide_hud(game, frame_ms)
-        clean.append(grab_frame(game))
-    if covers is not None:
-        covers.mkdir(parents=True, exist_ok=True)
-        for i, (frame, (focus, zoom)) in enumerate(zip(clean, COVER_FRAMING), 1):
-            path = covers / f"cover_{i}.png"
-            cover(frame, focus, zoom).save(path, optimize=True)
-            print(f"Captured {path}")
+        if covers is not None:
+            covers.mkdir(parents=True, exist_ok=True)
+            for i, scene in enumerate(COVER_SCENES, 1):
+                frame = stage_cover_scene(game, frame_ms, scene)
+                path = covers / f"cover_{i}.png"
+                cover(frame, scene.focus, scene.zoom).save(path, optimize=True)
+                print(f"Captured {path}")
 
 
 def real_save_dirs() -> set[Path]:
