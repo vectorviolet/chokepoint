@@ -14,6 +14,10 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ## [Unreleased]
 
+## [1.0.0] – 2026-11-10
+
+The first stable release: map obstacles, reworked wave balance, a new logo and refreshed store media.
+
 ### Added
 
 - Map obstacles authored in Tiled, drawn at their world positions and blocking ground-tower placement across their full bounds; ground towers in an older save that stand on a blocked cell are removed on load and refunded in full ([#167](https://github.com/vectorviolet/chokepoint/pull/167), [devlog](docs/devlog/2026-11-07-map-obstacles.md)).
@@ -28,13 +32,13 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 - Balance report: `docs/balance/` and `docs/BALANCE.md` regenerated on the obstacle map, with four charts (lives, income, enemy threat, pressure) drawn by `scripts/balance_charts.py` (matplotlib joins the dev group); no balance number changed ([#169](https://github.com/vectorviolet/chokepoint/pull/169)).
 - README: a status badge row (CI, release, license, coverage, Python) under the title, and the official itch.io badge in the Download section ([#153](https://github.com/vectorviolet/chokepoint/pull/153)).
 - README: the game's logo replaces the text title, full width, with the badges centered under it ([#155](https://github.com/vectorviolet/chokepoint/pull/155)).
-- Stats reference and wiki: a picture next to each tower (platform with its turret, per level) and enemy, generated from the game's asset keys; `--check` compares decoded pixels ([156](https://github.com/vectorviolet/chokepoint/pull/156), [devlog](docs/devlog/2026-11-05-stats-pictures.md)).
+- Stats reference and wiki: a picture next to each tower (platform with its turret, per level) and enemy, generated from the game's asset keys; `--check` compares decoded pixels ([#156](https://github.com/vectorviolet/chokepoint/pull/156), [devlog](docs/devlog/2026-11-05-stats-pictures.md)).
 - Wiki: the Home page is a short index (download links, the Stats pages, the README and devlog), kept in `docs/wiki/Home.md` and published by the wiki workflow ([#161](https://github.com/vectorviolet/chokepoint/pull/161)).
 - README: rewritten as a front page, with `CONTRIBUTING.md` and `docs/ARCHITECTURE.md` taking the contributor and architecture material ([#158](https://github.com/vectorviolet/chokepoint/pull/158), [devlog](docs/devlog/2026-11-05-readme-front-page.md)).
 - itch.io: the store description (`docs/store/description.html`) is rewritten for players, with a checklist for the page's other fields in `docs/store/README.md` ([#163](https://github.com/vectorviolet/chokepoint/pull/163)).
 - Docs: removed the unused asset-pack samples and the obsolete store covers from `docs/store/` ([#165](https://github.com/vectorviolet/chokepoint/pull/165)).
-- Store media: `scripts/capture_readme.py` retakes the preview GIF and 17 screenshots (placing, tank fight, plane run, enemy HP, settings tabs, Turkish, popups, HUD hidden) plus a plane-run GIF and cover candidates; the README gallery and store notes use them ([devlog](docs/devlog/2026-11-09-store-media.md)).
-- Store cover: `docs/store/cover.png` (the owner's pick: a bomb run on the upper road) with the new logo, made by `scripts/capture_readme.py --covers` ([devlog](docs/devlog/2026-11-09-store-media.md)).
+- Store media: `scripts/capture_readme.py` retakes the preview GIF and 17 screenshots (placing, tank fight, plane run, enemy HP, settings tabs, Turkish, popups, HUD hidden) plus a plane-run GIF and cover candidates; the README gallery and store notes use them ([#168](https://github.com/vectorviolet/chokepoint/pull/168), [devlog](docs/devlog/2026-11-09-store-media.md)).
+- Store cover: `docs/store/cover.png` (the owner's pick: a bomb run on the upper road) with the new logo, made by `scripts/capture_readme.py --covers` ([#168](https://github.com/vectorviolet/chokepoint/pull/168), [devlog](docs/devlog/2026-11-09-store-media.md)).
 
 ## [0.4.0] – 2026-11-04
 
