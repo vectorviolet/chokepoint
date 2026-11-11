@@ -18,6 +18,10 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 - Bump pygamine to v1.0.0 (the first stable release): the panel loader now links `parent:` children so `active` follows the hierarchy, so the game's own `link_hierarchy` workaround for the settings tabs is gone; the Tiled loader module is now `pygamine.assets.tiledmap`. No gameplay change.
 
+### Development
+
+- Docs: a `SECURITY.md` (private vulnerability reporting), the itch.io tags and a field-by-field list for the store edit page in `docs/store/README.md` ([#181](https://github.com/vectorviolet/chokepoint/pull/181)).
+
 ## [1.0.0] – 2026-11-10
 
 The first stable release: map obstacles, reworked wave balance, a new logo and refreshed store media.
