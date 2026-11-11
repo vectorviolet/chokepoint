@@ -53,7 +53,7 @@ otherwise.
 | Short description or tagline | Hold the line through 25 rounds of tower defense, then go endless. |
 | Classification / kind / release status | Games / Downloadable / Released |
 | Pricing | the owner's choice (Highrise uses $0 or donate, suggested $2.00) |
-| Uploads | `chokepoint-windows.zip`, `chokepoint-linux.zip`, `chokepoint-osx.zip` (uploaded by the release workflow's butler jobs). Tick the matching platform on each file's "Executable for" boxes (Windows, Linux, macOS) |
+| Uploads | `chokepoint-windows.zip`, `chokepoint-linux.zip`, `chokepoint-osx.zip`. The release workflow's butler jobs push the unpacked builds to the `windows`, `linux` and `osx` channels and itch.io names the files after the channels (the GitHub release zips are `chokepoint-windows.zip`, `chokepoint-linux.zip` and `chokepoint-macos.zip`). Tick the matching platform on each file's "Executable for" boxes (Windows, Linux, macOS) |
 | Description | paste `docs/store/description.html` in HTML mode |
 | Genre | Strategy |
 | Tags (max 10; not the genre or platforms, so drop "strategy") | Tower Defense, 2D, Top-Down, Singleplayer, Endless, Survival, Military, Open Source |
