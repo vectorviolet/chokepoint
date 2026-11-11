@@ -16,12 +16,13 @@ Fields that live outside the description, following itch.io's
 
 - **Short description or tagline:** "Hold the line through 25 rounds of tower defense, then go
   endless."
-- **Classification:** Games. **Kind of project:** Downloadable. **Release status:** In
-  development until 1.0, then Released.
+- **Classification:** Games. **Kind of project:** Downloadable. **Release status:**
+  Released (1.0.0 is out).
 - **Platforms:** Windows, macOS, Linux (only the ones the release builds are tested on).
 - **Genre:** Strategy.
-- **Tags:** only relevant ones, preferring itch.io's suggestions: Tower Defense, 2D, Top-Down,
-  Singleplayer, Endless, Open Source, Pygame. Don't tag the game's own name.
+- **Tags (10, itch.io's limit):** Tower Defense, Strategy, 2D, Top-Down, Singleplayer, Endless,
+  Survival, Military, Open Source, Pygame. Prefer itch.io's own suggestions when it offers a near
+  match; don't tag the game's own name.
 - **Languages:** English, Turkish (the two the game ships).
 - **Inputs:** Mouse, Keyboard.
 - **AI disclosure:** answer it on the edit page to match the description's line (Claude Code
