@@ -7,12 +7,7 @@ from pygame import Rect
 
 from app.game_events import GameEventsMixin
 from app.game_save import GameSaveMixin
-from app.settings_tabs import (
-    DEFAULT_TAB,
-    TOGGLE_SETTINGS,
-    SettingsTabs,
-    link_hierarchy,
-)
+from app.settings_tabs import DEFAULT_TAB, TOGGLE_SETTINGS, SettingsTabs
 from app.volume_settings import VOLUME_SETTINGS, VolumeSetting, saved_volume
 from pygamine import Application
 from pygamine import AssetManager
@@ -450,7 +445,6 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         loader.register("scrolling_panel", make_scrolling_panel_factory(self.assets))
 
         loader.load("config/panels.yaml")
-        link_hierarchy(self.panel_manager["settings"])
         self.panel_manager["game"]["victory_subtitle_text"].set_params(wave=WIN_WAVE)
         self._bind_popup_objects()
 

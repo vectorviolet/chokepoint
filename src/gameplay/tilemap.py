@@ -1,6 +1,6 @@
 """Tower-defense Tiled map for Chokepoint.
 
-Extends `pygamine.assets.tilemap.TiledMap` with the TD-specific parsing this game
+Extends `pygamine.assets.tiledmap.TiledMap` with the TD-specific parsing this game
 needs on top of the generic loader: the enemy path, the spawn marker, and the
 buildable grid. Generic concerns (tile dimensions, object iteration, the
 offscreen pre-render, and the camera-aware draw) live in the base class.

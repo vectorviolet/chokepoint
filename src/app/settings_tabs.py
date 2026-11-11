@@ -99,18 +99,6 @@ FIXED_BUTTONS = ("back", "reset")
 _OFFSCREEN = (-1, -1)
 
 
-def link_hierarchy(panel) -> None:
-    """The panel loader's `parent:` only places an object relative to its
-    parent's rectangle; it doesn't make the parent's `active` switch cover
-    it. Link each object of the freshly loaded `panel` to its placement
-    parent, so hiding a tab's group (or a button) also hides everything inside
-    it. Run once per panel load."""
-    for obj in panel.values():
-        parent = obj.rect.parent
-        if parent is not None:
-            obj.set_parent(parent.game_object)
-
-
 class SettingsTabs:
     """Which tab of the settings panel is open, and what that shows."""
 
