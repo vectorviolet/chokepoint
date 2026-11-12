@@ -14,6 +14,10 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ## [Unreleased]
 
+### Added
+
+- Web build support in the game (the browser version for itch.io; the build script and release job follow): no splash, Exit opens a "Thanks for playing" screen with a link to the itch.io page (Turkish text pending the owner's OK), DISPLAY has one Fullscreen toggle (F11 too) instead of the window rows, and translucent blits use pygamine's `ALPHA_BLIT` ([#187](https://github.com/vectorviolet/chokepoint/pull/187), [devlog](docs/devlog/2026-11-12-web-build.md)). Part of #152.
+
 ### Changed
 
 - Bump pygamine to v1.0.0 (the first stable release): the panel loader now links `parent:` children so `active` follows the hierarchy, so the game's own `link_hierarchy` workaround for the settings tabs is gone; the Tiled loader module is now `pygamine.assets.tiledmap`. No gameplay change.
@@ -24,6 +28,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 - Docs: the itch.io theme settings and their contrast check in `docs/store/README.md`.
 - Docs: the store checklist matches the live itch.io page (genre, tags, AI disclosure without graphics).
 - Docs: a GitHub social preview image (`docs/design/social-preview.png`) and the script that builds it.
+- The music file is now `bg.ogg` (transcoded from the same MP3, 7.4 MB to 2.7 MB) so one file works on desktop and in the browser; pygamine is bumped to the commit with `run_async()`, `ALPHA_BLIT` and the `localStorage` saves ([#187](https://github.com/vectorviolet/chokepoint/pull/187), [ADR 0010](docs/decisions/0010-web-build-pygbag.md)).
 
 ## [1.0.0] – 2026-11-10
 

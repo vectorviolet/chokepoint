@@ -94,6 +94,23 @@ GitHub Release. Because the game loads assets/config by **cwd-relative** paths,
 project root from source and `sys._MEIPASS` when frozen — so the same relative
 paths resolve in both. `config_loader` anchors to that root too.
 
+### Web build (browser, pygbag)
+
+The game also runs in a desktop browser (`sys.platform == "emscripten"`, packaged by pygbag; ADR
+0010). `web/main.py` is its entry point (staged as `main.py` next to `src/`, `assets/` and `config/`;
+it runs `Game().run_async()`); the build script and release job that stage and publish it come in
+a later PR. Everything browser-specific goes through `src/util/web.py` (`is_web()`, which reads
+`sys.platform` at call time, `open_in_new_tab()`, `is_fullscreen()`, `toggle_fullscreen()`); don't
+touch pygbag's `platform.window` anywhere else. What differs on the web: no splash (#186 asks whether
+that is right), Exit (button and Esc on the main menu) opens the `thanks` panel (a green panel like
+the pause menu's, with a link to the itch.io page) instead of quitting, and DISPLAY shows no
+Window size row while the Window mode row becomes a Fullscreen ON/OFF toggle (`SettingsTab.web_rows`,
+`Game._apply_web_display_rows`, `Game.cycle_window_mode` toggles the browser's fullscreen for F11
+too). Saves and settings are in `localStorage` (pygamine's `SaveStore`). Translucent blits pass
+`special_flags=ALPHA_BLIT` (pygamine; `0` on desktop), which matters in the browser. The music is
+OGG (the browser can't decode MP3). `tests/test_web.py` pretends to be the browser by patching
+`sys.platform` and `platform.window`; test new web branches the same way.
+
 ## Working with git
 
 - Before every push, run `git fetch` and `git log origin/main..HEAD --oneline`; push only if
@@ -188,7 +205,7 @@ key nothing uses, and a glyph the fonts (Anton, Fira Sans Regular and Bold) can'
 
 ### Settings tabs
 
-The Settings panel has tabs (DISPLAY, AUDIO, GAME, CONTROLS) listed in `SETTINGS_TABS`
+The Settings panel has tabs (DISPLAY, AUDIO, GAME, CONTROLS; on the web DISPLAY has no Window size row, see "Web build") listed in `SETTINGS_TABS`
 (`src/app/settings_tabs.py`). In `config/panels.yaml` each tab has a button `tab_<key>_button` and
 a group object `<key>_tab`; a tab's rows are objects with `parent: <key>_tab` (copy an existing
 `<` / value / `>` selector row or slider row). `SettingsTabs` shows only the open tab's group (a

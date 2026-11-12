@@ -22,6 +22,7 @@ links; a changed decision gets a new ADR that supersedes the old one.
 | [0007](0007-headless-balance-simulator.md) | Headless balance simulator on the real game | Accepted | 2026-10-29 | #70, #10 |
 | [0008](0008-mypy-lenient-start.md) | Type checking with mypy, a lenient start | Accepted | 2026-11-02 | #37 |
 | [0009](0009-test-speed-slow-marker-and-xdist.md) | Faster tests: a slow marker and parallel runs | Accepted | 2026-11-03 | #122 |
+| [0010](0010-web-build-pygbag.md) | The web build: pygbag, localStorage saves, an async loop, web-only settings | Accepted | 2026-11-12 | #152, PR #187 |
 <!-- index:end -->
 
 ## Adding an ADR
