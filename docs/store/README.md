@@ -58,7 +58,7 @@ otherwise.
 | Description | paste `docs/store/description.html` in HTML mode |
 | Genre | Strategy, Survival (as on the live page) |
 | Tags (max 10; not the genre or platforms; the live page has these 7) | 2D, Endless, Military, Open Source, Singleplayer, Top-Down, Tower Defense |
-| AI generation disclosure | **Yes.** The live page ticks **Code** (Claude Code as a coding assistant), **Graphics** and **Text** (the store text, README and Turkish strings were drafted with Claude and reviewed by the owner). Not Sounds: Kenney's packs and Sakura Girl's music. **Open question for the owner:** the public statement below mentions only Claude Code, so it should say which graphics are AI-made (or untick Graphics if none are). |
+| AI generation disclosure | **Yes.** Ticked: **Code** (Claude Code as a coding assistant) and **Text** (the store text, README and Turkish strings were drafted with Claude and reviewed by the owner). **Graphics is not ticked**: the art is Kenney's and La Red Games' packs and the logo was made by the owner in Canva. Not Sounds: Kenney's packs and Sakura Girl's music. |
 | Statement of AI usage (shown publicly) | Built with Claude Code as a coding assistant; game design, art direction, playtesting and review by the developer. |
 | App store links | none |
 | Custom noun | leave blank |
