@@ -370,10 +370,11 @@ files:
   "images/towers/tower4shadow2.png":
     source: kenney-tower-defense-top-down
     original: "PNG/Default size/towerDefense_tile293.png"
-  "sounds/music/bg.mp3":
+  "sounds/music/bg.ogg":
     source: music-sakura-girl-clown
     original: "Clown"
-    note: "byte-identical to the artist's Hypeddit download (Sakura Girl - Clown.mp3); the SoundCloud track's license field is cc-by"
+    modified: "transcoded from the artist's MP3 to OGG Vorbis (ffmpeg, libvorbis quality 3) for the web build; same audio, same license (CC BY 3.0)"
+    note: "the MP3 it was made from was byte-identical to the artist's Hypeddit download (Sakura Girl - Clown.mp3); the SoundCloud track's license field is cc-by"
   "sounds/sfx/click-a.ogg":
     source: kenney-ui-pack
     original: "Sounds/click-a.ogg"

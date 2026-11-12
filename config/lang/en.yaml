@@ -107,6 +107,12 @@ pause:
   music_on: "MUSIC: ON"
   music_off: "MUSIC: OFF"
 
+# The web build's Exit screen (the browser tab can't be closed by the game).
+thanks:
+  title: "THANKS FOR PLAYING!"
+  subtitle: "Enjoyed Chokepoint? Tell us what you think."
+  rate: "LEAVE A COMMENT OR RATING"
+
 victory:
   title: "YOU WON!"
   subtitle: "Round {wave} cleared"

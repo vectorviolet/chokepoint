@@ -6,6 +6,7 @@ ring in the same color, so the area it can't shoot at reads as uncovered.
 """
 
 import pygame
+from pygamine import ALPHA_BLIT
 
 FILL = (128, 128, 128, 120)
 CLEAR = (0, 0, 0, 0)
@@ -34,4 +35,6 @@ def draw_range_ring(
         pygame.draw.circle(surf, CLEAR, mid, min_radius, 0)
         pygame.draw.circle(surf, outline, mid, min_radius, BLIND_SPOT_WIDTH)
     pygame.draw.circle(surf, outline, mid, radius, width)
-    surface.blit(surf, (center[0] - radius, center[1] - radius))
+    surface.blit(
+        surf, (center[0] - radius, center[1] - radius), special_flags=ALPHA_BLIT
+    )

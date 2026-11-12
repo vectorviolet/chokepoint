@@ -7,8 +7,14 @@ from pygame import Rect
 
 from app.game_events import GameEventsMixin
 from app.game_save import GameSaveMixin
-from app.settings_tabs import DEFAULT_TAB, TOGGLE_SETTINGS, SettingsTabs
+from app.settings_tabs import (
+    DEFAULT_TAB,
+    TOGGLE_SETTINGS,
+    WEB_HIDDEN_ROW_OBJECTS,
+    SettingsTabs,
+)
 from app.volume_settings import VOLUME_SETTINGS, VolumeSetting, saved_volume
+from pygamine import ALPHA_BLIT
 from pygamine import Application
 from pygamine import AssetManager
 from pygamine import MenuController
@@ -31,7 +37,14 @@ from util.config_loader import (
 )
 from pygamine import Camera
 from pygamine.util.localization import DEFAULT_LANGUAGE, localization, tr
-from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS, WIN_WAVE
+from util import web
+from util.constants import (
+    FULLSCREEN_POLL_FRAMES,
+    TILE_SIZE,
+    TICK_MS,
+    MAX_FRAME_MS,
+    WIN_WAVE,
+)
 
 # A mouse press this soon after the window regains focus after a focus-loss
 # pause is the click that refocused it, and is dropped. Later ones are the
@@ -182,7 +195,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         super().__init__(
             tuple(window["size"]), window["title"], window["fps"], Mouse(TILE_SIZE)
         )
-        self.restore_window_settings(saved_settings)
+        if not web.is_web():  # the browser has no window modes or sizes to restore
+            self.restore_window_settings(saved_settings)
         self._window_focused = pygame.key.get_focused()  # the display exists now
 
         window_transform = Transform((0, 0), self.size)
@@ -287,6 +301,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._resume_on_unpause = False  # was the run going when the menu opened?
         self._settings_return_panel = "main_menu"  # where Settings' Back leads
         self._settings_tab = DEFAULT_TAB  # the open Settings tab (kept over resizes)
+        self.itch_url = self.settings["links"]["itch_page"]
+        self._fullscreen_poll = (
+            0  # frames since the Fullscreen row last asked the browser
+        )
         self.buy_tooltip = BuyTooltip(self.panel_manager, self.size)
         self.kill_feedback = KillFeedback(
             self.assets.get_image("coin_sheet"),
@@ -309,9 +327,11 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.menu_overlay = pygame.Surface(self.size, pygame.SRCALPHA)
         self.menu_overlay.fill((0, 0, 0, 120))
         # "Skip intro": no splash is set up, so run() goes straight to the menu.
+        # The web build never shows it (its clip plays from a thread and its
+        # loop blocks the browser); whether it should is the owner's call, #186.
         self.splash = (
             None
-            if self.toggles["skip_intro"]
+            if self.toggles["skip_intro"] or web.is_web()
             else SplashScreen(standard_splash_media(self.audio), skip_completely=True)
         )
         self._init_wave_manager()
@@ -322,6 +342,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             "play_menu": self._handle_play_menu_event,
             "credits": self._handle_credits_event,
             "settings": self._handle_settings_event,
+            "thanks": self._handle_thanks_event,
             "game": self._handle_game_event,
         }
         self._bind_settings_ui()
@@ -347,6 +368,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         resize rebuilds those objects from scratch."""
         self._refresh_window_size_label()
         self._refresh_window_mode_label()
+        self._apply_web_display_rows()
         self._refresh_language_label()
         settings_panel = self.panel_manager["settings"]
         self.settings_tabs = SettingsTabs(settings_panel, self._settings_tab)
@@ -379,9 +401,13 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.panel_manager["play_menu"][n]
             for n in ("continue_game", "new_game", "back")
         ]
+        thanks_buttons = [
+            self.panel_manager["thanks"][n] for n in ("thanks_rate", "thanks_back")
+        ]
         self.menu_controllers = {
             "main_menu": self._menu_controller(main_menu_buttons),
             "play_menu": self._menu_controller(play_menu_buttons),
+            "thanks": self._menu_controller(thanks_buttons),
         }
         # `settings_focus`: the Settings button (by name) that had the focus
         # before a rebuild of the panel objects.
@@ -466,9 +492,38 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.panel_manager["settings"]["window_size_value_text"].set_text(f"{w}x{h}")
 
     def _refresh_window_mode_label(self) -> None:
-        self.panel_manager["settings"]["window_mode_value_text"].set_text(
-            tr(f"settings.window_mode_{self._window_mode}")
+        """The window mode row's value. In the browser that row is the
+        Fullscreen toggle and shows ON or OFF."""
+        if web.is_web():
+            text = tr("settings.on" if web.is_fullscreen() else "settings.off")
+        else:
+            text = tr(f"settings.window_mode_{self._window_mode}")
+        self.panel_manager["settings"]["window_mode_value_text"].set_text(text)
+
+    def _apply_web_display_rows(self) -> None:
+        """Settings in the browser: the Window size and Skip intro rows are
+        hidden (the canvas has a fixed size; there is no splash), and the
+        window mode row becomes the Fullscreen toggle (its caption is set here,
+        in code, so it follows the language through _refresh_language_texts).
+        Desktop keeps every row as authored."""
+        if not web.is_web():
+            return
+        settings = self.panel_manager["settings"]
+        for name in WEB_HIDDEN_ROW_OBJECTS:
+            settings[name].active = False
+        settings["window_mode_label_text"].set_text(
+            tr("settings.window_mode_fullscreen")
         )
+
+    @override
+    def cycle_window_mode(self, step: int = 1) -> None:
+        """F11 and the window mode row. In the browser there are no window
+        modes: both toggle the browser's fullscreen instead (it only works
+        from a click or key press, which both are)."""
+        if web.is_web():
+            web.toggle_fullscreen()
+        else:
+            super().cycle_window_mode(step)
 
     def _refresh_toggle_labels(self) -> None:
         settings = self.panel_manager["settings"]
@@ -495,6 +550,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def _refresh_language_texts(self) -> None:
         """Re-sets every text the game builds in code, in the current language."""
         self._refresh_window_mode_label()
+        self._apply_web_display_rows()
         self._refresh_toggle_labels()
         self._refresh_language_label()
         self._refresh_music_toggles()
@@ -541,7 +597,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def _save_settings(self) -> None:
         self.settings_store.save(
             {
-                **self.window_settings(),
+                **({} if web.is_web() else self.window_settings()),
                 **{
                     volume.key: getattr(self.audio, volume.getter)()
                     for volume in VOLUME_SETTINGS
@@ -559,7 +615,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         to the shipped defaults (not merely the values from the last save), then
         persists immediately -- Reset is a deliberate action, not a live drag,
         so it shouldn't wait for the player to also press Back."""
-        self.reset_window_settings()
+        if web.is_web():
+            # No window settings to restore; the default is no fullscreen.
+            if web.is_fullscreen():
+                web.toggle_fullscreen()
+        else:
+            self.reset_window_settings()
         for volume in VOLUME_SETTINGS:
             getattr(self.audio, volume.setter)(self._default_audio_settings[volume.key])
         self.life_lost_feedback.apply_volume()
@@ -720,7 +781,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         else:
             self.menu_demo.update(frame_ms)
         if self.panel_manager.current_panel == "settings":
-            self._refresh_window_mode_label()  # picks up F11-triggered mode changes
+            # Picks up F11-triggered mode changes. In the browser this asks
+            # the page, so it polls (a click refreshes at once; Esc out of
+            # fullscreen shows within FULLSCREEN_POLL_FRAMES).
+            self._fullscreen_poll = (self._fullscreen_poll + 1) % FULLSCREEN_POLL_FRAMES
+            if not web.is_web() or self._fullscreen_poll == 0:
+                self._refresh_window_mode_label()
 
     def _elapsed_frame_ms(self) -> float:
         """Wall-clock ms since the previous update(), capped at MAX_FRAME_MS."""
@@ -842,7 +908,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self._draw_game()
         else:
             self.menu_demo.draw(canvas)
-            canvas.blit(self.menu_overlay, (0, 0))
+            canvas.blit(self.menu_overlay, (0, 0), special_flags=ALPHA_BLIT)
         if self.panel_manager.current_panel == "game":
             self._draw_game_panel(canvas)
         else:
@@ -937,10 +1003,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def on_exit_request(self):
         """Esc (and the window's close button -- pygamine routes both here).
         In a run it opens or closes the pause menu; on Settings it acts as
-        Back; elsewhere it goes back to the main menu, or quits from it."""
+        Back; elsewhere it goes back to the main menu, or quits from it. The
+        web build can't quit (the tab stays open): it shows the thanks screen."""
         panel = self.panel_manager.current_panel
         if panel == "main_menu":
-            self.exit()
+            if web.is_web():
+                self._open_thanks()
+            else:
+                self.exit()
         elif panel == "settings":
             self._leave_settings()
         elif panel == "game":
@@ -954,7 +1024,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
                 self._close_pause_menu()
             else:
                 self._open_pause_menu()
-        elif panel in ("play_menu", "credits"):
+        elif panel in ("play_menu", "credits", "thanks"):
             self.panel_manager.current_panel = "main_menu"
 
     @override

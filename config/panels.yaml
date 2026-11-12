@@ -167,6 +167,50 @@ panels:
       music_toggle_icon:
         extends: music_toggle_icon
 
+  # The web build's Exit screen: the browser tab can't be closed by the game,
+  # so Exit opens this instead. The same green panel as the pause menu, over the
+  # menu background (Game._open_thanks).
+  thanks:
+    extends: [menu_chrome]
+    objects:
+      thanks_panel_bg:
+        position: [CENTER, CENTER]
+        size: [700, 480]
+        asset: btn
+        nine_slice: 10
+      thanks_title_text:
+        type: text
+        font: anton
+        font_size: 56
+        color: white
+        parent: thanks_panel_bg
+        position: [CENTER, 70]
+        text_key: "thanks.title"
+      thanks_subtitle_text:
+        type: text
+        font: fira_sans
+        font_size: 25
+        color: white
+        parent: thanks_panel_bg
+        position: [CENTER, 140]
+        text_key: "thanks.subtitle"
+
+      thanks_buttons:
+        parent: thanks_panel_bg
+        layout: { direction: vertical, start: [CENTER, 220], spacing: 130 }
+        objects:
+          thanks_rate: { extends: btn-lg, size: [520, 90] }
+          thanks_back: { extends: btn-lg, size: [520, 90] }
+      thanks_rate_text:
+        extends: button_text
+        parent: thanks_rate
+        font_size: 30
+        text_key: "thanks.rate"
+      thanks_back_text:
+        extends: button_text
+        parent: thanks_back
+        text_key: "common.main_menu"
+
   credits:
     extends: [menu_chrome]
     objects:

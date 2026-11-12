@@ -19,3 +19,7 @@ MAX_GAME_SPEED = max(GAME_SPEEDS)
 # (dragging the window, a breakpoint) is dropped rather than replayed in one
 # burst of ticks.
 MAX_FRAME_MS = 250
+
+# In the browser, Settings asks the page whether it is fullscreen this often (in
+# frames), to follow a fullscreen left with the browser's own Esc.
+FULLSCREEN_POLL_FRAMES = 15
