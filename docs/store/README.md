@@ -35,7 +35,8 @@ Fields that live outside the description, following itch.io's
 - **Images:** `description.html` links the GIF from GitHub so it works when pasted as is. Better:
   upload `docs/preview.gif` through itch.io's editor and swap the image on the page for the
   uploaded one, so it loads fast and doesn't break if the file moves in the repo.
-- **Theme:** colors that match the game (its green, and the logo's yellow and orange), not plain black on white.
+- **Theme:** colors that match the game's green, not plain black on white; the values set in the
+  theme editor are in [Theme settings](#theme-settings) below.
 - **Cover:** `docs/store/cover.png` (630×500, itch.io's cover size): the bomb run on the upper road,
   chosen by the owner; upload it through the edit page. How it was made: `scripts/capture_readme.py
   --covers <folder>` (see the [store media devlog entry](../devlog/2026-11-09-store-media.md)).
@@ -80,6 +81,28 @@ Linux: run ./chokepoint/chokepoint from the unzipped folder.
 
 Your run is saved automatically; press CONTINUE to resume it.
 ```
+
+## Theme settings
+
+Set in the theme editor of the live page ("Edit theme"), as the owner has them now:
+
+| Group | Setting | Value |
+|---|---|---|
+| Color | BG | `#45d93c` (bright green) |
+| Color | BG 2 | `#265c2e` (dark green) |
+| Color | Text | `#ffffff` |
+| Color | Link | `#fa5c5c` (red) |
+| Text | Font | Anonymous Pro |
+| Text | Size | Large |
+| Layout | Screenshots | Auto (sidebar) |
+| Images | Banner | none yet (#174), align Center |
+| Images | Background | repeat Both, align Right, Fixed (the page shows a Fixed option; whether it is ticked is not recorded here) |
+
+Contrast (WCAG ratio, 4.5 is the readable minimum for body text): white text is fine on BG 2 (7.9) but
+weak on the bright BG (1.9); the red link `#fa5c5c` is weak on both (2.5 on BG 2, 1.7 on BG). Which
+areas of the page use BG and which BG 2 depends on the layout, so check the live page. If text sits
+on the bright green, use dark text such as `#0B2E12` (8.0 on BG) or move it onto BG 2; a link
+color of `#FFE278` (the logo's yellow, 6.2 on BG 2) reads well on the dark green.
 
 When the game changes in a way players see (controls, features, towers), update
 `description.html` in the same PR and paste it again.
