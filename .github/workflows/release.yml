@@ -1,6 +1,7 @@
 name: Release
 
-# Build per-OS bundles and the browser (pygbag) bundle and publish them to a GitHub Release.
+# Build per-OS bundles and publish them to a GitHub Release; the browser (pygbag)
+# bundle is built and published by its own jobs (web, publish-web).
 # Cut a release by pushing a tag:  git tag v0.1.0 && git push origin v0.1.0
 # Use "Run workflow" (workflow_dispatch) to build without releasing.
 on:
@@ -73,6 +74,8 @@ jobs:
           if-no-files-found: error
           retention-days: 7  # the GitHub Release keeps the builds; artifacts only hand them to the release job
 
+  # The browser build is independent of the desktop jobs: if pygbag fails (it
+  # needs internet), the desktop release and its itch.io pushes still go out.
   web:
     name: Build web (pygbag)
     runs-on: ubuntu-latest
@@ -101,20 +104,22 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: chokepoint-web.zip
+          # Not "chokepoint-*": the desktop release jobs download that pattern.
+          name: web-bundle
           path: chokepoint-web.zip
           if-no-files-found: error
-          retention-days: 7  # the GitHub Release keeps the zip; artifacts only hand it to the release jobs
+          retention-days: 7  # the GitHub Release keeps the zip; the artifact only hands it to publish-web
 
   release:
     name: Publish GitHub Release
-    needs: [build, web]
+    needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download all build artifacts
+      - name: Download the desktop build artifacts
         uses: actions/download-artifact@v8
         with:
+          pattern: chokepoint-*
           path: artifacts
           merge-multiple: true
 
@@ -127,13 +132,14 @@ jobs:
 
   publish-itch:
     name: Publish to itch.io
-    needs: [build, web]
+    needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download all build artifacts
+      - name: Download the desktop build artifacts
         uses: actions/download-artifact@v8
         with:
+          pattern: chokepoint-*
           path: artifacts
           merge-multiple: true
 
@@ -145,12 +151,6 @@ jobs:
           unzip -q artifacts/chokepoint-windows.zip -d itch/windows
           unzip -q artifacts/chokepoint-linux.zip -d itch/linux
           unzip -q artifacts/chokepoint-macos.zip -d itch/osx
-
-      # The browser build: index.html sits at the zip's root, as itch.io expects.
-      - name: Unpack web bundle
-        run: |
-          mkdir -p itch/web
-          unzip -q artifacts/chokepoint-web.zip -d itch/web
 
       - name: Push Windows build
         uses: yeslayla/butler-publish-itchio-action@v1.2.0
@@ -181,6 +181,33 @@ jobs:
           CHANNEL: osx
           VERSION: ${{ github.ref_name }}
           PACKAGE: itch/osx
+
+  publish-web:
+    name: Publish web build
+    # After the desktop release exists, so the two never race to create it, and
+    # only if the web build worked. A failure here never blocks the desktop jobs.
+    needs: [web, release]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') && needs.web.result == 'success' && needs.release.result == 'success'
+    steps:
+      - name: Download the web build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: web-bundle
+          path: artifacts
+
+      - name: Attach the web bundle to the GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: artifacts/chokepoint-web.zip
+          fail_on_unmatched_files: true
+
+      # index.html sits at the zip's root, as itch.io expects; unpacked so
+      # butler diffs at the file level.
+      - name: Unpack web bundle
+        run: |
+          mkdir -p itch/web
+          unzip -q artifacts/chokepoint-web.zip -d itch/web
 
       - name: Push web build
         uses: yeslayla/butler-publish-itchio-action@v1.2.0

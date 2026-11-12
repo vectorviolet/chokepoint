@@ -3,7 +3,7 @@
     uv run python scripts/build_web.py              # stage, build, write build/web/
     uv run python scripts/build_web.py --stage-only # only stage (no pygbag, no internet)
 
-The staged folder (build/chokepoint/) holds only what the web build needs:
+The staged folder (build/web-stage/chokepoint/) holds only what the web build needs:
 `web/main.py` as `main.py`, the app's `src/` packages, pygamine's package
 (without its splash clip, which the web build never shows), `config/`,
 `assets/` (without the Tiled editor project), and PyYAML's pure-Python files
@@ -19,12 +19,14 @@ import importlib.util
 import shutil
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 BUILD_DIR = ROOT / "build"
-# The folder name is the app name pygbag gives the bundle (chokepoint.apk).
-STAGE_DIR = BUILD_DIR / "chokepoint"
+# Not build/chokepoint: PyInstaller's work path is there. The folder's own name
+# is the app name pygbag gives the bundle (chokepoint.apk).
+STAGE_DIR = BUILD_DIR / "web-stage" / "chokepoint"
 OUT_DIR = BUILD_DIR / "web"
 
 PYGBAG_VERSION = "0.9.3"
@@ -45,13 +47,16 @@ EXCLUDED_PYGAMINE = (
 _IGNORED = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")
 
 
-def _ignore(root: Path, excluded: tuple[str, ...]):
+def _ignore(
+    root: Path, excluded: tuple[str, ...]
+) -> Callable[[str, list[str]], set[str]]:
     """A shutil.copytree `ignore` that also drops the `excluded` paths of `root`."""
-    skip = {(root / rel).resolve() for rel in excluded}
+    skip = {Path(rel).as_posix() for rel in excluded}
 
     def ignore(directory: str, names: list[str]) -> set[str]:
         dropped = set(_IGNORED(directory, names))
-        dropped.update(n for n in names if (Path(directory) / n).resolve() in skip)
+        here = Path(directory).relative_to(root)
+        dropped.update(n for n in names if (here / n).as_posix() in skip)
         return dropped
 
     return ignore
@@ -86,10 +91,14 @@ def stage(dest: Path = STAGE_DIR, root: Path = ROOT) -> Path:
     shutil.copy2(entry, dest / "main.py")
     src = dest / "src"
     src.mkdir()
-    for package in sorted((root / "src").iterdir()):
+    for item in sorted((root / "src").iterdir()):
         # src/pygamine is the engine's repo: only its package goes in.
-        if package.is_dir() and package.name != "pygamine":
-            shutil.copytree(package, src / package.name, ignore=_IGNORED)
+        if item.name in ("pygamine", "__pycache__") or item.suffix == ".pyc":
+            continue
+        if item.is_dir():
+            shutil.copytree(item, src / item.name, ignore=_IGNORED)
+        else:
+            shutil.copy2(item, src / item.name)
     shutil.copytree(
         pygamine,
         src / "pygamine" / "pygamine",

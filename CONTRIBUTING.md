@@ -115,9 +115,11 @@ CI passes and the owner merges it through the merge queue, the owner creates and
 matching `vx.y.z` tag on that merged commit. Protected release tags cannot be moved or deleted.
 
 The tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
-on each OS, builds the browser version, zips each bundle, attaches all four to a GitHub Release, and
-pushes each build to its [itch.io](https://umutcanekinci.itch.io/chokepoint) channel (`windows`,
-`linux`, `osx`, `html5`) via [Butler](https://itch.io/docs/butler/). Use **Run workflow** to build
+on each OS, zips each bundle, attaches all three to a GitHub Release, and pushes each build to its
+[itch.io](https://umutcanekinci.itch.io/chokepoint) channel (`windows`, `linux`, `osx`) via
+[Butler](https://itch.io/docs/butler/). The browser version has its own jobs (`web` builds it,
+`publish-web` adds it to the release and pushes the `html5` channel once the desktop release
+exists), so a failed pygbag build cannot block the desktop release. Use **Run workflow** to build
 without publishing.
 
 ### The browser version (itch.io `html5` channel)
@@ -125,7 +127,7 @@ without publishing.
 `scripts/build_web.py` stages a clean bundle (`web/main.py` as `main.py`, `src/`, `config/`,
 `assets/`, vendored PyYAML; no tests, saves or `.git`) and runs the pinned
 [pygbag](https://github.com/pygame-web/pygbag) on it. It writes `build/web/` with `index.html` at its
-root. pygbag downloads the browser runtime, so the build needs internet (the script retries once).
+root (the stage is `build/web-stage/chokepoint/`). pygbag downloads the browser runtime, so the build needs internet (the script retries once).
 Locally: `uv run python scripts/build_web.py`, then serve `build/web/` with any web server
 (`python -m http.server`) and open it in a desktop browser. `--stage-only` skips pygbag; CI runs
 that on every PR.

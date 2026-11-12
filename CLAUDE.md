@@ -88,8 +88,8 @@ and refuses the main checkout's own `saves/`.
 
 `pyinstaller chokepoint.spec --noconfirm` produces a standalone onedir bundle in
 `dist/` (bundling `assets/` + `config/`); the tag-triggered
-`.github/workflows/release.yml` builds Windows/macOS/Linux zips (plus the browser one, see "Web build") and publishes a
-GitHub Release. Because the game loads assets/config by **cwd-relative** paths,
+`.github/workflows/release.yml` builds Windows/macOS/Linux zips and publishes a
+GitHub Release (the browser build has its own jobs, see "Web build"). Because the game loads assets/config by **cwd-relative** paths,
 `__main__.py` chdirs into `util.paths.resource_root()` at startup — which is the
 project root from source and `sys._MEIPASS` when frozen — so the same relative
 paths resolve in both. `config_loader` anchors to that root too.
@@ -100,15 +100,21 @@ The game also runs in a desktop browser (`sys.platform == "emscripten"`, package
 0010). `web/main.py` is its entry point (staged as `main.py` next to `src/`, `assets/` and `config/`;
 it runs `Game().run_async()`). `scripts/build_web.py` stages that folder (the one list of what goes
 in is in the script; tested in `tests/test_build_web.py`) and runs the pinned pygbag into
-`build/web/`; `--stage-only` skips pygbag (CI runs it on every PR). The release workflow's `web` job
-zips `build/web` and `publish-itch` pushes it to the itch.io `html5` channel; the owner's one-time
-itch.io setup is in CONTRIBUTING.md. A new file the browser needs at runtime must be in a staged
-folder, a desktop-only one goes in the script's exclude lists. Everything browser-specific goes through `src/util/web.py` (`is_web()`, which reads
+`build/web/` (staging in `build/web-stage/`, not PyInstaller's `build/chokepoint`); `--stage-only`
+skips pygbag (CI runs it on every PR). The release workflow's `web` job zips `build/web`, and
+`publish-web` attaches it to the release and pushes it to the itch.io `html5` channel; the owner's
+one-time itch.io setup is in CONTRIBUTING.md. A new file the browser needs at runtime must be in a staged
+folder, a desktop-only one goes in the script's exclude lists. A web failure never blocks the
+desktop release: no desktop job needs `web`.
+
+Everything browser-specific goes through `src/util/web.py` (`is_web()`, which reads
 `sys.platform` at call time, `open_in_new_tab()`, `is_fullscreen()`, `toggle_fullscreen()`); don't
 touch pygbag's `platform.window` anywhere else. What differs on the web: no splash (#186 asks whether
 that is right), Exit (button and Esc on the main menu) opens the `thanks` panel (a green panel like
 the pause menu's, with a link to the itch.io page, `links.itch_page` in `config/settings.yaml`) instead of quitting, the GAME tab
-has no Skip intro row, and DISPLAY shows no Window size row while the Window mode row becomes a Fullscreen ON/OFF toggle (`SettingsTab.web_rows`/`visible_rows`, the one list the keyboard order and click dispatch use; `WEB_HIDDEN_ROW_OBJECTS`,
+has no Skip intro row, and DISPLAY shows no Window size row while the Window mode row becomes a
+Fullscreen ON/OFF toggle (`SettingsTab.web_rows`/`visible_rows`, the one list the keyboard order
+and click dispatch use; `WEB_HIDDEN_ROW_OBJECTS`,
 `Game._apply_web_display_rows`, `Game.cycle_window_mode` toggles the browser's fullscreen for F11
 too). Saves and settings are in `localStorage` (pygamine's `SaveStore`). Translucent blits pass
 `special_flags=ALPHA_BLIT` (pygamine; `0` on desktop), which matters in the browser. The music is

@@ -20,7 +20,7 @@ Chokepoint is a 2D tower defense game: defend a winding path through 25 rounds o
 
 [![Available on itch.io](https://static.itch.io/images/badge.svg)](https://umutcanekinci.itch.io/chokepoint)
 
-**Play in your browser:** the [itch.io page](https://umutcanekinci.itch.io/chokepoint) also has a web version for desktop browsers (not phones or tablets).
+**Play in your browser:** starting with the next release, the [itch.io page](https://umutcanekinci.itch.io/chokepoint) also has a web version for desktop browsers (not phones or tablets).
 
 Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch.io/chokepoint) or the [latest GitHub release](https://github.com/vectorviolet/chokepoint/releases/latest) — no Python required. Unzip and run:
 

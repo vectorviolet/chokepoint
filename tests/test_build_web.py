@@ -17,9 +17,10 @@ def build_web():
     return module
 
 
-@pytest.fixture
-def staged(build_web, tmp_path):
-    return build_web.stage(tmp_path / "chokepoint")
+@pytest.fixture(scope="module")
+def staged(build_web, tmp_path_factory):
+    """Staged once for the module; the tests only read it."""
+    return build_web.stage(tmp_path_factory.mktemp("web") / "chokepoint")
 
 
 def _files(folder: Path) -> set[str]:
@@ -55,6 +56,32 @@ def test_stage_leaves_out_everything_the_browser_never_uses(staged):
     assert {f.split("/")[2] for f in files if f.startswith("src/pygamine/")} == {
         "pygamine"
     }
+
+
+def test_stage_has_every_module_and_package_of_src(staged):
+    src = SCRIPT.parent.parent / "src"
+    for item in src.iterdir():
+        if item.name in ("pygamine", "__pycache__") or item.suffix == ".pyc":
+            continue
+        assert (staged / "src" / item.name).exists(), f"src/{item.name} not staged"
+
+
+def test_stage_copies_top_level_modules_of_src(build_web, tmp_path):
+    root = tmp_path / "repo"
+    (root / "web").mkdir(parents=True)
+    (root / "web" / "main.py").write_text("")
+    (root / "src" / "pygamine" / "pygamine").mkdir(parents=True)
+    (root / "src" / "pygamine" / "pygamine" / "__init__.py").write_text("")
+    (root / "src" / "helper.py").write_text("X = 1")
+    (root / "config").mkdir()
+    (root / "assets").mkdir()
+    staged = build_web.stage(tmp_path / "out", root=root)
+    assert (staged / "src" / "helper.py").read_text() == "X = 1"
+
+
+def test_stage_is_not_pyinstallers_work_path(build_web):
+    assert build_web.STAGE_DIR != build_web.BUILD_DIR / "chokepoint"
+    assert build_web.STAGE_DIR.name == "chokepoint"  # pygbag's app name
 
 
 def test_stage_vendors_pure_python_yaml_only(staged):
