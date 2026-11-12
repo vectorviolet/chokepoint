@@ -140,6 +140,8 @@ asyncio.run( custom_site() )
 
 
 
+// The 0.9.3 in every CDN URL of this file must match PYGBAG_VERSION in
+// scripts/build_web.py (tests/test_build_web.py checks it).
 // this dict is available under PyConfig.config from __main__
 
 config = {
@@ -161,19 +163,9 @@ config = {
 }
 
 function show_infobox() {
+    // Centering is pure CSS (#infobox), so it follows resizes and fullscreen changes.
     if (!infobox.innerText) return;  // nothing to say yet (loading shows #status)
     infobox.style.display = "block";
-
-    // Measure box
-    const w = infobox.offsetWidth;
-    const h = infobox.offsetHeight;
-
-    // Center in viewport
-    const left = (window.innerWidth - w) / 2;
-    const top = (window.innerHeight - h) / 2;
-
-    infobox.style.left = left + "px";
-    infobox.style.top = top + "px";
 }
 
 </script>
@@ -228,7 +220,14 @@ function show_infobox() {
 
         #infobox:empty { display: none; }
         #infobox {
-            position: fixed; /* centered relative to viewport by show_infobox() */
+            /* centered in the viewport, also after a resize */
+            position: fixed;
+            inset: 0;
+            margin: auto;
+            width: max-content;
+            height: max-content;
+            max-width: 90vw;
+            box-sizing: border-box;
             background: #10161e;
             border: 4px solid #fbbc20;
             border-radius: 12px;

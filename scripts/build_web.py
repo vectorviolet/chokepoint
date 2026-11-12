@@ -31,16 +31,20 @@ BUILD_DIR = ROOT / "build"
 STAGE_DIR = BUILD_DIR / "web-stage" / "chokepoint"
 OUT_DIR = BUILD_DIR / "web"
 
+# Keep in step with the 0.9.3 CDN URLs in web/template.tmpl (a test checks it).
 PYGBAG_VERSION = "0.9.3"
 # pygbag 0.9.3 ships its own browser Python; this only picks the host
 # interpreter that runs the pygbag tool itself.
 PYGBAG_HOST_PYTHON = "3.12"
 
-ENTRY_POINT = ROOT / "web" / "main.py"
+# Paths relative to the repo root; stage() checks them in whichever root it is given.
+ENTRY_POINT_REL = Path("web") / "main.py"
 # The loading / "click to play" page (pygbag's stock one is unreadable).
-TEMPLATE = ROOT / "web" / "template.tmpl"
+TEMPLATE_REL = Path("web") / "template.tmpl"
 # The logo the template shows, copied to build/web/logo.png.
-LOGO = ROOT / "assets" / "images" / "branding" / "logo.png"
+LOGO_REL = Path("assets") / "images" / "branding" / "logo.png"
+TEMPLATE = ROOT / TEMPLATE_REL
+LOGO = ROOT / LOGO_REL
 # Copied whole into the stage.
 COPIED_DIRS = ("config", "assets")
 # Paths (relative to the folder named in the comment) the web build never reads.
@@ -82,9 +86,15 @@ def vendor_yaml(dest_src: Path) -> None:
 
 def stage(dest: Path = STAGE_DIR, root: Path = ROOT) -> Path:
     """Build a clean stage folder at `dest` and return it. An old one is removed."""
-    entry = root / "web" / "main.py"
-    if not entry.is_file():
-        raise SystemExit(f"Missing web entry point: {entry}")
+    # Fail before the slow pygbag run (and in CI's --stage-only) on a missing file.
+    for rel, what in (
+        (ENTRY_POINT_REL, "web entry point"),
+        (TEMPLATE_REL, "web page template"),
+        (LOGO_REL, "logo for the web page"),
+    ):
+        if not (root / rel).is_file():
+            raise SystemExit(f"Missing {what}: {root / rel}")
+    entry = root / ENTRY_POINT_REL
     pygamine = root / "src" / "pygamine" / "pygamine"
     if not pygamine.is_dir():
         raise SystemExit(

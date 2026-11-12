@@ -2,6 +2,7 @@
 pygbag itself is never run here (it needs internet)."""
 
 import importlib.util
+import re
 from pathlib import Path
 
 import pytest
@@ -66,15 +67,27 @@ def test_stage_has_every_module_and_package_of_src(staged):
         assert (staged / "src" / item.name).exists(), f"src/{item.name} not staged"
 
 
-def test_stage_copies_top_level_modules_of_src(build_web, tmp_path):
+def _fake_root(build_web, tmp_path, skip=None):
+    """A minimal repo root with the web files (except `skip`, a relative path)."""
     root = tmp_path / "repo"
-    (root / "web").mkdir(parents=True)
-    (root / "web" / "main.py").write_text("")
+    for rel in (
+        build_web.ENTRY_POINT_REL,
+        build_web.TEMPLATE_REL,
+        build_web.LOGO_REL,
+    ):
+        if rel != skip:
+            (root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (root / rel).write_text("")
+    return root
+
+
+def test_stage_copies_top_level_modules_of_src(build_web, tmp_path):
+    root = _fake_root(build_web, tmp_path)
     (root / "src" / "pygamine" / "pygamine").mkdir(parents=True)
     (root / "src" / "pygamine" / "pygamine" / "__init__.py").write_text("")
     (root / "src" / "helper.py").write_text("X = 1")
     (root / "config").mkdir()
-    (root / "assets").mkdir()
+    (root / "assets").mkdir(exist_ok=True)
     staged = build_web.stage(tmp_path / "out", root=root)
     assert (staged / "src" / "helper.py").read_text() == "X = 1"
 
@@ -99,11 +112,28 @@ def test_stage_replaces_an_old_stage(build_web, tmp_path):
 
 
 def test_stage_stops_with_a_clear_message_without_the_submodule(build_web, tmp_path):
-    root = tmp_path / "repo"
-    (root / "web").mkdir(parents=True)
-    (root / "web" / "main.py").write_text("")
+    root = _fake_root(build_web, tmp_path)
     with pytest.raises(SystemExit, match="submodule"):
         build_web.stage(tmp_path / "out", root=root)
+
+
+@pytest.mark.parametrize("name", ["ENTRY_POINT_REL", "TEMPLATE_REL", "LOGO_REL"])
+def test_stage_stops_early_when_a_web_file_is_missing(build_web, tmp_path, name):
+    missing = getattr(build_web, name)
+    root = _fake_root(build_web, tmp_path, skip=missing)
+    with pytest.raises(SystemExit, match="Missing"):
+        build_web.stage(tmp_path / "out", root=root)
+    assert not (tmp_path / "out").exists()
+
+
+def test_stage_only_run_catches_a_missing_template(build_web, monkeypatch, tmp_path):
+    root = _fake_root(build_web, tmp_path, skip=build_web.TEMPLATE_REL)
+    real_stage = build_web.stage
+    monkeypatch.setattr(
+        build_web, "stage", lambda: real_stage(tmp_path / "out", root=root)
+    )
+    with pytest.raises(SystemExit, match="web page template"):
+        build_web.main(["--stage-only"])
 
 
 def test_pygbag_is_pinned_and_run_with_can_close(build_web, monkeypatch, tmp_path):
@@ -233,3 +263,11 @@ def test_build_copies_the_logo_next_to_index_html(build_web, monkeypatch, tmp_pa
     assert build_web.build() == out
     assert (out / "logo.png").read_bytes() == build_web.LOGO.read_bytes()
     assert (out / "index.html").is_file()
+
+
+def test_template_cdn_version_matches_the_pinned_pygbag(build_web):
+    versions = set(
+        re.findall(r"pygame-web\.github\.io/cdn/(\d+\.\d+\.\d+)", TEMPLATE_TEXT)
+    )
+    assert versions == {build_web.PYGBAG_VERSION}
+    assert f"Pygbag Version : {build_web.PYGBAG_VERSION}" in TEMPLATE_TEXT
