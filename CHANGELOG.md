@@ -23,6 +23,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 - Docs: a `SECURITY.md` (private vulnerability reporting), the itch.io tags and a field-by-field list for the store edit page in `docs/store/README.md` ([#181](https://github.com/vectorviolet/chokepoint/pull/181)).
 - Docs: the itch.io theme settings and their contrast check in `docs/store/README.md`.
 - Docs: the store checklist matches the live itch.io page (genre, tags, AI disclosure without graphics).
+- Docs: a GitHub social preview image (`docs/design/social-preview.png`) and the script that builds it.
 
 ## [1.0.0] – 2026-11-10
 
