@@ -122,7 +122,7 @@ fonts:
   fira_sans_bold:    {name: FiraSans-Bold}
 
 sounds:
-  bg_music:          {folder: music, name: bg, extension: mp3}
+  bg_music:          {folder: music, name: bg}
 
   # ── Menu navigation SFX ───────────────────────────────────────────────
   switch_up:         {folder: sfx, name: switch-b}

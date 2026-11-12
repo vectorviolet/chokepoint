@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
 import pygame
+from pygamine import ALPHA_BLIT
 from pygamine import AssetManager
 from pygamine import PanelManager
 
@@ -365,7 +366,7 @@ class TowerPlacementController:
         first_row = max(0, int(top_left.y // TILE_SIZE))
         last_col = min(cols - 1, int(bottom_right.x // TILE_SIZE))
         last_row = min(rows - 1, int(bottom_right.y // TILE_SIZE))
-        blits = []
+        blits: list[tuple] = []
         for row_idx in range(first_row, last_row + 1):
             for col_idx in range(first_col, last_col + 1):
                 screen = self._camera.world_to_screen(
@@ -376,7 +377,7 @@ class TowerPlacementController:
                     if self._is_placeable(row_idx, col_idx)
                     else scaled_block
                 )
-                blits.append((tile, screen))
+                blits.append((tile, screen, None, ALPHA_BLIT))
         surface.blits(blits, doreturn=False)
 
     def _draw_cursor_preview(self, surface: pygame.Surface, mouse_pos: tuple) -> None:

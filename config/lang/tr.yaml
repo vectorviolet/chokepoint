@@ -103,6 +103,12 @@ pause:
   music_on: "MÜZİK: AÇIK"
   music_off: "MÜZİK: KAPALI"
 
+# The web build's Exit screen (the browser tab can't be closed by the game).
+thanks:
+  title: "OYNADIĞIN İÇİN TEŞEKKÜRLER!"
+  subtitle: "Chokepoint'i beğendin mi? Düşüncelerini bizimle paylaş."
+  rate: "YORUM YAP VEYA PUAN VER"
+
 victory:
   title: "KAZANDIN!"
   subtitle: "{wave}. tur tamamlandı"

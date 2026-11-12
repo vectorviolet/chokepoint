@@ -17,7 +17,7 @@ from pygamine.util.localization import localization
 from ui.tower_info import ROWS
 from util.text import money
 
-PANELS = ("main_menu", "play_menu", "credits", "settings", "game")
+PANELS = ("main_menu", "play_menu", "thanks", "credits", "settings", "game")
 SIZES = [(1920, 1080), (1280, 720)]
 
 

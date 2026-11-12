@@ -39,7 +39,7 @@ file with its pack and its original file name there.
 ## Music
 
 **“Clown”** by **Sakura Girl**, the menu and in-game music, downloaded from the artist's page on
-Hypeddit.
+Hypeddit. The game ships it converted from MP3 to OGG Vorbis (same audio, no edits to the music).
 
 The artist licenses the track on
 [SoundCloud](https://soundcloud.com/sakuragirl_official/clown) under

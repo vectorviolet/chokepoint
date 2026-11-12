@@ -3,6 +3,7 @@ import pygame
 from pygamine.util.localization import localization, tr
 
 from app.settings_tabs import DEFAULT_TAB, SETTINGS_TABS
+from util import web
 from util.constants import GAME_SPEEDS
 
 # The speed button's state at each game speed (None: its x1 look).
@@ -61,6 +62,18 @@ class GameEventsMixin:
             self._open_settings("main_menu")
         elif self._activate(panel["exit"], event):
             self.on_exit_request()
+
+    def _open_thanks(self) -> None:
+        """The web build's Exit: a "Thanks for playing" screen instead of
+        quitting (a browser tab can't be closed by the game)."""
+        self.panel_manager.current_panel = "thanks"
+
+    def _handle_thanks_event(self, event) -> None:
+        panel = self.panel_manager["thanks"]
+        if self._activate(panel["thanks_rate"], event):
+            web.open_in_new_tab(web.ITCH_URL)
+        elif self._activate(panel["thanks_back"], event):
+            self.panel_manager.current_panel = "main_menu"
 
     def _handle_play_menu_event(self, event) -> None:
         panel = self.panel_manager["play_menu"]

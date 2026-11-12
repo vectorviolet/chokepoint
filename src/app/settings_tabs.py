@@ -15,6 +15,8 @@ from dataclasses import dataclass
 
 import pygame
 
+from util.web import is_web
+
 DEFAULT_TAB = "display"
 
 
@@ -56,6 +58,15 @@ class SettingsTab:
     shown: bool  # False: no rows yet, so the tab button stays hidden
     # The tab's buttons, top to bottom (the sliders are mouse-only).
     rows: tuple[SettingsRow, ...] = ()
+    # The rows shown in the browser build instead (None: the same as `rows`).
+    web_rows: tuple[SettingsRow, ...] | None = None
+
+    @property
+    def visible_rows(self) -> tuple[SettingsRow, ...]:
+        """The rows this platform shows, which the keyboard focus visits."""
+        if is_web() and self.web_rows is not None:
+            return self.web_rows
+        return self.rows
 
     @property
     def button(self) -> str:
@@ -66,6 +77,26 @@ class SettingsTab:
         return f"{self.key}_tab"
 
 
+# DISPLAY on desktop: window size, window mode, then the toggles. In the
+# browser the canvas has a fixed size and there are no window modes: the size
+# row is hidden (Game._refresh_window_size_label) and the window mode row
+# becomes a single Fullscreen ON/OFF toggle (same objects, same handler).
+_WINDOW_MODE_ROW = (
+    SettingsRow("window_mode_back_button", "_cycle_window_mode", -1),
+    SettingsRow("window_mode_next_button", "_cycle_window_mode", 1),
+)
+_DISPLAY_TOGGLES = toggle_rows("reduce_flashing")
+
+# The objects of the Window size row, hidden in the browser.
+WINDOW_SIZE_ROW_OBJECTS = (
+    "window_size_label_text",
+    "window_size_back_button",
+    "window_size_back_button_text",
+    "window_size_value_text",
+    "window_size_next_button",
+    "window_size_next_button_text",
+)
+
 SETTINGS_TABS = (
     SettingsTab(
         "display",
@@ -73,10 +104,10 @@ SETTINGS_TABS = (
         rows=(
             SettingsRow("window_size_back_button", "_cycle_window_size", -1),
             SettingsRow("window_size_next_button", "_cycle_window_size", 1),
-            SettingsRow("window_mode_back_button", "_cycle_window_mode", -1),
-            SettingsRow("window_mode_next_button", "_cycle_window_mode", 1),
-            *toggle_rows("reduce_flashing"),
+            *_WINDOW_MODE_ROW,
+            *_DISPLAY_TOGGLES,
         ),
+        web_rows=(*_WINDOW_MODE_ROW, *_DISPLAY_TOGGLES),
     ),
     SettingsTab("audio", shown=True),
     SettingsTab(
@@ -137,12 +168,12 @@ class SettingsTabs:
         """Buttons the keyboard cycles: the shown tab buttons, the open tab's
         row buttons, then Back and Reset (rows of other tabs never)."""
         tabs = [self.panel[t.button] for t in SETTINGS_TABS if t.shown]
-        rows = [self.panel[row.button] for row in self.tab(self.active).rows]
+        rows = [self.panel[row.button] for row in self.tab(self.active).visible_rows]
         return [*tabs, *rows, *(self.panel[name] for name in FIXED_BUTTONS)]
 
     def name_of(self, button) -> str:
         """The panel name of one of the buttons in `focus_order()`."""
         names = [t.button for t in SETTINGS_TABS if t.shown]
-        names += [row.button for row in self.tab(self.active).rows]
+        names += [row.button for row in self.tab(self.active).visible_rows]
         names += FIXED_BUTTONS
         return next(name for name in names if self.panel[name] is button)
