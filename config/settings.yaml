@@ -24,3 +24,6 @@ audio:
   master_volume: 1.0  # scales the music and every SFX
   music_volume: 1.0
   sfx_volume: 1.0
+
+links:
+  itch_page: "https://umutcanekinci.itch.io/chokepoint"  # the web build's Thanks screen opens it

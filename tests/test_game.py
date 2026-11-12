@@ -307,6 +307,7 @@ def test_update_on_settings_also_refreshes_the_window_mode_label():
     game = make_game()
     game.panel_manager.current_panel = "settings"
     game.menu_demo = SimpleNamespace(update=Spy())
+    game._fullscreen_poll = 0  # set by __init__, which make_game() skips
     game._refresh_window_mode_label = Spy()
 
     game.update()

@@ -8,9 +8,6 @@ with fakes. On desktop none of them is ever called.
 import sys
 from typing import Any
 
-# The game's itch.io page: the web build's "Thanks for playing" screen links to it.
-ITCH_URL = "https://umutcanekinci.itch.io/chokepoint"
-
 
 def is_web() -> bool:
     """True in the browser build. Read at call time (not import time) so a test

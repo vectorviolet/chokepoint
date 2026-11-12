@@ -35,6 +35,12 @@ def gameplay_settings(settings: dict | None = None) -> dict:
     return (load_settings() if settings is None else settings)["gameplay"]
 
 
+def itch_page_url(settings: dict | None = None) -> str:
+    """The game's itch.io page (`links.itch_page` in settings.yaml), which the
+    web build's Thanks screen opens."""
+    return (load_settings() if settings is None else settings)["links"]["itch_page"]
+
+
 def parse_hp(hp, where: str) -> int:
     """One HP value from a config file. The HP bars divide by it, so it must
     be a whole number of at least 1; raises ValueError naming `where` if

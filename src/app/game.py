@@ -10,7 +10,7 @@ from app.game_save import GameSaveMixin
 from app.settings_tabs import (
     DEFAULT_TAB,
     TOGGLE_SETTINGS,
-    WINDOW_SIZE_ROW_OBJECTS,
+    WEB_HIDDEN_ROW_OBJECTS,
     SettingsTabs,
 )
 from app.volume_settings import VOLUME_SETTINGS, VolumeSetting, saved_volume
@@ -38,7 +38,13 @@ from util.config_loader import (
 from pygamine import Camera
 from pygamine.util.localization import DEFAULT_LANGUAGE, localization, tr
 from util import web
-from util.constants import TILE_SIZE, TICK_MS, MAX_FRAME_MS, WIN_WAVE
+from util.constants import (
+    FULLSCREEN_POLL_FRAMES,
+    TILE_SIZE,
+    TICK_MS,
+    MAX_FRAME_MS,
+    WIN_WAVE,
+)
 
 # A mouse press this soon after the window regains focus after a focus-loss
 # pause is the click that refocused it, and is dropped. Later ones are the
@@ -189,7 +195,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         super().__init__(
             tuple(window["size"]), window["title"], window["fps"], Mouse(TILE_SIZE)
         )
-        self.restore_window_settings(saved_settings)
+        if not web.is_web():  # the browser has no window modes or sizes to restore
+            self.restore_window_settings(saved_settings)
         self._window_focused = pygame.key.get_focused()  # the display exists now
 
         window_transform = Transform((0, 0), self.size)
@@ -294,6 +301,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._resume_on_unpause = False  # was the run going when the menu opened?
         self._settings_return_panel = "main_menu"  # where Settings' Back leads
         self._settings_tab = DEFAULT_TAB  # the open Settings tab (kept over resizes)
+        self.itch_url = self.settings["links"]["itch_page"]
+        self._fullscreen_poll = (
+            0  # frames since the Fullscreen row last asked the browser
+        )
         self.buy_tooltip = BuyTooltip(self.panel_manager, self.size)
         self.kill_feedback = KillFeedback(
             self.assets.get_image("coin_sheet"),
@@ -490,17 +501,19 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.panel_manager["settings"]["window_mode_value_text"].set_text(text)
 
     def _apply_web_display_rows(self) -> None:
-        """DISPLAY in the browser: the canvas has a fixed size, so the Window
-        size row is hidden, and the window mode row becomes the Fullscreen
-        toggle (its caption is set here, in code, so it follows the language
-        through _refresh_language_texts). Desktop keeps both rows as authored."""
+        """Settings in the browser: the Window size and Skip intro rows are
+        hidden (the canvas has a fixed size; there is no splash), and the
+        window mode row becomes the Fullscreen toggle (its caption is set here,
+        in code, so it follows the language through _refresh_language_texts).
+        Desktop keeps every row as authored."""
+        if not web.is_web():
+            return
         settings = self.panel_manager["settings"]
-        for name in WINDOW_SIZE_ROW_OBJECTS:
-            settings[name].active = not web.is_web()
-        if web.is_web():
-            settings["window_mode_label_text"].set_text(
-                tr("settings.window_mode_fullscreen")
-            )
+        for name in WEB_HIDDEN_ROW_OBJECTS:
+            settings[name].active = False
+        settings["window_mode_label_text"].set_text(
+            tr("settings.window_mode_fullscreen")
+        )
 
     @override
     def cycle_window_mode(self, step: int = 1) -> None:
@@ -584,7 +597,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def _save_settings(self) -> None:
         self.settings_store.save(
             {
-                **self.window_settings(),
+                **({} if web.is_web() else self.window_settings()),
                 **{
                     volume.key: getattr(self.audio, volume.getter)()
                     for volume in VOLUME_SETTINGS
@@ -768,7 +781,12 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         else:
             self.menu_demo.update(frame_ms)
         if self.panel_manager.current_panel == "settings":
-            self._refresh_window_mode_label()  # picks up F11-triggered mode changes
+            # Picks up F11-triggered mode changes. In the browser this asks
+            # the page, so it polls (a click refreshes at once; Esc out of
+            # fullscreen shows within FULLSCREEN_POLL_FRAMES).
+            self._fullscreen_poll = (self._fullscreen_poll + 1) % FULLSCREEN_POLL_FRAMES
+            if not web.is_web() or self._fullscreen_poll == 0:
+                self._refresh_window_mode_label()
 
     def _elapsed_frame_ms(self) -> float:
         """Wall-clock ms since the previous update(), capped at MAX_FRAME_MS."""

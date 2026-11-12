@@ -15,7 +15,7 @@ from dataclasses import dataclass
 
 import pygame
 
-from util.web import is_web
+from util import web
 
 DEFAULT_TAB = "display"
 
@@ -64,7 +64,7 @@ class SettingsTab:
     @property
     def visible_rows(self) -> tuple[SettingsRow, ...]:
         """The rows this platform shows, which the keyboard focus visits."""
-        if is_web() and self.web_rows is not None:
+        if web.is_web() and self.web_rows is not None:
             return self.web_rows
         return self.rows
 
@@ -87,14 +87,32 @@ _WINDOW_MODE_ROW = (
 )
 _DISPLAY_TOGGLES = toggle_rows("reduce_flashing")
 
-# The objects of the Window size row, hidden in the browser.
-WINDOW_SIZE_ROW_OBJECTS = (
-    "window_size_label_text",
-    "window_size_back_button",
-    "window_size_back_button_text",
-    "window_size_value_text",
-    "window_size_next_button",
-    "window_size_next_button_text",
+
+def row_objects(prefix: str) -> tuple[str, ...]:
+    """The panel objects of one `< value >` row named `prefix` in panels.yaml."""
+    return tuple(
+        f"{prefix}_{part}"
+        for part in (
+            "label_text",
+            "back_button",
+            "back_button_text",
+            "value_text",
+            "next_button",
+            "next_button_text",
+        )
+    )
+
+
+# The rows the browser build hides: Window size (the canvas has a fixed size)
+# and Skip intro (the web build never shows the splash). Their web_rows below
+# leave them out of the keyboard order and the click dispatch.
+WEB_HIDDEN_ROW_OBJECTS = (*row_objects("window_size"), *row_objects("skip_intro"))
+_GAME_TOGGLES = toggle_rows(
+    "skip_intro", "pause_on_focus_loss", "keep_selection_while_buying"
+)
+_LANGUAGE_ROW = (
+    SettingsRow("language_back_button", "_cycle_language", -1),
+    SettingsRow("language_next_button", "_cycle_language", 1),
 )
 
 SETTINGS_TABS = (
@@ -113,13 +131,8 @@ SETTINGS_TABS = (
     SettingsTab(
         "game",
         shown=True,
-        rows=(
-            *toggle_rows(
-                "skip_intro", "pause_on_focus_loss", "keep_selection_while_buying"
-            ),
-            SettingsRow("language_back_button", "_cycle_language", -1),
-            SettingsRow("language_next_button", "_cycle_language", 1),
-        ),
+        rows=(*_GAME_TOGGLES, *_LANGUAGE_ROW),
+        web_rows=(*_GAME_TOGGLES[2:], *_LANGUAGE_ROW),
     ),
     SettingsTab("controls", shown=False),
 )
@@ -153,7 +166,7 @@ class SettingsTabs:
             button.active = tab.shown
             button.set_state("selected" if is_open else None)
             if not is_open:
-                for row in tab.rows:
+                for row in tab.visible_rows:
                     self._clear_hover(self.panel[row.button])
 
     @staticmethod

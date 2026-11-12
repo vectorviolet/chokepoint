@@ -17,6 +17,8 @@ import app.game
 from app.game import Game
 from pygamine import SaveStore
 from util import web
+from util.constants import FULLSCREEN_POLL_FRAMES
+from app.settings_tabs import row_objects
 from pygamine import Application
 from util.paths import resource_root
 
@@ -174,7 +176,8 @@ def test_web_escape_on_the_main_menu_opens_the_thanks_screen(web_game, monkeypat
 def test_the_rate_button_opens_the_itch_page_in_a_new_tab(web_game, browser):
     web_game._open_thanks()
     click(web_game, web_game.panel_manager["thanks"]["thanks_rate"])
-    assert browser.opened == [("https://umutcanekinci.itch.io/chokepoint", "_blank")]
+    assert browser.opened == [(web_game.itch_url, "_blank")]
+    assert web_game.itch_url == "https://umutcanekinci.itch.io/chokepoint"
     assert web_game.panel_manager.current_panel == "thanks"  # stays on the screen
 
 
@@ -211,7 +214,7 @@ def test_the_thanks_screen_uses_the_pause_menus_green_panel(web_game):
 def test_desktop_display_tab_is_unchanged(desktop_game):
     desktop_game._open_settings("main_menu")
     p = settings(desktop_game)
-    assert all(p[n].active for n in app.game.WINDOW_SIZE_ROW_OBJECTS)
+    assert all(p[n].active for n in row_objects("window_size"))
     assert p["window_mode_label_text"].text == "WINDOW MODE"
     names = {desktop_game.settings_tabs.name_of(b) for b in _focus(desktop_game)}
     assert "window_size_back_button" in names
@@ -225,7 +228,7 @@ def _focus(game):
 def test_web_display_tab_hides_the_size_row_and_shows_a_fullscreen_toggle(web_game):
     web_game._open_settings("main_menu")
     p = settings(web_game)
-    assert not any(p[n].active for n in app.game.WINDOW_SIZE_ROW_OBJECTS)
+    assert not any(p[n].active for n in row_objects("window_size"))
     assert p["window_mode_label_text"].text == "FULLSCREEN"
     assert p["window_mode_value_text"].text == "OFF"
     assert p["reduce_flashing_back_button"].active  # the rest is unchanged
@@ -255,10 +258,12 @@ def test_the_label_follows_a_fullscreen_left_with_the_browsers_own_key(
 ):
     web_game._open_settings("main_menu")
     web.toggle_fullscreen()
-    web_game.update()
+    for _ in range(FULLSCREEN_POLL_FRAMES):
+        web_game.update()
     assert settings(web_game)["window_mode_value_text"].text == "ON"
     browser.document.fullscreenElement = None  # Esc in the browser
-    web_game.update()
+    for _ in range(FULLSCREEN_POLL_FRAMES):
+        web_game.update()
     assert settings(web_game)["window_mode_value_text"].text == "OFF"
 
 
@@ -326,3 +331,103 @@ def test_the_music_is_ogg_and_no_mp3_ships(assets):
     assert path.suffix == ".ogg"
     assert path.exists()
     assert list((Path(resource_root()) / "assets").rglob("*.mp3")) == []
+
+
+# -- review follow-ups ----------------------------------------------------------
+
+
+def test_the_itch_page_comes_from_settings_yaml():
+    from util.config_loader import itch_page_url
+
+    assert itch_page_url() == "https://umutcanekinci.itch.io/chokepoint"
+
+
+def test_the_web_build_has_no_window_settings_to_restore_or_save(
+    monkeypatch, tmp_path, fake_ticks, browser
+):
+    restored = []
+    monkeypatch.setattr(
+        Application, "restore_window_settings", lambda self, saved: restored.append(1)
+    )
+    game = make_game(monkeypatch, tmp_path)
+    assert restored == []
+    game._save_settings()
+    saved = game.settings_store.load()
+    assert "window_mode" not in saved and "window_size" not in saved
+
+
+def test_desktop_restores_and_saves_the_window_settings(
+    monkeypatch, tmp_path, fake_ticks
+):
+    restored = []
+    monkeypatch.setattr(
+        Application, "restore_window_settings", lambda self, saved: restored.append(1)
+    )
+    game = make_game(monkeypatch, tmp_path)
+    assert restored == [1]
+    game._save_settings()
+    saved = game.settings_store.load()
+    assert "window_mode" in saved and "window_size" in saved
+
+
+def test_the_web_fullscreen_label_polls_the_browser_every_few_frames(
+    web_game, browser, monkeypatch
+):
+    web_game._open_settings("main_menu")
+    asked = []
+    real = web.is_fullscreen
+    monkeypatch.setattr(web, "is_fullscreen", lambda: asked.append(1) or real())
+    frames = 2 * FULLSCREEN_POLL_FRAMES
+    for _ in range(frames):
+        web_game.update()
+    assert len(asked) == 2  # not one JS call per frame
+
+
+def test_clicking_the_toggle_refreshes_the_label_at_once(web_game, browser):
+    web_game._open_settings("main_menu")
+    p = settings(web_game)
+    click(web_game, p["window_mode_next_button"])
+    assert p["window_mode_value_text"].text == "ON"  # no update() in between
+
+
+def test_desktop_refreshes_the_window_mode_label_every_frame(desktop_game, monkeypatch):
+    desktop_game._open_settings("main_menu")
+    calls = []
+    monkeypatch.setattr(
+        desktop_game, "_refresh_window_mode_label", lambda: calls.append(1)
+    )
+    for _ in range(5):
+        desktop_game.update()
+    assert len(calls) == 5
+
+
+def test_desktop_leaves_every_row_as_authored(desktop_game):
+    desktop_game._open_settings("main_menu")
+    p = settings(desktop_game)
+    assert all(p[n].active for n in row_objects("window_size"))
+    desktop_game._show_settings_tab("game")
+    assert all(p[n].active for n in row_objects("skip_intro"))
+    names = {desktop_game.settings_tabs.name_of(b) for b in _focus(desktop_game)}
+    assert "skip_intro_back_button" in names
+
+
+def test_the_web_game_tab_hides_skip_intro(web_game):
+    web_game._open_settings("main_menu")
+    web_game._show_settings_tab("game")
+    p = settings(web_game)
+    assert not any(p[n].active for n in row_objects("skip_intro"))
+    assert p["pause_on_focus_loss_back_button"].active
+    names = {web_game.settings_tabs.name_of(b) for b in _focus(web_game)}
+    assert "skip_intro_back_button" not in names
+    assert "pause_on_focus_loss_back_button" in names
+    before = web_game.toggles["skip_intro"]
+    click(web_game, p["skip_intro_next_button"])  # hidden: takes no click
+    assert web_game.toggles["skip_intro"] == before
+
+
+def test_keyboard_focus_and_click_dispatch_share_the_visible_rows(web_game):
+    web_game._open_settings("main_menu")
+    tab = web_game.settings_tabs.tab("display")
+    focus = {web_game.settings_tabs.name_of(b) for b in _focus(web_game)}
+    assert {row.button for row in tab.visible_rows} <= focus
+    assert "window_size_next_button" not in {row.button for row in tab.visible_rows}

@@ -71,7 +71,7 @@ class GameEventsMixin:
     def _handle_thanks_event(self, event) -> None:
         panel = self.panel_manager["thanks"]
         if self._activate(panel["thanks_rate"], event):
-            web.open_in_new_tab(web.ITCH_URL)
+            web.open_in_new_tab(self.itch_url)
         elif self._activate(panel["thanks_back"], event):
             self.panel_manager.current_panel = "main_menu"
 
@@ -101,13 +101,14 @@ class GameEventsMixin:
     def _handle_settings_tab_event(self, panel, event) -> None:
         """The tab buttons, then the rows' buttons, through SETTINGS_TABS.
         Every tab's buttons are asked, so a hidden one forgets a stale press;
-        `_activate` only lets the shown ones through."""
+        `_activate` only lets the shown ones through; rows this platform
+        hides (`visible_rows`) are never active."""
         for tab in SETTINGS_TABS:
             if self._activate(panel[tab.button], event):
                 self._show_settings_tab(tab.key)
                 return
         for tab in SETTINGS_TABS:
-            for row in tab.rows:
+            for row in tab.visible_rows:
                 if self._activate(panel[row.button], event):
                     getattr(self, row.handler)(row.arg)
                     return

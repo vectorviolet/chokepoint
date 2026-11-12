@@ -103,8 +103,8 @@ a later PR. Everything browser-specific goes through `src/util/web.py` (`is_web(
 `sys.platform` at call time, `open_in_new_tab()`, `is_fullscreen()`, `toggle_fullscreen()`); don't
 touch pygbag's `platform.window` anywhere else. What differs on the web: no splash (#186 asks whether
 that is right), Exit (button and Esc on the main menu) opens the `thanks` panel (a green panel like
-the pause menu's, with a link to the itch.io page) instead of quitting, and DISPLAY shows no
-Window size row while the Window mode row becomes a Fullscreen ON/OFF toggle (`SettingsTab.web_rows`,
+the pause menu's, with a link to the itch.io page, `links.itch_page` in `config/settings.yaml`) instead of quitting, the GAME tab
+has no Skip intro row, and DISPLAY shows no Window size row while the Window mode row becomes a Fullscreen ON/OFF toggle (`SettingsTab.web_rows`/`visible_rows`, the one list the keyboard order and click dispatch use; `WEB_HIDDEN_ROW_OBJECTS`,
 `Game._apply_web_display_rows`, `Game.cycle_window_mode` toggles the browser's fullscreen for F11
 too). Saves and settings are in `localStorage` (pygamine's `SaveStore`). Translucent blits pass
 `special_flags=ALPHA_BLIT` (pygamine; `0` on desktop), which matters in the browser. The music is
