@@ -32,12 +32,16 @@ def _grayed(image: pygame.Surface) -> pygame.Surface:
     return gray
 
 
-class _InvisibleFont:
+class InvisibleFont:
     """Stands in for a text object's font so the object still lays out its plate for the
-    text, with the glyphs left out (the odometer draws them)."""
+    text, with the glyphs left out (the odometer draws them). Every other font call
+    (size, height...) goes to the real font."""
 
     def __init__(self, font: pygame.font.Font) -> None:
         self._font = font
+
+    def __getattr__(self, name: str):
+        return getattr(self._font, name)
 
     def render(self, text: str, antialias: bool, color) -> pygame.Surface:
         return pygame.Surface(self._font.size(text), pygame.SRCALPHA)
@@ -63,7 +67,6 @@ class GameHUD:
         # (the game points it at KillFeedback.pending_money).
         self.pending_money: Callable[[], int] = lambda: 0
         self.reduce_flashing = False  # no rolling: the number just follows
-        self._clock_ms = 0  # real time, for the odometer
         self._real_font: pygame.font.Font | None = (
             None  # odometer style: the coin text's own font
         )
@@ -146,7 +149,6 @@ class GameHUD:
     def update(self, frame_ms: float) -> None:
         """Runs the money flash on real time, and moves the shown money as coins land
         (call it after KillFeedback.update)."""
-        self._clock_ms += round(frame_ms)
         self._sync_money()
         if not self.is_flashing:
             return
@@ -169,6 +171,7 @@ class GameHUD:
 
     def _show(self, shown: int, animate: bool) -> None:
         if shown == self._shown_money and self.coin_text.text == str(shown):
+            self._color_coin_text()  # it follows the real balance, not the number
             if not animate and self.money_style == "odometer":
                 self._odometer.snap(str(shown))  # stop a roll in progress
             return
@@ -177,7 +180,7 @@ class GameHUD:
         self.coin_text.set_text(str(shown))
         if self.money_style == "odometer":
             if animate:
-                self._odometer.set_target(str(shown), direction, self._clock_ms)
+                self._odometer.set_target(str(shown), direction, self._now_ms())
             else:
                 self._odometer.snap(str(shown))
             self._place_odometer()  # the plate grew or shrank
@@ -191,13 +194,24 @@ class GameHUD:
         font = self.coin_text.font
         assert font is not None, "the coin text has a font"
         self._real_font = font
-        self.coin_text.font = _InvisibleFont(font)
+        self.coin_text.font = InvisibleFont(font)
         # Laid out again with the invisible font (set_text skips an unchanged text).
         number = self.coin_text.text
         self.coin_text.set_text("")
         self.coin_text.set_text(number)
         self._odometer.snap(number)
         self._place_odometer()
+
+    @staticmethod
+    def _now_ms() -> int:
+        """The odometer's clock: real time, read when it is used (like Highrise's)."""
+        return pygame.time.get_ticks()
+
+    def is_money_rolling(self) -> bool:
+        """Whether any digit of the odometer is still rolling (never in count_up)."""
+        return self.money_style == "odometer" and self._odometer.is_rolling(
+            self._now_ms()
+        )
 
     def _place_odometer(self) -> None:
         assert self._real_font is not None, "_bind_odometer() first"
@@ -218,7 +232,7 @@ class GameHUD:
         """Draws the rolling digits over the money plate (the odometer style only);
         `offset` is how far the HUD has slid."""
         if self.money_style == "odometer":
-            self._odometer.draw(surface, self._clock_ms, offset)
+            self._odometer.draw(surface, self._now_ms(), offset)
 
     def _color_coin_text(self) -> None:
         if self.is_flashing:
@@ -258,13 +272,18 @@ class GameHUD:
         """Re-sync the texts built in code (round counter, prices) after a
         language change."""
         self._set_fee_texts()
-        self.refresh()
+        self.refresh(snap=False)
 
-    def refresh(self) -> None:
+    def refresh(self, snap: bool = True) -> None:
         """Re-sync all HUD text/colors from the current GameState -- for when
         fields were set directly (e.g. restoring a save) rather than through
-        the mutator methods that normally fire these listeners."""
-        self.snap_money()
+        the mutator methods that normally fire these listeners. The money number
+        snaps (a load, a new game); `snap=False` lets it roll on (a language
+        change)."""
+        if snap:
+            self.snap_money()
+        else:
+            self._sync_money()
         self._check_purchasing_power(self._game_state.money)
         self._on_level_changed(self._game_state.level)
         self._on_lives_changed(self._game_state.lives)

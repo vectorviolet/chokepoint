@@ -41,14 +41,17 @@ How it works:
   number goes up by its share; spending lowers `money`, so the number drops at once. After the last
   coin lands the number is the balance, by construction, however the money changed meanwhile.
 - A kill the effect cap has no room for holds nothing back: its reward shows at once.
-- Snap to the balance, no animation: the pause menu, the wave pause, the victory and game-over
+- Snap to the balance, no animation: the pause menu, the victory and game-over
   popups (`Game._snap_money()`: the coins in flight stay as pictures but their shares are
   released), load and new game (the coins are cleared), and Reduce flashing (no shares are held,
-  no roll, no pop).
+  no roll, no pop). The wave pause and the start/pause button do not snap: the coins fly on real
+  time, so the wave-clearing kill, the biggest burst, still animates. The victory popup (opened
+  by the kill that clears the last wave) and game over (the last life) do snap, as the issue asks,
+  so the final burst of a run shows its total at once.
 - Odometer style: the money text object only lays out the plate (with an invisible font) and
-  `ui/odometer.py` draws the digits over it, moved with the sliding HUD. It is Highrise's
+  `ui/odometer.py` draws the digits over it, on the real clock (`pygame.time.get_ticks()`, read when the number changes and when it is drawn), moved with the sliding HUD. It is Highrise's
   odometer, copied, plus a color setter (the red flash) and a draw offset. It belongs in
-  pygamine for both games: that is a separate change, not part of this PR.
+  pygamine for both games: that is a separate change, tracked in pygamine#51, not part of this PR.
 - Kills are announced to the HUD before the reward is paid (`BattleSimulation.enemy_killed`
   swapped two lines), so the number never flickers up and back.
 
@@ -68,6 +71,6 @@ should say if it confuses.
 ## Result
 
 `KillFeedback.pending_money`/`settle()`, `GameHUD.shown_money`/`snap_money()`/`draw_money_odometer()`,
-`ui/odometer.py`, `hud:` in `config/settings.yaml`. `tests/test_money_hud.py` covers both styles:
+`ui/odometer.py`, `hud:` in `config/settings.yaml` (a missing section takes the defaults; `money_roll_ms` must be a positive whole number, checked at load for both styles). `tests/test_money_hud.py` covers both styles:
 many kills at once, pausing, saving and loading mid-flight, spending while coins fly, Reduce
 flashing, and that the number equals the balance once all coins have landed.

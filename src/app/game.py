@@ -829,11 +829,10 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.hud_slide.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
-        # The number shows the whole balance whenever the run isn't playing (the
-        # pause menu, the wave pause, the victory and game over popups).
-        if self.kill_feedback.pending_money and (
-            not self.game_state.is_started or self._any_popup_open()
-        ):
+        # The number shows the whole balance while the pause menu or a popup (victory,
+        # game over) is open. The wave pause and the start/pause button don't snap: the
+        # coins keep flying on real time then, so the last kill of a wave still animates.
+        if self.kill_feedback.pending_money and self._any_popup_open():
             self._snap_money()
         self.hud.update(frame_ms)
         self.place_sell_feedback.update(frame_ms)

@@ -13,7 +13,7 @@ import app.game
 from app.game import Game
 from gameplay.combat.enemy import Enemy
 from pygamine import SaveStore
-from ui.game_hud import GameHUD
+from ui.game_hud import GameHUD, InvisibleFont
 from ui.kill_feedback import (
     COIN_FLIGHT_MS,
     COIN_STAGGER_MS,
@@ -126,6 +126,26 @@ def test_with_reduce_flashing_the_coins_hold_nothing_back_and_the_counter_never_
 
 def test_the_shipped_style_is_count_up():
     assert hud_settings()["money_style"] == "count_up"
+
+
+def test_a_missing_hud_section_takes_the_defaults():
+    settings = load_settings()
+    del settings["hud"]
+
+    assert hud_settings(settings) == {"money_style": "count_up", "money_roll_ms": 200}
+
+
+def test_a_missing_key_takes_its_default():
+    assert hud_settings({"hud": {"money_style": "odometer"}}) == {
+        "money_style": "odometer",
+        "money_roll_ms": 200,
+    }
+
+
+@pytest.mark.parametrize("roll", [0, -5, 1.5, "200", None])
+def test_a_bad_roll_time_is_refused(roll):
+    with pytest.raises(ValueError, match="money_roll_ms"):
+        hud_settings({"hud": {"money_roll_ms": roll}})
 
 
 def test_an_unknown_style_is_refused(tower_config):
@@ -274,13 +294,21 @@ def test_pausing_mid_flight_shows_the_balance_at_once(game, assets, fake_ticks):
     assert shown(game) == game.game_state.money
 
 
-def test_the_wave_pause_shows_the_balance_at_once(game, assets, fake_ticks):
-    kill(game, assets)
-    game.game_state.is_started = False
+def test_the_wave_pause_lets_the_coins_land_one_by_one(game, assets, fake_ticks):
+    for _ in range(3):
+        kill(game, assets)
+    game.game_state.is_started = (
+        False  # e.g. the wave-clearing kill auto-paused the run
+    )
+    seen = []
 
-    play(game, fake_ticks, 20)
+    for _ in range(round(LAST_COIN_LANDS / FRAME_MS) + 2):
+        play(game, fake_ticks, FRAME_MS)
+        seen.append(shown(game))
 
-    assert shown(game) == game.game_state.money
+    assert seen == sorted(seen)
+    assert len(set(seen)) > 3  # in steps, not snapped at once
+    assert seen[-1] == game.game_state.money
 
 
 @pytest.mark.parametrize("popup", ["_trigger_victory", "_trigger_game_over"])
@@ -334,7 +362,7 @@ def test_reduce_flashing_shows_the_balance_with_no_animation(game, assets, fake_
 
     assert shown(game) == game.game_state.money
     assert game.kill_feedback.pending_money == 0
-    assert not game.hud._odometer.is_rolling(game.hud._clock_ms)
+    assert not game.hud.is_money_rolling()
     play(game, fake_ticks, 2 * LAST_COIN_LANDS)
     assert shown(game) == game.game_state.money
 
@@ -348,7 +376,88 @@ def test_turning_reduce_flashing_on_mid_flight_snaps(game, assets, fake_ticks):
     game.set_toggle("reduce_flashing", True)
 
     assert shown(game) == game.game_state.money
-    assert not game.hud._odometer.is_rolling(game.hud._clock_ms)
+    assert not game.hud.is_money_rolling()
+
+
+def test_the_counter_color_follows_the_balance_not_the_shown_number(game):
+    red = tuple(pygame.Color("red"))
+    game.game_state.money = 0
+    game.hud.refresh()
+    assert game.hud.coin_text.color == red
+
+    game.game_state.money = 50  # set directly: no listener; the number stays 0
+    game.kill_feedback.add_kill((0, 0), 50, (0, 0), now_ms=0)
+    game.hud.update(FRAME_MS)
+
+    assert shown(game) == 0
+    assert game.hud.coin_text.color != red
+
+
+def test_the_invisible_font_delegates_everything_but_the_glyphs(assets):
+    real = pygame.font.Font(str(assets.font_path("fira_sans_bold")), 31)
+    font = InvisibleFont(real)
+
+    plate = font.render("1234", True, (255, 255, 255))
+
+    assert plate.get_size() == real.size("1234")
+    assert pygame.mask.from_surface(plate).count() == 0  # no glyphs
+    assert font.size("1234") == real.size("1234")
+    assert font.get_height() == real.get_height()
+    assert font.get_linesize() == real.get_linesize()
+
+
+def test_a_language_change_does_not_stop_a_rolling_odometer(game, assets, fake_ticks):
+    if game.hud.money_style != "odometer":
+        pytest.skip("the count-up style has no odometer")
+    kill(game, assets)
+    play(game, fake_ticks, COIN_FLIGHT_MS + 20)
+    assert game.hud.is_money_rolling()
+
+    game.hud.refresh_language()
+
+    assert game.hud.is_money_rolling()
+
+
+def test_a_new_game_stops_a_rolling_odometer(game, assets, fake_ticks):
+    if game.hud.money_style != "odometer":
+        pytest.skip("the count-up style has no odometer")
+    kill(game, assets)
+    play(game, fake_ticks, COIN_FLIGHT_MS + 20)
+    assert game.hud.is_money_rolling()
+
+    game._start_new_game()
+
+    assert not game.hud.is_money_rolling()
+
+
+def test_the_roll_runs_on_the_real_clock_not_on_updates(game, fake_ticks):
+    if game.hud.money_style != "odometer":
+        pytest.skip("the count-up style has no odometer")
+    game.hud.pending_money = lambda: 0
+    game.game_state.increase_money(7)  # a change between two updates
+    assert game.hud.is_money_rolling()
+
+    fake_ticks["t"] += game.hud._odometer.duration_ms + 1  # no hud.update() at all
+
+    assert not game.hud.is_money_rolling()
+
+
+def test_the_kill_hook_sees_the_balance_before_its_reward(game, assets, monkeypatch):
+    """BattleSimulation.enemy_killed tells the hook first, then pays: the HUD must
+    hold the reward back before the money listener fires. No override may rely on
+    the reward being paid already."""
+    seen = []
+    monkeypatch.setattr(
+        type(game),
+        "_on_enemy_killed",
+        lambda self, enemy: seen.append(self.game_state.money),
+    )
+    before = game.game_state.money
+
+    enemy = kill(game, assets)
+
+    assert seen == [before]
+    assert game.game_state.money == before + enemy.kill_money
 
 
 def test_the_game_draws_in_both_styles_while_coins_land(game, assets, fake_ticks):
@@ -366,10 +475,10 @@ def test_only_the_odometer_style_rolls_digits(game, assets, fake_ticks, style):
     kill(game, assets)
     play(game, fake_ticks, COIN_FLIGHT_MS + 20)  # the first coins have landed
 
-    assert game.hud._odometer.is_rolling(game.hud._clock_ms) == (style == "odometer")
+    assert game.hud.is_money_rolling() == (style == "odometer")
 
     play(game, fake_ticks, 2 * LAST_COIN_LANDS)
-    assert not game.hud._odometer.is_rolling(game.hud._clock_ms)
+    assert not game.hud.is_money_rolling()
     if style == "odometer":
         assert game.hud._odometer.text == str(game.game_state.money)
 
