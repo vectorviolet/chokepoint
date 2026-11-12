@@ -148,8 +148,8 @@ class BattleSimulation:
 
     def enemy_killed(self, enemy) -> None:
         self._tank_removed(enemy)
+        self._on_enemy_killed(enemy)  # before the reward: the HUD holds it back
         self.increase_money(enemy.kill_money)
-        self._on_enemy_killed(enemy)
         if self.death_feedback is not None:  # cosmetic: its explosion
             self.death_feedback.enemy_died(enemy.position, enemy.big_death_blast)
 
@@ -177,7 +177,8 @@ class BattleSimulation:
         """The build tiles towers occupy, refreshed every tick."""
 
     def _on_enemy_killed(self, enemy) -> None:
-        """An enemy was killed and its reward paid (it's already removed)."""
+        """An enemy was killed (it's already removed); its reward is paid right
+        after this hook."""
 
     def _on_enemy_escaped(self, enemy) -> None:
         """An enemy reached the end of the path (it's already removed)."""

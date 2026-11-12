@@ -35,6 +35,12 @@ def gameplay_settings(settings: dict | None = None) -> dict:
     return (load_settings() if settings is None else settings)["gameplay"]
 
 
+def hud_settings(settings: dict | None = None) -> dict:
+    """The `hud` section of settings.yaml (`money_style`: how the money number
+    follows the kill coins; `money_roll_ms`: the odometer's roll)."""
+    return (load_settings() if settings is None else settings)["hud"]
+
+
 def itch_page_url(settings: dict | None = None) -> str:
     """The game's itch.io page (`links.itch_page` in settings.yaml), which the
     web build's Thanks screen opens."""

@@ -13,6 +13,13 @@ gameplay:
   keep_selection_while_buying: false  # Settings > GAME: picking a tower to buy keeps the selected tower and its range ring; saved in settings
   reduce_flashing: false  # Settings > DISPLAY: no white hit flash, dimmer explosions; saved in settings
 
+hud:
+  # How the money number follows the kill coins (it lags the real balance until each coin
+  # lands; Reduce flashing turns this off): count_up (it jumps by each coin's value) or
+  # odometer (its digits roll). Not a Settings option; the owner picks one.
+  money_style: count_up
+  money_roll_ms: 200  # odometer: how long a changing digit rolls
+
 camera:
   edge_scroll_zone: 30
   speed: 10
