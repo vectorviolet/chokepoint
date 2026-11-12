@@ -56,9 +56,9 @@ otherwise.
 | Pricing | the owner's choice (Highrise uses $0 or donate, suggested $2.00) |
 | Uploads | `chokepoint-windows.zip`, `chokepoint-linux.zip`, `chokepoint-osx.zip`. The release workflow's butler jobs push the unpacked builds to the `windows`, `linux` and `osx` channels and itch.io names the files after the channels (the GitHub release zips are `chokepoint-windows.zip`, `chokepoint-linux.zip` and `chokepoint-macos.zip`). Tick the matching platform on each file's "Executable for" boxes (Windows, Linux, macOS) |
 | Description | paste `docs/store/description.html` in HTML mode |
-| Genre | Strategy |
-| Tags (max 10; not the genre or platforms, so drop "strategy") | Tower Defense, 2D, Top-Down, Singleplayer, Endless, Survival, Military, Open Source |
-| AI generation disclosure | **Yes.** Kinds: **Code** (Claude Code as a coding assistant) and **Text & Dialog** (the store text, README and Turkish strings were drafted with Claude and reviewed by the owner). Not Graphics: the art is Kenney's and La Red Games' packs and the logo was made by the owner in Canva (check that this is still true before submitting). Not Sounds: Kenney's packs and Sakura Girl's music. |
+| Genre | Strategy, Survival (as on the live page) |
+| Tags (max 10; not the genre or platforms; the live page has these 7) | 2D, Endless, Military, Open Source, Singleplayer, Top-Down, Tower Defense |
+| AI generation disclosure | **Yes.** The live page ticks **Code** (Claude Code as a coding assistant), **Graphics** and **Text** (the store text, README and Turkish strings were drafted with Claude and reviewed by the owner). Not Sounds: Kenney's packs and Sakura Girl's music. **Open question for the owner:** the public statement below mentions only Claude Code, so it should say which graphics are AI-made (or untick Graphics if none are). |
 | Statement of AI usage (shown publicly) | Built with Claude Code as a coding assistant; game design, art direction, playtesting and review by the developer. |
 | App store links | none |
 | Custom noun | leave blank |
