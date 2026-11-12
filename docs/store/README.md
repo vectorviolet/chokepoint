@@ -37,6 +37,10 @@ Fields that live outside the description, following itch.io's
   uploaded one, so it loads fast and doesn't break if the file moves in the repo.
 - **Theme:** colors that match the game's green, not plain black on white; the values set in the
   theme editor are in [Theme settings](#theme-settings) below.
+- **GitHub social preview:** `docs/design/social-preview.png` (1280x640, GitHub's 2:1), built by
+  `scripts/make_social_preview.py` from the HUD-hidden screenshot and the logo. It is a stopgap:
+  remake it from the store banner art when #174 delivers it. Upload it by hand in the repository's
+  Settings > Social preview (GitHub has no API for it).
 - **Cover:** `docs/store/cover.png` (630×500, itch.io's cover size): the bomb run on the upper road,
   chosen by the owner; upload it through the edit page. How it was made: `scripts/capture_readme.py
   --covers <folder>` (see the [store media devlog entry](../devlog/2026-11-09-store-media.md)).
