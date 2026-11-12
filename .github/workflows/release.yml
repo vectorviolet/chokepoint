@@ -1,6 +1,6 @@
 name: Release
 
-# Build per-OS bundles and publish them to a GitHub Release.
+# Build per-OS bundles and the browser (pygbag) bundle and publish them to a GitHub Release.
 # Cut a release by pushing a tag:  git tag v0.1.0 && git push origin v0.1.0
 # Use "Run workflow" (workflow_dispatch) to build without releasing.
 on:
@@ -73,9 +73,42 @@ jobs:
           if-no-files-found: error
           retention-days: 7  # the GitHub Release keeps the builds; artifacts only hand them to the release job
 
+  web:
+    name: Build web (pygbag)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with pygamine submodule)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up uv + Python
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync
+
+      # Stages the bundle and runs the pinned pygbag (needs internet);
+      # the result is build/web with index.html at its root.
+      - name: Build web bundle with pygbag
+        run: uv run python scripts/build_web.py
+
+      - name: Package
+        run: cd build/web && zip -r ../../chokepoint-web.zip .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: chokepoint-web.zip
+          path: chokepoint-web.zip
+          if-no-files-found: error
+          retention-days: 7  # the GitHub Release keeps the zip; artifacts only hand it to the release jobs
+
   release:
     name: Publish GitHub Release
-    needs: build
+    needs: [build, web]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -94,7 +127,7 @@ jobs:
 
   publish-itch:
     name: Publish to itch.io
-    needs: build
+    needs: [build, web]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
@@ -112,6 +145,12 @@ jobs:
           unzip -q artifacts/chokepoint-windows.zip -d itch/windows
           unzip -q artifacts/chokepoint-linux.zip -d itch/linux
           unzip -q artifacts/chokepoint-macos.zip -d itch/osx
+
+      # The browser build: index.html sits at the zip's root, as itch.io expects.
+      - name: Unpack web bundle
+        run: |
+          mkdir -p itch/web
+          unzip -q artifacts/chokepoint-web.zip -d itch/web
 
       - name: Push Windows build
         uses: yeslayla/butler-publish-itchio-action@v1.2.0
@@ -142,3 +181,13 @@ jobs:
           CHANNEL: osx
           VERSION: ${{ github.ref_name }}
           PACKAGE: itch/osx
+
+      - name: Push web build
+        uses: yeslayla/butler-publish-itchio-action@v1.2.0
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_USER: umutcanekinci
+          ITCH_GAME: chokepoint
+          CHANNEL: html5
+          VERSION: ${{ github.ref_name }}
+          PACKAGE: itch/web

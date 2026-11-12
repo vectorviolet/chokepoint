@@ -24,6 +24,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ### Development
 
+- Web build tooling: `scripts/build_web.py` stages the bundle and builds it with a pinned pygbag, the release workflow builds it as `chokepoint-web.zip` and pushes it to the itch.io `html5` channel, CI checks that the bundle stages, and the README and release steps explain the browser version. Part of #152.
 - Docs: a `SECURITY.md` (private vulnerability reporting), the itch.io tags and a field-by-field list for the store edit page in `docs/store/README.md` ([#181](https://github.com/vectorviolet/chokepoint/pull/181)).
 - Docs: the itch.io theme settings and their contrast check in `docs/store/README.md`.
 - Docs: the store checklist matches the live itch.io page (genre, tags, AI disclosure without graphics).
