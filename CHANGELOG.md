@@ -21,6 +21,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 ### Development
 
 - Docs: a `SECURITY.md` (private vulnerability reporting), the itch.io tags and a field-by-field list for the store edit page in `docs/store/README.md` ([#181](https://github.com/vectorviolet/chokepoint/pull/181)).
+- Docs: the itch.io theme settings and their contrast check in `docs/store/README.md`.
 
 ## [1.0.0] – 2026-11-10
 
