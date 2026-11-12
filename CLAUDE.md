@@ -98,7 +98,7 @@ paths resolve in both. `config_loader` anchors to that root too.
 
 The game also runs in a desktop browser (`sys.platform == "emscripten"`, packaged by pygbag; ADR
 0010). `web/main.py` is its entry point (staged as `main.py` next to `src/`, `assets/` and `config/`;
-it runs `Game().run_async()`). `scripts/build_web.py` stages that folder (the one list of what goes
+it runs `Game().run_async()`; `web/template.tmpl` is the loading and "click to play" page, pygbag's default template restyled, passed with `--template`, and the logo it shows is copied next to `index.html`). `scripts/build_web.py` stages that folder (the one list of what goes
 in is in the script; tested in `tests/test_build_web.py`) and runs the pinned pygbag into
 `build/web/` (staging in `build/web-stage/`, not PyInstaller's `build/chokepoint`); `--stage-only`
 skips pygbag (CI runs it on every PR). The release workflow's `web` job zips `build/web`, and

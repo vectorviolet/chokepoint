@@ -127,7 +127,7 @@ without publishing.
 `scripts/build_web.py` stages a clean bundle (`web/main.py` as `main.py`, `src/`, `config/`,
 `assets/`, vendored PyYAML; no tests, saves or `.git`) and runs the pinned
 [pygbag](https://github.com/pygame-web/pygbag) on it. It writes `build/web/` with `index.html` at its
-root (the stage is `build/web-stage/chokepoint/`). pygbag downloads the browser runtime, so the build needs internet (the script retries once).
+root (the stage is `build/web-stage/chokepoint/`), using our own loading and "click to play" page, `web/template.tmpl`, and copying the logo it shows next to it. pygbag downloads the browser runtime, so the build needs internet (the script retries once).
 Locally: `uv run python scripts/build_web.py`, then serve `build/web/` with any web server
 (`python -m http.server`) and open it in a desktop browser. `--stage-only` skips pygbag; CI runs
 that on every PR.

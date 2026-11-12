@@ -126,6 +126,7 @@ def test_pygbag_is_pinned_and_run_with_can_close(build_web, monkeypatch, tmp_pat
     assert f"pygbag=={build_web.PYGBAG_VERSION}" in command
     assert command[command.index("--can_close") + 1] == "1"
     assert command[-2:] == ["--build", str(tmp_path)]
+    assert command[command.index("--template") + 1] == str(build_web.TEMPLATE)
 
 
 def test_pygbag_failure_is_retried_once_then_reported(build_web, monkeypatch, tmp_path):
@@ -162,3 +163,73 @@ def test_pygbag_success_on_the_retry_is_accepted(build_web, monkeypatch, tmp_pat
     monkeypatch.setattr(build_web.subprocess, "run", fake_run)
     build_web.run_pygbag(tmp_path)
     assert results == []
+
+
+TEMPLATE_TEXT = (SCRIPT.parent.parent / "web" / "template.tmpl").read_text(
+    encoding="utf-8"
+)
+
+
+def _luminance(color: str) -> float:
+    channels = [int(color[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+    r, g, b = [
+        c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels
+    ]
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast(a: str, b: str) -> float:
+    high, low = sorted((_luminance(a), _luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+def test_template_keeps_pygbags_loader_hooks():
+    for hook in (
+        "async def custom_site()",
+        "platform.run_main(",
+        "MM.UME",
+        "custom_onload",
+        'id="status"',
+        'id="progress"',
+        'id="infobox"',
+        'id="canvas"',
+    ):
+        assert hook in TEMPLATE_TEXT, hook
+
+
+def test_template_replaces_the_stock_unreadable_look():
+    assert "CLICK TO PLAY" in TEMPLATE_TEXT
+    assert "Ready to start" not in TEMPLATE_TEXT
+    assert 'background = "#7f7f7f"' not in TEMPLATE_TEXT
+    assert "powderblue" not in TEMPLATE_TEXT
+    assert "background: green" not in TEMPLATE_TEXT
+    assert 'src="logo.png"' in TEMPLATE_TEXT
+
+
+@pytest.mark.parametrize(
+    ("text", "background"),
+    [
+        ("#ffffff", "#000000"),  # loading status on the page
+        ("#ffffff", "#10161e"),
+        ("#fbbc20", "#10161e"),  # CLICK TO PLAY on its plate
+        ("#a8e063", "#10161e"),  # progress bar on its track
+        ("#a8e063", "#000000"),
+    ],
+)
+def test_template_color_pairs_have_7_to_1_contrast(text, background):
+    assert text in TEMPLATE_TEXT and background in TEMPLATE_TEXT
+    assert _contrast(text, background) >= 7
+
+
+def test_build_copies_the_logo_next_to_index_html(build_web, monkeypatch, tmp_path):
+    stage_dir = tmp_path / "stage"
+    index = stage_dir / "build" / "web" / "index.html"
+    index.parent.mkdir(parents=True)
+    index.write_text("<html>")
+    out = tmp_path / "out"
+    monkeypatch.setattr(build_web, "stage", lambda: stage_dir)
+    monkeypatch.setattr(build_web, "run_pygbag", lambda stage: None)
+    monkeypatch.setattr(build_web, "OUT_DIR", out)
+    assert build_web.build() == out
+    assert (out / "logo.png").read_bytes() == build_web.LOGO.read_bytes()
+    assert (out / "index.html").is_file()

@@ -11,7 +11,9 @@ The staged folder (build/web-stage/chokepoint/) holds only what the web build ne
 
 pygbag is pinned and run through `uvx`; it downloads the browser runtime, so
 the build needs internet. The result is build/web/ with index.html at its root,
-ready to zip or to push to itch.io's html5 channel.
+ready to zip or to push to itch.io's html5 channel. The loading and "click to
+play" page is our own template (web/template.tmpl) instead of pygbag's stock one;
+the logo it shows is copied next to index.html.
 """
 
 import argparse
@@ -35,6 +37,10 @@ PYGBAG_VERSION = "0.9.3"
 PYGBAG_HOST_PYTHON = "3.12"
 
 ENTRY_POINT = ROOT / "web" / "main.py"
+# The loading / "click to play" page (pygbag's stock one is unreadable).
+TEMPLATE = ROOT / "web" / "template.tmpl"
+# The logo the template shows, copied to build/web/logo.png.
+LOGO = ROOT / "assets" / "images" / "branding" / "logo.png"
 # Copied whole into the stage.
 COPIED_DIRS = ("config", "assets")
 # Paths (relative to the folder named in the comment) the web build never reads.
@@ -111,7 +117,7 @@ def stage(dest: Path = STAGE_DIR, root: Path = ROOT) -> Path:
     return dest
 
 
-def run_pygbag(stage_dir: Path) -> None:
+def run_pygbag(stage_dir: Path, template: Path = TEMPLATE) -> None:
     """Run pygbag on the stage, once more if the first try fails (flaky network)."""
     uvx = shutil.which("uvx")
     if uvx is None:
@@ -123,6 +129,8 @@ def run_pygbag(stage_dir: Path) -> None:
         f"pygbag=={PYGBAG_VERSION}",
         "--can_close",
         "1",
+        "--template",
+        str(template),
         "--build",
         str(stage_dir),
     ]
@@ -150,6 +158,7 @@ def build() -> Path:
     if OUT_DIR.exists():
         shutil.rmtree(OUT_DIR)
     shutil.copytree(stage_dir / "build" / "web", OUT_DIR)
+    shutil.copy2(LOGO, OUT_DIR / "logo.png")
     return OUT_DIR
 
 
