@@ -14,9 +14,13 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ## [Unreleased]
 
+## [1.1.0] – 2026-11-13
+
+The browser version: Chokepoint now runs in a desktop browser (published to itch.io's HTML5 channel), plus a money counter that follows each coin and a Turkish wording fix.
+
 ### Added
 
-- Web build support in the game (the browser version for itch.io; the build script and release job follow): no splash, Exit opens a "Thanks for playing" screen with a link to the itch.io page (Turkish text pending the owner's OK), DISPLAY has one Fullscreen toggle (F11 too) instead of the window rows, and translucent blits use pygamine's `ALPHA_BLIT` ([#187](https://github.com/vectorviolet/chokepoint/pull/187), [devlog](docs/devlog/2026-11-12-web-build.md)). Part of #152.
+- Web build support in the game (the browser version for itch.io): no splash, Exit opens a "Thanks for playing" screen with a link to the itch.io page (Turkish text pending the owner's OK), DISPLAY has one Fullscreen toggle (F11 too) instead of the window rows, and translucent blits use pygamine's `ALPHA_BLIT` ([#187](https://github.com/vectorviolet/chokepoint/pull/187), [devlog](docs/devlog/2026-11-12-web-build.md)). Part of #152.
 
 ### Changed
 
