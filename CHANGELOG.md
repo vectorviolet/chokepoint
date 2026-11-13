@@ -21,6 +21,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 ### Changed
 
 - Bump pygamine to v1.0.0 (the first stable release): the panel loader now links `parent:` children so `active` follows the hierarchy, so the game's own `link_hierarchy` workaround for the settings tabs is gone; the Tiled loader module is now `pygamine.assets.tiledmap`. No gameplay change.
+- The money counter follows the kill coins: the number grows as each coin lands (the balance is still paid on the kill), drops at once when you spend, and snaps to the balance when the pause menu or a popup opens, on load and with Reduce flashing. `hud.money_style` in `config/settings.yaml` can switch it to a rolling odometer ([#191](https://github.com/vectorviolet/chokepoint/pull/191), [devlog](docs/devlog/2026-11-12-money-hud-on-arrival.md)).
 
 ### Development
 

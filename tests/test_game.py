@@ -344,7 +344,7 @@ def make_updating_game():
     game.tower_controller = SimpleNamespace(update_cursor=Spy())
     game.hud_slide = SimpleNamespace(update=Spy(), shown=True, is_sliding=False)
     game.hud = SimpleNamespace(update=Spy())
-    game.kill_feedback = SimpleNamespace(update=Spy())
+    game.kill_feedback = SimpleNamespace(update=Spy(), pending_money=0)
     game.place_sell_feedback = SimpleNamespace(update=Spy())
     game.bomb_impacts = SimpleNamespace(update=Spy())
     game.hit_feedback = SimpleNamespace(update=Spy())

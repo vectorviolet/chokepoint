@@ -29,10 +29,29 @@ def load_settings() -> dict:
         return yaml.safe_load(f)
 
 
+# Used when settings.yaml has no `hud` section (or a key of it).
+HUD_DEFAULTS = {"money_style": "count_up", "money_roll_ms": 200}
+
+
 def gameplay_settings(settings: dict | None = None) -> dict:
     """The `gameplay` section of settings.yaml (starting money and lives,
     the default toggles), read from `settings` or loaded when not given."""
     return (load_settings() if settings is None else settings)["gameplay"]
+
+
+def hud_settings(settings: dict | None = None) -> dict:
+    """The `hud` section of settings.yaml (`money_style`: how the money number
+    follows the kill coins; `money_roll_ms`: the odometer's roll, in ms). A missing
+    section or key takes its default; the roll must be a positive whole number
+    (both styles check it, so a bad value fails at startup)."""
+    loaded = load_settings() if settings is None else settings
+    hud = {**HUD_DEFAULTS, **(loaded.get("hud") or {})}
+    roll = hud["money_roll_ms"]
+    if type(roll) is not int or roll < 1:
+        raise ValueError(
+            f"hud.money_roll_ms must be a whole number of at least 1, got {roll!r}"
+        )
+    return hud
 
 
 def itch_page_url(settings: dict | None = None) -> str:

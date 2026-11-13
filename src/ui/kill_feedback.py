@@ -10,7 +10,11 @@ Two clocks, on purpose:
   HUD slide: a flight always takes the same ~0.5 s, and a pause straight
   after a kill doesn't leave coins hanging over the UI.
 
-The money itself is paid on the kill, as before; all of this is visual.
+The money itself is paid on the kill, as before; all of this is visual. Only the
+HUD's number lags: each coin carries a share of its kill's reward (`value`), and
+`pending_money` -- the shares still in flight -- is what the HUD holds back from
+the number it shows (GameHUD). It's derived from the live coins, so it can't
+drift from them: a coin that lands, `clear()` and `settle()` all just remove it.
 Effects are capped (MAX_EFFECTS) so mass kills at x4 stay cheap: when the
 cap is reached, new kills show fewer coins, then no effect at all.
 """
@@ -57,6 +61,7 @@ class _Text:
 class _Coin:
     start: Vector2  # screen
     delay_ms: float
+    value: int = 0  # the share of the kill's reward the HUD shows once it lands
     elapsed_ms: float = 0.0
 
 
@@ -71,6 +76,20 @@ class KillFeedback:
         self.texts: list[_Text] = []
         self.coins: list[_Coin] = []
         self._pop_ms = float(POP_MS)  # no pop running
+        # With Reduce flashing on there is no animation: coins carry no value (the
+        # HUD number follows the real balance) and the counter doesn't pop.
+        self.reduce_flashing = False
+
+    @property
+    def pending_money(self) -> int:
+        """The reward shares of the coins still in flight."""
+        return sum(coin.value for coin in self.coins)
+
+    def settle(self) -> None:
+        """The HUD shows the real balance at once (pause, popups): the coins in
+        flight stay as pictures, but their shares are already counted."""
+        for coin in self.coins:
+            coin.value = 0
 
     @property
     def live_effects(self) -> int:
@@ -89,12 +108,24 @@ class KillFeedback:
             _Text(Vector2(world_pos), amount, self._render_label(amount), now_ms)
         )
         room = MAX_EFFECTS - self.live_effects
-        for i in range(min(room, self._rng.randint(*COINS_PER_KILL))):
+        count = min(room, self._rng.randint(*COINS_PER_KILL))
+        shares = self._split(amount, count)
+        for i in range(count):
             jitter = Vector2(
                 self._rng.uniform(-COIN_SCATTER, COIN_SCATTER),
                 self._rng.uniform(-COIN_SCATTER, COIN_SCATTER),
             )
-            self.coins.append(_Coin(Vector2(screen_pos) + jitter, i * COIN_STAGGER_MS))
+            self.coins.append(
+                _Coin(Vector2(screen_pos) + jitter, i * COIN_STAGGER_MS, shares[i])
+            )
+
+    def _split(self, amount: int, count: int) -> list[int]:
+        """The reward shared out over `count` coins (as even as whole coins allow, the first coins get the extra).
+        With no coins (the cap) or Reduce flashing on, nothing is held back."""
+        if count == 0 or self.reduce_flashing:
+            return [0] * count
+        base, extra = divmod(amount, count)
+        return [base + (1 if i < extra else 0) for i in range(count)]
 
     def update(self, frame_ms: float, now_ms: float) -> None:
         """frame_ms: real time since the last frame. now_ms: game time."""
@@ -140,7 +171,7 @@ class KillFeedback:
 
     def draw_pop(self, surface: pygame.Surface, counter: pygame.Rect) -> None:
         """Scales the drawn money counter up and back as coins land."""
-        if self._pop_ms >= POP_MS:
+        if self._pop_ms >= POP_MS or self.reduce_flashing:
             return
         counter = counter.clip(surface.get_rect())
         if not counter.w or not counter.h:

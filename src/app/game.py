@@ -32,6 +32,7 @@ from pygamine import (
 from util.config_loader import (
     LANG_DIR,
     gameplay_settings,
+    hud_settings,
     load_settings,
     load_tower_config,
 )
@@ -241,7 +242,14 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if not saved_settings.get("music_on", True):
             self.audio.pause_music()  # muted last session; kept by show_splash()
 
-        self.hud = GameHUD(self.game_state, self.tower_config, self.panel_manager)
+        hud = hud_settings(self.settings)
+        self.hud = GameHUD(
+            self.game_state,
+            self.tower_config,
+            self.panel_manager,
+            money_style=hud["money_style"],
+            roll_ms=hud["money_roll_ms"],
+        )
         self.place_sell_feedback = PlaceSellFeedback(
             [self.assets.get_image(f"black_smoke_{i}") for i in range(13)],
             self.assets.get_image("coin_sheet"),
@@ -311,6 +319,8 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
             self.assets.font_path("fira_sans_bold"),
             rng=rng(),
         )
+        self.hud.pending_money = lambda: self.kill_feedback.pending_money
+        self.set_reduce_flashing(self.toggles["reduce_flashing"])
         self.life_lost_feedback = LifeLostFeedback(
             self.assets.sound_path("life_lost"), self.audio.effective_sfx_volume
         )
@@ -642,6 +652,20 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self.tower_controller.tower_positions = positions
 
     @override
+    def set_reduce_flashing(self, on: bool) -> None:
+        super().set_reduce_flashing(on)
+        self.kill_feedback.reduce_flashing = on
+        self.hud.reduce_flashing = on
+        if on:  # no animation: the number is the real balance from now on
+            self._snap_money()
+
+    def _snap_money(self) -> None:
+        """The HUD number is the real balance at once: the coins in flight stop
+        holding any of it back."""
+        self.kill_feedback.settle()
+        self.hud.snap_money()
+
+    @override
     def _on_enemy_killed(self, enemy) -> None:
         self.kill_feedback.add_kill(
             enemy.position,
@@ -804,8 +828,13 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         if not self.pause_panel.is_open and self._window_focused:
             self.camera.update_with_mouse(self.mouse.position, frame_ms / TICK_MS)
         self.hud_slide.update(frame_ms)
-        self.hud.update(frame_ms)
         self.kill_feedback.update(frame_ms, self.game_state.time_ms)
+        # The number shows the whole balance while the pause menu or a popup (victory,
+        # game over) is open. The wave pause and the start/pause button don't snap: the
+        # coins keep flying on real time then, so the last kill of a wave still animates.
+        if self.kill_feedback.pending_money and self._any_popup_open():
+            self._snap_money()
+        self.hud.update(frame_ms)
         self.place_sell_feedback.update(frame_ms)
         self.bomb_impacts.update(frame_ms)
         self.hit_feedback.update(frame_ms)
@@ -964,7 +993,9 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         canvas = self.window
         panel = self.panel_manager["game"]
         self.kill_feedback.draw_coins(canvas, panel["coin_image"].rect.center)
-        counter = panel["coin_text"].rect.move(self.hud_slide.offset("money"))
+        offset = self.hud_slide.offset("money")
+        self.hud.draw_money_odometer(canvas, offset)
+        counter = panel["coin_text"].rect.move(offset)
         self.kill_feedback.draw_pop(canvas, counter)
 
     def _selected_tower(self) -> BaseTower | None:

@@ -52,6 +52,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-11-07 | [Map obstacles and blocked build tiles](2026-11-07-map-obstacles.md) | Gameplay, rendering | #166, PR #167 |
 | 2026-11-09 | [Store media: new screenshots, preview GIF and cover candidates](2026-11-09-store-media.md) | Docs, tooling | #13 |
 | 2026-11-09 | [Wave balance: smoother waves 4 to 6, more pressure in 11 to 25](2026-11-09-wave-balance.md) | Gameplay, balance | #10, PR #170 |
+| 2026-11-12 | [The money HUD follows each coin as it lands](2026-11-12-money-hud-on-arrival.md) | Feel, feedback | #189, PR #191 |
 | 2026-11-12 | [Web build: the game's side of it](2026-11-12-web-build.md) | Platform, UI | #152, #186, PR #187 |
 <!-- index:end -->
 
