@@ -101,11 +101,13 @@ The game also runs in a desktop browser (`sys.platform == "emscripten"`, package
 it runs `Game().run_async()`; `web/template.tmpl` is the loading and "click to play" page, pygbag's default template restyled, passed with `--template`, and the logo it shows is copied next to `index.html`). `scripts/build_web.py` stages that folder (the one list of what goes
 in is in the script; tested in `tests/test_build_web.py`) and runs the pinned pygbag into
 `build/web/` (staging in `build/web-stage/`, not PyInstaller's `build/chokepoint`); `--stage-only`
-skips pygbag (CI runs it on every PR). The release workflow's `web` job zips `build/web`, and
-`publish-web` attaches it to the release and pushes it to the itch.io `html5` channel; the owner's
+skips pygbag (CI runs it on every PR). The release workflow's `web` job zips `build/web` after checking
+it against itch.io's HTML5 limits (file count, sizes, name length), `publish-web` pushes it to the itch.io
+`html5` channel and `attach-web` adds it to the GitHub Release; the owner's
 one-time itch.io setup is in CONTRIBUTING.md. A new file the browser needs at runtime must be in a staged
 folder, a desktop-only one goes in the script's exclude lists. A web failure never blocks the
-desktop release: no desktop job needs `web`.
+desktop release (no desktop job needs `web`), and a desktop failure never blocks the web push
+(`publish-web` needs only `web`).
 
 Everything browser-specific goes through `src/util/web.py` (`is_web()`, which reads
 `sys.platform` at call time, `open_in_new_tab()`, `is_fullscreen()`, `toggle_fullscreen()`); don't

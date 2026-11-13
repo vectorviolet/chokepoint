@@ -118,8 +118,11 @@ The tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml
 on each OS, zips each bundle, attaches all three to a GitHub Release, and pushes each build to its
 [itch.io](https://umutcanekinci.itch.io/chokepoint) channel (`windows`, `linux`, `osx`) via
 [Butler](https://itch.io/docs/butler/). The browser version has its own jobs (`web` builds it,
-`publish-web` adds it to the release and pushes the `html5` channel once the desktop release
-exists), so a failed pygbag build cannot block the desktop release. Use **Run workflow** to build
+`publish-web` pushes the `html5` channel and `attach-web` adds the zip to the release, after the desktop
+release job has finished, whether it passed or not), so a failed pygbag build cannot block the desktop
+release and a failed desktop build cannot block the web push. The `web` job also checks the bundle against
+[itch.io's HTML5 limits](https://itch.io/docs/creators/html5) (1,000 files, 200 MB per file, 500 MB in
+total, 240 characters per file name) before anything is published. Use **Run workflow** to build
 without publishing.
 
 ### The browser version (itch.io `html5` channel)

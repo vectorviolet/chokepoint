@@ -236,6 +236,20 @@ def test_template_replaces_the_stock_unreadable_look():
     assert 'src="logo.png"' in TEMPLATE_TEXT
 
 
+def test_template_removes_the_loading_page_before_the_game_starts():
+    """The logo must not take layout space above the canvas once the game runs."""
+    start = TEMPLATE_TEXT.index("await shell.source(main")
+    before_start = TEMPLATE_TEXT[:start]
+    # After the click prompt (the wait on MM.UME), the loading page is hidden.
+    after_click = before_start[
+        before_start.rindex("while not platform.window.MM.UME") :
+    ]
+    for element in ("logo", "transfer", "infobox"):
+        assert f'platform.window.{element}.style.display = "none"' in after_click, (
+            element
+        )
+
+
 @pytest.mark.parametrize(
     ("text", "background"),
     [
