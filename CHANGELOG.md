@@ -24,6 +24,8 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ### Development
 
+- Web build tooling: `scripts/build_web.py` stages the bundle and builds it with a pinned pygbag, the release workflow builds it as `chokepoint-web.zip`, checks it against itch.io's HTML5 limits, and pushes it to the itch.io `html5` channel and attaches it to the release without waiting for the desktop jobs to succeed, CI checks that the bundle stages, and the README and release steps explain the browser version. Part of #152.
+- Web build: a readable loading and "click to play" page (black, the logo, a large white status, a green progress bar and a pulsing yellow "CLICK TO PLAY"; all of it is hidden once the game starts, so the canvas fills the page) replaces pygbag's stock gray-on-gray one ([devlog](docs/devlog/2026-11-12-web-build.md)).
 - Docs: a `SECURITY.md` (private vulnerability reporting), the itch.io tags and a field-by-field list for the store edit page in `docs/store/README.md` ([#181](https://github.com/vectorviolet/chokepoint/pull/181)).
 - Docs: the itch.io theme settings and their contrast check in `docs/store/README.md`.
 - Docs: the store checklist matches the live itch.io page (genre, tags, AI disclosure without graphics).

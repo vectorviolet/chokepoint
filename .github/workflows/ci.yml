@@ -205,3 +205,25 @@ jobs:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
         run: uv run python scripts/smoke_test.py
+
+  web-stage:
+    # Cheap guard for the browser build (#152): stage the bundle exactly as the
+    # release job does, but without pygbag (it needs internet and is slow), so
+    # a missing entry point or a broken staging step fails the PR, not the
+    # release. Runs in a few seconds, so there is no path filter.
+    name: Web bundle stages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with pygamine submodule)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up uv + Python
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Stage the web bundle (no pygbag)
+        run: uv run python scripts/build_web.py --stage-only

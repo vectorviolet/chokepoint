@@ -115,9 +115,36 @@ CI passes and the owner merges it through the merge queue, the owner creates and
 matching `vx.y.z` tag on that merged commit. Protected release tags cannot be moved or deleted.
 
 The tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
-on each OS, zips the bundle, attaches all three to a GitHub Release, and pushes each build to
-its [itch.io](https://umutcanekinci.itch.io/chokepoint) channel via
-[Butler](https://itch.io/docs/butler/). Use **Run workflow** to build without publishing.
+on each OS, zips each bundle, attaches all three to a GitHub Release, and pushes each build to its
+[itch.io](https://umutcanekinci.itch.io/chokepoint) channel (`windows`, `linux`, `osx`) via
+[Butler](https://itch.io/docs/butler/). The browser version has its own jobs (`web` builds it,
+`publish-web` pushes the `html5` channel and `attach-web` adds the zip to the release, after the desktop
+release job has finished, whether it passed or not), so a failed pygbag build cannot block the desktop
+release and a failed desktop build cannot block the web push. The `web` job also checks the bundle against
+[itch.io's HTML5 limits](https://itch.io/docs/creators/html5) (1,000 files, 200 MB per file, 500 MB in
+total, 240 characters per file name) before anything is published. Use **Run workflow** to build
+without publishing.
+
+### The browser version (itch.io `html5` channel)
+
+`scripts/build_web.py` stages a clean bundle (`web/main.py` as `main.py`, `src/`, `config/`,
+`assets/`, vendored PyYAML; no tests, saves or `.git`) and runs the pinned
+[pygbag](https://github.com/pygame-web/pygbag) on it. It writes `build/web/` with `index.html` at its
+root (the stage is `build/web-stage/chokepoint/`), using our own loading and "click to play" page, `web/template.tmpl`, and copying the logo it shows next to it. pygbag downloads the browser runtime, so the build needs internet (the script retries once).
+Locally: `uv run python scripts/build_web.py`, then serve `build/web/` with any web server
+(`python -m http.server`) and open it in a desktop browser. `--stage-only` skips pygbag; CI runs
+that on every PR.
+
+After the **first** release that pushes an `html5` build, the owner sets it up once on the itch.io
+edit page (the tag run can't do this):
+
+1. Uploads: the `html5` file appears; tick **This file will be played in the browser**.
+2. Under "Embed options" pick the viewport size (for example 1280 x 720) and a **Fullscreen
+   button**; leave mobile friendly off (the game needs a keyboard and mouse).
+3. Save, and open the page's Run game button to play-test it.
+
+Today the canvas fills the browser window (or the embed frame) and the UI scales with it, so a
+different embed size changes the layout rather than letterboxing it.
 
 ## Contributing
 

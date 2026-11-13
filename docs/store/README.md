@@ -59,6 +59,7 @@ otherwise.
 | Classification / kind / release status | Games / Downloadable / Released |
 | Pricing | the owner's choice (Highrise uses $0 or donate, suggested $2.00) |
 | Uploads | `chokepoint-windows.zip`, `chokepoint-linux.zip`, `chokepoint-osx.zip`. The release workflow's butler jobs push the unpacked builds to the `windows`, `linux` and `osx` channels and itch.io names the files after the channels (the GitHub release zips are `chokepoint-windows.zip`, `chokepoint-linux.zip` and `chokepoint-macos.zip`). Tick the matching platform on each file's "Executable for" boxes (Windows, Linux, macOS) |
+| Browser version | The release workflow pushes the pygbag build to the `html5` channel. After the first upload tick **This file will be played in the browser** on that file, pick the embed size (for example 1280 x 720) and a Fullscreen button; mobile friendly stays off. The canvas fills the frame and the UI scales with it. See "The browser version" in `CONTRIBUTING.md` |
 | Description | paste `docs/store/description.html` in HTML mode |
 | Genre | Strategy, Survival (as on the live page) |
 | Tags (max 10; not the genre or platforms; the live page has these 7) | 2D, Endless, Military, Open Source, Singleplayer, Top-Down, Tower Defense |

@@ -20,6 +20,8 @@ Chokepoint is a 2D tower defense game: defend a winding path through 25 rounds o
 
 [![Available on itch.io](https://static.itch.io/images/badge.svg)](https://umutcanekinci.itch.io/chokepoint)
 
+**Play in your browser:** starting with the next release, the [itch.io page](https://umutcanekinci.itch.io/chokepoint) also has a web version for desktop browsers (not phones or tablets).
+
 Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch.io/chokepoint) or the [latest GitHub release](https://github.com/vectorviolet/chokepoint/releases/latest) — no Python required. Unzip and run:
 
 | OS | Run |
@@ -104,7 +106,7 @@ enemy HP and rewards, each wave's contents) is on the wiki:
 - **Balance:** a headless simulator plays whole runs with scripted strategy bots and writes per-wave reports ([`scripts/balance_sim.py`](scripts/balance_sim.py), [ADR 0007](docs/decisions/0007-headless-balance-simulator.md)).
 - **Quality:** a large pytest suite with coverage, plus mypy, ruff and codespell, run in [CI](.github/workflows/ci.yml); `main` is protected and changes land through pull requests.
 - **Docs from config:** the stats reference and the wiki's stats pages are generated from the YAML config, and CI fails when they are stale ([`scripts/gen_stats.py`](scripts/gen_stats.py)).
-- **Release pipeline:** a version tag builds Windows, macOS and Linux bundles and publishes them to GitHub Releases and itch.io ([`release.yml`](.github/workflows/release.yml)).
+- **Release pipeline:** a version tag builds Windows, macOS, Linux and browser (pygbag) bundles and publishes them to GitHub Releases and itch.io ([`release.yml`](.github/workflows/release.yml)).
 - **History:** every feature and design decision has a [devlog](docs/devlog/README.md) entry, and architecture choices an [ADR](docs/decisions/README.md).
 
 ## Running from source
