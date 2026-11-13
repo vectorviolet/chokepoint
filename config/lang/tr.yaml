@@ -11,14 +11,14 @@ common:
 
 menu:
   play: "OYNA"
-  credits: "KREDİLER"
+  credits: "YAPIMCILAR"
   settings: "AYARLAR"
   exit: "ÇIKIŞ"
   new_game: "YENİ OYUN"
   continue: "DEVAM ET"
 
 credits:
-  title: "KREDİLER"
+  title: "YAPIMCILAR"
   developer: "Geliştirici"
   art: "Sanat"
   ui: "Arayüz"
