@@ -21,13 +21,13 @@ Installer tools: Inno Setup, or the Windows Installer (MSI) route with WiX.
   no migration of old saves.
 - **Installer: Inno Setup**, one script (`packaging/chokepoint.iss`). It asks for the language
   (English or Turkish, the game's languages; the choice does not set the game's language), shows
-  the folder page (default `Program Files\chokepoint`, per-user if the player has no admin rights),
+  the folder page (default `Program Files\chokepoint` for all users, which asks for admin rights; the privileges dialog also offers "only for me", which installs per-user),
   adds a Start Menu shortcut and an optional desktop one, and installs the PyInstaller onedir
   output. The uninstaller removes only the install folder; saves live in `%APPDATA%` and stay.
   It uses only Inno's built-in texts, so there are no custom strings to translate. A test keeps the
   installer's language list equal to `config/lang/`.
 - **Release:** the Windows build job compiles the installer after PyInstaller and uploads it as
-  `chokepoint-windows-setup.exe` next to the zips; itch.io keeps getting the zips.
+  `chokepoint-windows-setup.exe` next to the zips; itch.io keeps getting the zips. It is its own CI job, so a failed installer build never blocks the zips, the release or itch.io. An update deletes the old `_internal` folder first, so no stale files stay.
 - Unsigned, like the zips: the README explains SmartScreen's "More info, Run anyway".
 
 ## Rejected alternatives

@@ -5,6 +5,8 @@ cwd == repo root for its own "config/..."-relative paths).
 """
 
 import os
+import platform
+import sys
 
 # Dummy SDL drivers so pygame can run headless (e.g. in CI) without opening a
 # real window or probing for a sound device. Must be set before pygame is
@@ -122,3 +124,55 @@ def fake_ticks(monkeypatch):
     state = {"t": 0}
     monkeypatch.setattr(pygame.time, "get_ticks", lambda: state["t"])
     return state
+
+
+# -- the browser (web build tests): a fake page with a localStorage --
+
+
+class FakeStorage:
+    def __init__(self):
+        self.items: dict[str, str] = {}
+
+    def getItem(self, key):  # noqa: N802
+        return self.items.get(key)
+
+    def setItem(self, key, value):  # noqa: N802
+        self.items[key] = value
+
+    def removeItem(self, key):  # noqa: N802
+        self.items.pop(key, None)
+
+
+class FakeDocument:
+    def __init__(self):
+        self.fullscreenElement = None
+        self.enter_calls = 0
+        self.exit_calls = 0
+        self.documentElement = self
+
+    def requestFullscreen(self):  # noqa: N802
+        self.enter_calls += 1
+        self.fullscreenElement = object()
+
+    def exitFullscreen(self):  # noqa: N802
+        self.exit_calls += 1
+        self.fullscreenElement = None
+
+
+class FakeWindow:
+    def __init__(self, local_storage=None):
+        self.localStorage = local_storage if local_storage else FakeStorage()
+        self.document = FakeDocument()
+        self.opened: list[tuple[str, str]] = []
+
+    def open(self, url, target):
+        self.opened.append((url, target))
+
+
+@pytest.fixture
+def browser(monkeypatch):
+    """The page, with the process pretending to run in it."""
+    window = FakeWindow()
+    monkeypatch.setattr(platform, "window", window, raising=False)
+    monkeypatch.setattr(sys, "platform", "emscripten")
+    return window

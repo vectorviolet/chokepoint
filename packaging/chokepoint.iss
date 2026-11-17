@@ -19,9 +19,10 @@ AppId={{0DB2AD89-F163-47C3-BB59-9EC1EBCF48DE}
 AppName={#MyAppName}
 AppVersion={#AppVersion}
 AppPublisher=VectorViolet
-; Per-machine (Program Files) for an admin, per-user for everyone else: the setup asks.
-; {autopf} maps to the user's Programs folder in per-user mode.
-PrivilegesRequired=lowest
+; Installs for all users into Program Files by default (the setup asks for admin rights); its
+; dialog also offers "only for me", which installs per-user ({autopf} then maps to the user's
+; Programs folder).
+PrivilegesRequired=admin
 PrivilegesRequiredOverridesAllowed=dialog
 DefaultDirName={autopf}\chokepoint
 ; Always show the folder page, so players can pick e.g. C:\Games.
@@ -48,6 +49,12 @@ Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[InstallDelete]
+; An update must not leave files the new build no longer ships (the game finds languages and
+; animation frames by globbing, and old DLLs would sit beside the new ones). Nothing of the
+; player's is in here: saves are in %APPDATA%.
+Type: filesandordirs; Name: "{app}\_internal"
 
 [Files]
 ; The whole PyInstaller onedir output, including _internal.

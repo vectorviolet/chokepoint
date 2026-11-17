@@ -20,7 +20,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ### Changed
 
-- The downloaded game keeps its settings and saved run in your user-data folder (`%APPDATA%\VectorViolet\chokepoint\saves` on Windows, and the macOS and Linux equivalents) instead of next to the game, so an uninstall or update keeps them. Old saves next to the game are not moved over. Running from source and the browser version are unchanged ([#197](https://github.com/vectorviolet/chokepoint/pull/197), [ADR 0011](docs/decisions/0011-saves-in-the-user-data-folder.md)).
+- The downloaded game keeps its settings and saved run in your user-data folder (`%APPDATA%\VectorViolet\chokepoint\saves` on Windows, and the macOS and Linux equivalents) instead of inside the game folder, so an uninstall or update keeps them. Old saves (in `_internal\saves` of the old game folder) are not moved over. Running from source and the browser version are unchanged ([#197](https://github.com/vectorviolet/chokepoint/pull/197), [ADR 0011](docs/decisions/0011-saves-in-the-user-data-folder.md)).
 
 ### Development
 

@@ -1,7 +1,6 @@
 """Where saves live: the user-data folder in the packaged build, the cwd-relative `saves/`
 from source and in the browser (ADR 0011)."""
 
-import platform
 import sys
 
 import pygame
@@ -10,8 +9,6 @@ import pytest
 from app.game import Game
 from pygamine import SaveStore, user_data_dir
 from util.paths import packaged_saves_dir
-
-from test_web import FakeWindow
 
 
 def test_from_source_there_is_no_packaged_folder(monkeypatch):
@@ -53,15 +50,12 @@ def test_source_game_keeps_the_default_folder(monkeypatch, tmp_path, quiet_game)
     assert game.save_store.directory == tmp_path / "saves"
 
 
-def test_web_keeps_its_local_storage_keys(monkeypatch, quiet_game):
+def test_web_keeps_its_local_storage_keys(monkeypatch, quiet_game, browser):
     """Browser saves must not move: the key is `pygamine:saves/<name>.json`."""
-    window = FakeWindow()
-    monkeypatch.setattr(platform, "window", window, raising=False)
-    monkeypatch.setattr(sys, "platform", "emscripten")
     monkeypatch.delattr(sys, "frozen", raising=False)
     monkeypatch.setattr(
         SaveStore.__init__, "__defaults__", ("saves",)
     )  # undo saves_in_tmp
     game = Game()
     game._save_settings()
-    assert "pygamine:saves/settings.json" in window.localStorage.items
+    assert "pygamine:saves/settings.json" in browser.localStorage.items

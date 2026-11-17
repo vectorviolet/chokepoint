@@ -37,6 +37,9 @@ folder loses them. Other things rely on that cwd-relative default today: every w
 
 ## Consequences
 
-An uninstall or update never touches saves; they also stay after the uninstall (the installer says
-so in its script). Anyone who played a zip build loses nothing they can't recreate by hand: the old
-files are still next to the game and can be copied into the new folder.
+An uninstall or update never touches saves, and they stay after an uninstall. Before this change
+the packaged game wrote its saves into its own bundle folder (the game chdirs into
+`sys._MEIPASS`, which for PyInstaller 6 is `chokepoint\_internal` on Windows and inside the app
+bundle on macOS), so old saves are in `_internal\saves`. They are not moved; a player can copy
+`save.json` and `settings.json` into the new folder by hand. The installer deletes `_internal` on
+an update, so installing over an old unzipped folder drops them.

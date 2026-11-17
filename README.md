@@ -39,7 +39,7 @@ Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch
 
 </details>
 
-**Where your saves are.** The downloaded game keeps its settings and saved run in your user-data folder, so they survive an uninstall or an update: `%APPDATA%\VectorViolet\chokepoint\saves` on Windows, `~/Library/Application Support/VectorViolet/chokepoint/saves` on macOS, `~/.local/share/VectorViolet/chokepoint/saves` on Linux (`$XDG_DATA_HOME` if set). In the browser they are in the browser's local storage. Running from source keeps them in a `saves/` folder in the project. Saves from older downloads (next to the game) are not moved over.
+**Where your saves are.** The downloaded game keeps its settings and saved run in your user-data folder, so they survive an uninstall or an update: `%APPDATA%\VectorViolet\chokepoint\saves` on Windows, `~/Library/Application Support/VectorViolet/chokepoint/saves` on macOS, `~/.local/share/VectorViolet/chokepoint/saves` on Linux (`$XDG_DATA_HOME` if set). In the browser they are in the browser's local storage. Running from source keeps them in a `saves/` folder in the project. Saves from older downloads are not moved over: they are in the `saves` folder inside the old game folder (`chokepoint\_internal\saves` in the Windows zip, inside the app bundle on macOS, `chokepoint/_internal/saves` on Linux); copy `save.json` and `settings.json` into the new folder by hand if you want them. Installing over an old unzipped folder removes them.
 
 ## Features
 
