@@ -20,4 +20,22 @@ need to change.
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 from pygamine import resource_root as resource_root, resource_path as resource_path
+from pygamine import user_data_dir
+
+
+def packaged_saves_dir() -> Path | None:
+    """Where saves and settings live in the packaged (PyInstaller) build.
+
+    The per-user folder, ``user_data_dir("chokepoint") / "saves"`` (under
+    ``%APPDATA%`` on Windows), so an installer or an update never touches them.
+    ``None`` from source and in the browser build: there ``SaveStore`` keeps its cwd-relative
+    ``saves/`` default (ADR 0011), which keeps each worktree's saves apart and the web
+    ``localStorage`` key unchanged.
+    """
+    if not getattr(sys, "frozen", False):
+        return None
+    return user_data_dir("chokepoint") / "saves"
