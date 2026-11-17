@@ -54,7 +54,7 @@ PR. "Owner" is the project owner; "Claude" is the Claude Code session that imple
 | 2026-11-09 | [Wave balance: smoother waves 4 to 6, more pressure in 11 to 25](2026-11-09-wave-balance.md) | Gameplay, balance | #10, PR #170 |
 | 2026-11-12 | [The money HUD follows each coin as it lands](2026-11-12-money-hud-on-arrival.md) | Feel, feedback | #189, PR #191 |
 | 2026-11-12 | [Web build: the game's side of it](2026-11-12-web-build.md) | Platform, UI | #152, #186, PR #187 |
-| 2026-11-17 | [Saves in the user-data folder and a Windows installer](2026-11-17-user-data-and-installer.md) | Platform, release | #176 |
+| 2026-11-17 | [Saves in the user-data folder and a Windows installer](2026-11-17-user-data-and-installer.md) | Platform, release | #176, PR #197 |
 <!-- index:end -->
 
 ## Adding an entry

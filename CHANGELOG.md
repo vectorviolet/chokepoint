@@ -16,11 +16,11 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ### Added
 
-- A Windows installer, `chokepoint-windows-setup.exe` (English or Turkish setup, you pick the folder; Start Menu shortcut, optional desktop shortcut), next to the zips on the GitHub Release ([#176](https://github.com/vectorviolet/chokepoint/issues/176), [devlog](docs/devlog/2026-11-17-user-data-and-installer.md)).
+- A Windows installer, `chokepoint-windows-setup.exe` (English or Turkish setup, you pick the folder; Start Menu shortcut, optional desktop shortcut), next to the zips on the GitHub Release ([#197](https://github.com/vectorviolet/chokepoint/pull/197), [devlog](docs/devlog/2026-11-17-user-data-and-installer.md)).
 
 ### Changed
 
-- The downloaded game keeps its settings and saved run in your user-data folder (`%APPDATA%\VectorViolet\chokepoint\saves` on Windows, and the macOS and Linux equivalents) instead of next to the game, so an uninstall or update keeps them. Old saves next to the game are not moved over. Running from source and the browser version are unchanged ([#176](https://github.com/vectorviolet/chokepoint/issues/176), [ADR 0011](docs/decisions/0011-saves-in-the-user-data-folder.md)).
+- The downloaded game keeps its settings and saved run in your user-data folder (`%APPDATA%\VectorViolet\chokepoint\saves` on Windows, and the macOS and Linux equivalents) instead of next to the game, so an uninstall or update keeps them. Old saves next to the game are not moved over. Running from source and the browser version are unchanged ([#197](https://github.com/vectorviolet/chokepoint/pull/197), [ADR 0011](docs/decisions/0011-saves-in-the-user-data-folder.md)).
 
 ### Development
 

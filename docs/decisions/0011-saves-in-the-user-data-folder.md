@@ -1,5 +1,5 @@
 # 0011. Saves in the user-data folder (packaged build only)
-<!-- index | refs: #176 -->
+<!-- index | refs: #176, PR #197 -->
 
 - **Status:** Accepted
 - **Date:** 2026-11-17
