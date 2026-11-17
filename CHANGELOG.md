@@ -14,6 +14,18 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 ## [Unreleased]
 
+### Added
+
+- A Windows installer, `chokepoint-windows-setup.exe` (English or Turkish setup, you pick the folder; Start Menu shortcut, optional desktop shortcut), next to the zips on the GitHub Release ([#176](https://github.com/vectorviolet/chokepoint/issues/176), [devlog](docs/devlog/2026-11-17-user-data-and-installer.md)).
+
+### Changed
+
+- The downloaded game keeps its settings and saved run in your user-data folder (`%APPDATA%\VectorViolet\chokepoint\saves` on Windows, and the macOS and Linux equivalents) instead of next to the game, so an uninstall or update keeps them. Old saves next to the game are not moved over. Running from source and the browser version are unchanged ([#176](https://github.com/vectorviolet/chokepoint/issues/176), [ADR 0011](docs/decisions/0011-saves-in-the-user-data-folder.md)).
+
+### Development
+
+- Bump pygamine to its `user_data_dir` (and the dependency bumps since v1.0.0); the release workflow builds the installer with Inno Setup (`packaging/chokepoint.iss`), and a test keeps its language list in step with `config/lang/`.
+
 ## [1.1.0] – 2026-11-13
 
 The browser version: Chokepoint now runs in a desktop browser (published to itch.io's HTML5 channel), plus a money counter that follows each coin and a Turkish wording fix.

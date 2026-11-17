@@ -23,6 +23,7 @@ links; a changed decision gets a new ADR that supersedes the old one.
 | [0008](0008-mypy-lenient-start.md) | Type checking with mypy, a lenient start | Accepted | 2026-11-02 | #37 |
 | [0009](0009-test-speed-slow-marker-and-xdist.md) | Faster tests: a slow marker and parallel runs | Accepted | 2026-11-03 | #122 |
 | [0010](0010-web-build-pygbag.md) | The web build: pygbag, localStorage saves, an async loop, web-only settings | Accepted | 2026-11-12 | #152, PR #187 |
+| [0011](0011-saves-in-the-user-data-folder.md) | Saves in the user-data folder (packaged build only) | Accepted | 2026-11-17 | #176 |
 <!-- index:end -->
 
 ## Adding an ADR
