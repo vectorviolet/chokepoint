@@ -185,3 +185,4 @@ cython_debug/
 
 # Tiled editor state (per user; holds local absolute paths)
 *.tiled-session
+/installer-out/

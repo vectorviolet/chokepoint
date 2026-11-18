@@ -22,11 +22,11 @@ Chokepoint is a 2D tower defense game: defend a winding path through 25 rounds o
 
 **Play in your browser:** starting with the next release, the [itch.io page](https://umutcanekinci.itch.io/chokepoint) also has a web version for desktop browsers (not phones or tablets).
 
-Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch.io/chokepoint) or the [latest GitHub release](https://github.com/vectorviolet/chokepoint/releases/latest) — no Python required. Unzip and run:
+Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch.io/chokepoint) or the [latest GitHub release](https://github.com/vectorviolet/chokepoint/releases/latest) — no Python required. On Windows, run the installer, or unzip and run:
 
 | OS | Run |
 |----|-----|
-| Windows | Extract `chokepoint-windows.zip`, run `chokepoint.exe` |
+| Windows | Run `chokepoint-windows-setup.exe` (choose the language and the install folder, e.g. `C:\Games`; it adds a Start Menu shortcut and, if you tick it, a desktop one), or extract `chokepoint-windows.zip` and run `chokepoint.exe` |
 | macOS | Extract `chokepoint-macos.zip`, open `Chokepoint.app` |
 | Linux | Extract `chokepoint-linux.zip`, run `./chokepoint/chokepoint` |
 
@@ -38,6 +38,8 @@ Grab a ready-to-play build for your OS from [itch.io](https://umutcanekinci.itch
 > Windows SmartScreen: the app is unsigned, so the first launch shows **"Windows protected your PC."** Click **More info → Run anyway**. This is Microsoft's download-reputation check, not a virus warning — brand-new unsigned executables always trigger it.
 
 </details>
+
+**Where your saves are.** The downloaded game keeps its settings and saved run in your user-data folder, so they survive an uninstall or an update: `%APPDATA%\VectorViolet\chokepoint\saves` on Windows, `~/Library/Application Support/VectorViolet/chokepoint/saves` on macOS, `~/.local/share/VectorViolet/chokepoint/saves` on Linux (`$XDG_DATA_HOME` if set). In the browser they are in the browser's local storage. Running from source keeps them in a `saves/` folder in the project. Saves from older downloads are not moved over: they are in the `saves` folder inside the old game folder (`chokepoint\_internal\saves` in the Windows zip, inside the app bundle on macOS, `chokepoint/_internal/saves` on Linux); copy `save.json` and `settings.json` into the new folder by hand if you want them. Installing over an old unzipped folder removes them.
 
 ## Features
 

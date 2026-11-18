@@ -5,7 +5,6 @@ pygbag's `platform.window` is a fake page that records what the game asks of it
 (open a tab, enter or leave fullscreen) and keeps a `localStorage`. Desktop
 behavior is checked next to it, so the two can't drift apart."""
 
-import platform
 import sys
 from functools import partial
 from pathlib import Path
@@ -23,20 +22,6 @@ from pygamine import Application
 from util.paths import resource_root
 
 
-class FakeStorage:
-    def __init__(self):
-        self.items: dict[str, str] = {}
-
-    def getItem(self, key):  # noqa: N802
-        return self.items.get(key)
-
-    def setItem(self, key, value):  # noqa: N802
-        self.items[key] = value
-
-    def removeItem(self, key):  # noqa: N802
-        self.items.pop(key, None)
-
-
 class BlockedStorage:
     """Storage the browser refuses to touch (private or sandboxed frame)."""
 
@@ -44,41 +29,6 @@ class BlockedStorage:
         raise RuntimeError("SecurityError")
 
     setItem = removeItem = getItem  # noqa: N815
-
-
-class FakeDocument:
-    def __init__(self):
-        self.fullscreenElement = None
-        self.enter_calls = 0
-        self.exit_calls = 0
-        self.documentElement = self
-
-    def requestFullscreen(self):  # noqa: N802
-        self.enter_calls += 1
-        self.fullscreenElement = object()
-
-    def exitFullscreen(self):  # noqa: N802
-        self.exit_calls += 1
-        self.fullscreenElement = None
-
-
-class FakeWindow:
-    def __init__(self, local_storage=None):
-        self.localStorage = local_storage if local_storage else FakeStorage()
-        self.document = FakeDocument()
-        self.opened: list[tuple[str, str]] = []
-
-    def open(self, url, target):
-        self.opened.append((url, target))
-
-
-@pytest.fixture
-def browser(monkeypatch):
-    """The page, with the process pretending to run in it."""
-    window = FakeWindow()
-    monkeypatch.setattr(platform, "window", window, raising=False)
-    monkeypatch.setattr(sys, "platform", "emscripten")
-    return window
 
 
 def make_game(monkeypatch, tmp_path):
@@ -303,10 +253,8 @@ def test_reset_leaves_the_browsers_fullscreen(web_game, browser):
 # -- saves ----------------------------------------------------------------------
 
 
-def test_blocked_storage_loads_the_defaults(monkeypatch, tmp_path, fake_ticks):
-    window = FakeWindow(local_storage=BlockedStorage())
-    monkeypatch.setattr(platform, "window", window, raising=False)
-    monkeypatch.setattr(sys, "platform", "emscripten")
+def test_blocked_storage_loads_the_defaults(monkeypatch, tmp_path, fake_ticks, browser):
+    browser.localStorage = BlockedStorage()
     game = make_game(monkeypatch, tmp_path)
     assert game.toggles == game._default_toggles
     assert game.audio.master_volume() == game._default_audio_settings["master_volume"]

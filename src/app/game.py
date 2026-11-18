@@ -39,6 +39,7 @@ from util.config_loader import (
 from pygamine import Camera
 from pygamine.util.localization import DEFAULT_LANGUAGE, localization, tr
 from util import web
+from util.paths import packaged_saves_dir
 from util.constants import (
     FULLSCREEN_POLL_FRAMES,
     TILE_SIZE,
@@ -116,6 +117,17 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
 
     # ── construction ──────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _make_store(name: str) -> SaveStore:
+        """A SaveStore in the packaged build's user-data folder, or SaveStore's own default
+        (cwd-relative `saves/`) from source and in the browser."""
+        directory = packaged_saves_dir()
+        return (
+            SaveStore(name)
+            if directory is None
+            else SaveStore(name, directory=directory)
+        )
+
     def __init__(self, seed: int | None = None):
         # `seed` makes every random choice repeatable (the menu demo's runs,
         # the place/sell and kill effects): the README capture script uses it.
@@ -141,7 +153,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._default_keep_placing = bool(gameplay.get("keep_placing", False))
         self._default_toggles = {key: bool(gameplay[key]) for key in TOGGLE_SETTINGS}
 
-        self.settings_store = SaveStore("settings")
+        self.settings_store = self._make_store("settings")
         saved_settings = self.settings_store.load()
         # The language tables, and the saved language (English if there is
         # none or it isn't available: a hand-edited file, a removed language).
@@ -184,7 +196,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
         self._swallow_press_until: int | None = None
         self._swallow_release = False
 
-        self.save_store = SaveStore("save")
+        self.save_store = self._make_store("save")
         self._starting_money = gameplay["starting_money"]
         self._starting_lives = gameplay["starting_lives"]
         # panels.yaml's positions/sizes/font sizes are authored for this

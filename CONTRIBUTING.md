@@ -115,7 +115,7 @@ CI passes and the owner merges it through the merge queue, the owner creates and
 matching `vx.y.z` tag on that merged commit. Protected release tags cannot be moved or deleted.
 
 The tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml), which builds
-on each OS, zips each bundle, attaches all three to a GitHub Release, and pushes each build to its
+on each OS, zips each bundle, attaches all three to a GitHub Release (with the Windows installer, `chokepoint-windows-setup.exe`, built from `packaging/chokepoint.iss` with Inno Setup; the itch.io channels get the zips only), and pushes each build to its
 [itch.io](https://umutcanekinci.itch.io/chokepoint) channel (`windows`, `linux`, `osx`) via
 [Butler](https://itch.io/docs/butler/). The browser version has its own jobs (`web` builds it,
 `publish-web` pushes the `html5` channel and `attach-web` adds the zip to the release, after the desktop
