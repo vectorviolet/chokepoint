@@ -17,7 +17,7 @@ folder loses them. Other things rely on that cwd-relative default today: every w
 
 ## Decision
 
-- **The packaged build** (`sys.frozen`, PyInstaller) saves to `user_data_dir("chokepoint") / "saves"`
+- **The packaged build** (`sys._MEIPASS` is set, as `resource_root()` tests; PyInstaller) saves to `user_data_dir("chokepoint") / "saves"`
   (pygamine): `%APPDATA%\VectorViolet\chokepoint\saves`, `~/Library/Application Support/VectorViolet/chokepoint/saves`,
   or `$XDG_DATA_HOME` (default `~/.local/share`)`/VectorViolet/chokepoint/saves`.
 - **Running from source and the browser build** keep `SaveStore`'s own default, the cwd-relative

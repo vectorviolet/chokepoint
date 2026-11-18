@@ -55,7 +55,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; animation frames by globbing, and old DLLs would sit beside the new ones). Saves of this
 ; build are in %APPDATA%. Builds before 1.2 kept them in _internal\saves, so installing over an
 ; old unzipped folder deletes those (accepted by the owner; README and ADR 0011 say so).
-Type: filesandordirs; Name: "{app}\_internal"
+; Only where our own exe already is, so a folder the player picked that holds something else
+; (say C:\Games with another game's _internal) is never wiped.
+Type: filesandordirs; Name: "{app}\_internal"; Check: IsOurInstall
 
 [Files]
 ; The whole PyInstaller onedir output, including _internal.
@@ -71,3 +73,10 @@ Filename: "{app}\{#MyExeName}"; Description: "{cm:LaunchProgram,{#MyAppName}}"; 
 ; The uninstaller removes only what the installer put in the install folder (and the shortcuts).
 ; Saves and settings live in %APPDATA%\VectorViolet\chokepoint\saves, outside this folder, so they
 ; stay after an uninstall or an update: nothing here touches them.
+
+[Code]
+// True when the chosen folder already holds a Chokepoint install (an update or a reinstall).
+function IsOurInstall: Boolean;
+begin
+  Result := FileExists(ExpandConstant('{app}\{#MyExeName}'));
+end;
