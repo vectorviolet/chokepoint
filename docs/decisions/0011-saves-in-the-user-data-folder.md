@@ -22,7 +22,7 @@ folder loses them. Other things rely on that cwd-relative default today: every w
   or `$XDG_DATA_HOME` (default `~/.local/share`)`/VectorViolet/chokepoint/saves`.
 - **Running from source and the browser build** keep `SaveStore`'s own default, the cwd-relative
   `saves/`. pygbag isn't frozen, so the `localStorage` keys don't change (a test checks the key).
-- One helper decides, `util.paths.packaged_saves_dir()` (`None` means "use the default"), and
+- One helper decides, pygamine's `packaged_data_dir("chokepoint", "saves")` (`None` means "use the default"; it is also `None` in the browser), and
   `Game._make_store` is the only place that builds the two stores.
 - **No migration** of old saves next to the executable (the owner's decision): the game is young,
   and a copy step has its own failure cases.
