@@ -30,6 +30,7 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 - The release workflow's installer jobs no longer block or create releases: `installer` runs whenever the Windows zip exists, and `attach-installer` only runs after a successful release.
 - Bump pygamine to its `user_data_dir` (and the dependency bumps since v1.0.0); the release workflow builds the installer with Inno Setup (`packaging/chokepoint.iss`), and a test keeps its language list in step with `config/lang/`.
+- Bump pygamine to its `packaged_data_dir` and use it for the packaged saves folder, replacing the game's own helper (no behavior change).
 
 ## [1.1.0] – 2026-11-13
 

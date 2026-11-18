@@ -9,18 +9,6 @@ import pytest
 
 from app.game import Game
 from pygamine import SaveStore, user_data_dir
-from util.paths import packaged_saves_dir
-
-
-def test_from_source_there_is_no_packaged_folder(monkeypatch):
-    monkeypatch.delattr(sys, "_MEIPASS", raising=False)
-    assert packaged_saves_dir() is None
-
-
-def test_frozen_saves_go_to_the_user_data_folder(monkeypatch):
-    monkeypatch.setattr(sys, "_MEIPASS", str(Path.cwd()), raising=False)
-    assert packaged_saves_dir() == user_data_dir("chokepoint") / "saves"
-    assert packaged_saves_dir().parts[-3:] == ("VectorViolet", "chokepoint", "saves")
 
 
 @pytest.fixture
@@ -35,8 +23,8 @@ def test_frozen_game_stores_in_the_user_data_folder(monkeypatch, tmp_path, quiet
     monkeypatch.setenv("USERPROFILE", str(tmp_path / "home"))
     monkeypatch.setattr(sys, "_MEIPASS", str(Path.cwd()), raising=False)
     game = Game()
-    expected = packaged_saves_dir()
-    assert expected is not None
+    expected = user_data_dir("chokepoint") / "saves"
+    assert expected.parts[-3:] == ("VectorViolet", "chokepoint", "saves")
     assert game.settings_store.directory == expected
     assert game.save_store.directory == expected
     assert tmp_path in expected.parents  # never the real user folder in tests

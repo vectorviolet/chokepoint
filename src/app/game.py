@@ -37,9 +37,9 @@ from util.config_loader import (
     load_tower_config,
 )
 from pygamine import Camera
+from pygamine import packaged_data_dir
 from pygamine.util.localization import DEFAULT_LANGUAGE, localization, tr
 from util import web
-from util.paths import packaged_saves_dir
 from util.constants import (
     FULLSCREEN_POLL_FRAMES,
     TILE_SIZE,
@@ -121,7 +121,7 @@ class Game(GameEventsMixin, GameSaveMixin, BattleSimulation, Application):
     def _make_store(name: str) -> SaveStore:
         """A SaveStore in the packaged build's user-data folder, or SaveStore's own default
         (cwd-relative `saves/`) from source and in the browser."""
-        directory = packaged_saves_dir()
+        directory = packaged_data_dir("chokepoint", "saves")
         return (
             SaveStore(name)
             if directory is None
