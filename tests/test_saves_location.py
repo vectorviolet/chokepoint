@@ -50,12 +50,14 @@ def test_source_game_keeps_the_default_folder(monkeypatch, tmp_path, quiet_game)
     assert game.save_store.directory == tmp_path / "saves"
 
 
-def test_web_keeps_its_local_storage_keys(monkeypatch, quiet_game, browser):
+def test_web_keeps_its_local_storage_keys(monkeypatch, tmp_path, quiet_game, browser):
     """Browser saves must not move: the key is `pygamine:saves/<name>.json`."""
     monkeypatch.delattr(sys, "frozen", raising=False)
-    monkeypatch.setattr(
-        SaveStore.__init__, "__defaults__", ("saves",)
-    )  # undo saves_in_tmp
+    # The key needs the real relative default "saves". Save from tmp_path (after Game()
+    # has loaded its assets from the repo), so that even if a write ever missed
+    # localStorage it would land in tmp_path, never the repo's saves/.
+    monkeypatch.setattr(SaveStore.__init__, "__defaults__", ("saves",))
     game = Game()
+    monkeypatch.chdir(tmp_path)
     game._save_settings()
     assert "pygamine:saves/settings.json" in browser.localStorage.items

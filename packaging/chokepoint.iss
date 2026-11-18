@@ -52,8 +52,9 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [InstallDelete]
 ; An update must not leave files the new build no longer ships (the game finds languages and
-; animation frames by globbing, and old DLLs would sit beside the new ones). Nothing of the
-; player's is in here: saves are in %APPDATA%.
+; animation frames by globbing, and old DLLs would sit beside the new ones). Saves of this
+; build are in %APPDATA%. Builds before 1.2 kept them in _internal\saves, so installing over an
+; old unzipped folder deletes those (accepted by the owner; README and ADR 0011 say so).
 Type: filesandordirs; Name: "{app}\_internal"
 
 [Files]
