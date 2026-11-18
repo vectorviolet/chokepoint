@@ -2,6 +2,7 @@
 from source and in the browser (ADR 0011)."""
 
 import sys
+from pathlib import Path
 
 import pygame
 import pytest
@@ -12,12 +13,12 @@ from util.paths import packaged_saves_dir
 
 
 def test_from_source_there_is_no_packaged_folder(monkeypatch):
-    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.delattr(sys, "_MEIPASS", raising=False)
     assert packaged_saves_dir() is None
 
 
 def test_frozen_saves_go_to_the_user_data_folder(monkeypatch):
-    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(Path.cwd()), raising=False)
     assert packaged_saves_dir() == user_data_dir("chokepoint") / "saves"
     assert packaged_saves_dir().parts[-3:] == ("VectorViolet", "chokepoint", "saves")
 
@@ -32,7 +33,7 @@ def test_frozen_game_stores_in_the_user_data_folder(monkeypatch, tmp_path, quiet
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "appdata"))
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("USERPROFILE", str(tmp_path / "home"))
-    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(Path.cwd()), raising=False)
     game = Game()
     expected = packaged_saves_dir()
     assert expected is not None
@@ -44,7 +45,7 @@ def test_frozen_game_stores_in_the_user_data_folder(monkeypatch, tmp_path, quiet
 
 
 def test_source_game_keeps_the_default_folder(monkeypatch, tmp_path, quiet_game):
-    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.delattr(sys, "_MEIPASS", raising=False)
     game = Game()  # conftest's saves_in_tmp moved SaveStore's default into tmp_path
     assert game.settings_store.directory == tmp_path / "saves"
     assert game.save_store.directory == tmp_path / "saves"
@@ -52,7 +53,7 @@ def test_source_game_keeps_the_default_folder(monkeypatch, tmp_path, quiet_game)
 
 def test_web_keeps_its_local_storage_keys(monkeypatch, tmp_path, quiet_game, browser):
     """Browser saves must not move: the key is `pygamine:saves/<name>.json`."""
-    monkeypatch.delattr(sys, "frozen", raising=False)
+    monkeypatch.delattr(sys, "_MEIPASS", raising=False)
     # The key needs the real relative default "saves". Save from tmp_path (after Game()
     # has loaded its assets from the repo), so that even if a write ever missed
     # localStorage it would land in tmp_path, never the repo's saves/.

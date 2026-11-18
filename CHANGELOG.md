@@ -22,8 +22,13 @@ Sections follow Keep a Changelog's order (Added, Changed, Deprecated, Removed, F
 
 - The downloaded game keeps its settings and saved run in your user-data folder (`%APPDATA%\VectorViolet\chokepoint\saves` on Windows, and the macOS and Linux equivalents) instead of inside the game folder, so an uninstall or update keeps them. Old saves (in `_internal\saves` of the old game folder) are not moved over. Running from source and the browser version are unchanged ([#197](https://github.com/vectorviolet/chokepoint/pull/197), [ADR 0011](docs/decisions/0011-saves-in-the-user-data-folder.md)).
 
+### Fixed
+
+- The installer only clears `_internal` in a folder that already holds Chokepoint, so a shared folder like `C:\Games` is never wiped.
+
 ### Development
 
+- The release workflow's installer jobs no longer block or create releases: `installer` runs whenever the Windows zip exists, and `attach-installer` only runs after a successful release.
 - Bump pygamine to its `user_data_dir` (and the dependency bumps since v1.0.0); the release workflow builds the installer with Inno Setup (`packaging/chokepoint.iss`), and a test keeps its language list in step with `config/lang/`.
 
 ## [1.1.0] – 2026-11-13

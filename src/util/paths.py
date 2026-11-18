@@ -36,6 +36,7 @@ def packaged_saves_dir() -> Path | None:
     ``saves/`` default (ADR 0011), which keeps each worktree's saves apart and the web
     ``localStorage`` key unchanged.
     """
-    if not getattr(sys, "frozen", False):
+    # The same test as resource_root(), so assets and saves can't disagree.
+    if getattr(sys, "_MEIPASS", None) is None:
         return None
     return user_data_dir("chokepoint") / "saves"
