@@ -145,6 +145,15 @@ hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what a
 
 ## Architecture
 
+**Draw order rules** (`_draw_game`, `BattleSimulation._draw_battle`, pinned by `tests/test_draw_order.py`):
+HP bars draw over fire and planes; popups draw last, so nothing from the run is over a popup (kill
+coins in flight keep flying under it).
+
+**Battle hooks** (`BattleSimulation`, shared by `Game` and `MenuDemo`): `_on_enemy_killed()` runs
+just before a kill is paid, because the HUD's money number needs the reward feedback first;
+`_on_enemy_escaped()` is where `Game` adds game over and deletes the save. The menu demo has no save
+store, silent towers, and escapes that cost nothing.
+
 ### Subsystems wired by Game
 
 | Object | Class | Responsibility |
