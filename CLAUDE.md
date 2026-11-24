@@ -2,19 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Running the Game
-
-```bash
-cd chokepoint
-python __main__.py         # or: uv run python __main__.py
-```
-
 ## Testing
 
 ```bash
 uv run --group dev pytest tests/ -q -n auto               # fast: skips @pytest.mark.slow, in parallel
 uv run --group dev pytest tests/ -q -n auto -m ""         # full: what CI runs (slow tests too)
-uv run --group dev pytest tests/ -n auto -m "" --cov --cov-report=term  # coverage over the full suite, as CI
 ```
 
 Run the fast command while iterating and the full one before you report. `-n auto` is
@@ -153,26 +145,14 @@ hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what a
 
 ## Architecture
 
-### Entry point → Game class
-
-`__main__.py` creates `Game()` and calls `game.run()`. `Game` (in `src/app/game.py`) extends `pygamine.Application` and is the top-level orchestrator: it wires all subsystems in `__init__`, runs a splash screen, then hands control to the `Application` base class loop which calls `update()` / `draw()` / `handle_event()` each frame.
-
 ### Subsystems wired by Game
 
 | Object | Class | Responsibility |
 |--------|-------|----------------|
-| `game_state` | `GameState` | Pure data (money, lives, speed, level, is_started, has_won) plus the game clock `time_ms`; fires listener callbacks on money/lives/level change |
-| `camera` | `Camera` | Edge-scroll/zoom camera over the map; its viewport (`game_area`) is the whole canvas. Applies the world→screen offset to all drawn entities |
-| `assets` | `AssetManager` | Loads all images/sounds from `config/assets.yaml`; accessed via string keys everywhere |
-| `panel_manager` | `PanelManager` | Holds named panels ("main_menu", "credits", "game"); switching is `panel_manager.current_panel = "name"` |
-| `tilemap` | `Tilemap` | 47×34 tile grid loaded from a Tiled `.tmx`; pre-rendered once after splash |
 | `wave_manager` | `WaveManager` | Reads `config/waves.yaml`; spawns enemies on a timer; advances `game_state.level` when wave clears. `on_wave_cleared` fires once per wave as its last enemy goes; `Game` opens the victory popup there when round `WIN_WAVE` is cleared (before the counter moves on; its subtitle is built from `WIN_WAVE`), and otherwise uses it for auto-pause between waves (the HUD's hourglass toggle, the global `auto_pause_between_waves` setting), which pauses the run there until start is pressed |
 | `hud` | `GameHUD` | Draws money, lives, level, tower prices; subscribes to `GameState` listeners. Grays out the buy buttons of towers you can't afford (`refresh_buy_buttons()`, also the plane's level-2 look) and flashes the money counter red on a refused pick (`flash_money()`, real time via `update()`). Once bought, the plane-upgrade button (a plane icon with an up arrow, no text; click or U) shows as maxed (`refresh_plane_upgrade()`: button and icon grayed, clicks ignored); `refresh_language()` rebuilds its texts, the prices and the round counter. The money number lags the real balance (which is paid on the kill, as always): it shows `GameState.money` minus `KillFeedback.pending_money` (the coin shares still flying; `shown_money`, never below 0), so it grows as each coin lands and drops at once when you spend. `Game._snap_money()` shows the real balance at once (pause menu, victory and game-over popups, Reduce flashing; not the wave pause or the start/pause button, the coins keep flying then); load and new game do the same through `refresh()`. `hud.money_style` in `config/settings.yaml` (missing keys take `HUD_DEFAULTS`; not a Settings option) is `count_up` (the number jumps per coin) or `odometer` (`ui/odometer.py`: the digits roll, drawn over the plate by `draw_money_odometer()`, the text object only lays the plate out) |
 | `tower_controller` | `TowerPlacementController` | Handles buy/place/select/upgrade/sell; shares the `towers` list reference. A tower you can't afford can't be picked (button or number key): `on_denied` is told instead (`Game._deny_purchase`: a denied sound and the money flash). `keep_placing` (the HUD's toggle, flipped by a Shift press; the global `keep_placing` setting, `Game.keep_placing`) keeps placement mode on after a placement while the type is still affordable. Over a tile that can't be built on, the preview is tinted red |
-| `menu_demo` | `MenuDemo` | A live battle that plays itself behind the menu panels (see below) |
-| `hud_slide` | `HudSlide` | Tab slides the in-game HUD (counters, control buttons, tower bar) off the screen edges and back, drawn-only and on real time; money/lives counters peek back for 1.5 s when they change. `toggle()` is the entry point for a future on-screen button |
 | `tower_info` | `TowerInfoPanel` | The selected tower's info panel (`tower_info_*` objects in `config/panels.yaml`): kills, money earned, range, blind spot (the heavy cannon's minimum range; "-" for the rest), damage, fire rate, HP bar, and "current → next" upgrade previews below max level. A click on a flying plane (its sprite padded like an enemy's; planes win over enemies and ground towers under the cursor) opens it on that plane: Splash, Speed and Bombs (per second) rows instead of Range, Blind spot and Fire rate, HP "-" with no bar, previews for the global plane upgrade, no sell/upgrade buttons; it closes when the plane leaves the map. Refreshed every frame from `_selected_tower()`; slides away with the HUD on Tab. Kills/money are credited to the tower whose shot or bomb landed the killing blow (`Enemy.decrease_hp(..., source=tower)`) and saved with it |
-| `buy_tooltip` | `BuyTooltip` | Hovering a buy button shows the tower's name and one-line strength/weakness (`tower_<type>.name` / `.strength` / `.weakness` in `config/lang/<code>.yaml`, shown in the current language; `config_loader.load_tower_tooltips()` reads one language's file for the stats pages) on the `buy_tooltip_*` objects in `config/panels.yaml`, sized to the text and placed above the button, clamped to the screen. Hidden while the HUD is hidden or sliding; takes no clicks |
 | `kill_feedback` | `KillFeedback` | Kill rewards: a floating "+$N" over the kill (game time) and coins flying to the money counter (real time), capped at `MAX_EFFECTS`. Fed by the `_on_enemy_killed` hook; the menu demo has none. Each coin carries a share of its kill's reward (`pending_money` sums the shares in flight, derived from the live coins so it can't drift; a kill with no room for coins holds nothing back). Reduce flashing: no shares held back and no counter pop |
 | `life_lost_feedback` | `LifeLostFeedback` | A bell (its own reserved mixer channel 2, outside pygamine's SFX pool, at master × SFX volume: `GameAudio.effective_sfx_volume()`) and a red edge vignette pulsing ~0.4 s when lives are lost; stacks up to `MAX_STRENGTH`, real time. Skipped on the last life (game over) and absent from the menu demo |
 | `place_sell_feedback` | `PlaceSellFeedback` | Placing a tower: a thud and a dust puff on its tile; selling: a coin clink and coins bursting from the tile. Sounds via `audio.play_sfx` (the SFX pool); effects in world space through the camera, on real time (cosmetic: they play out while paused and ignore x2/x4), capped at `MAX_EFFECTS`. Told by the placement controller (`feedback=`); the menu demo has none |
@@ -183,11 +163,6 @@ hand; `tests/test_devlog_index.py` runs `--check` in CI. The READMEs list what a
 ### Panel / UI system
 
 Panels are defined in `config/panels.yaml` and loaded by `PanelLoaderExt` (in `src/pygamine/pygamine/panels/panel_loader_ext.py`, the engine submodule), which extends the base `PanelLoader` with **object-level template inheritance** via `object_templates:`.
-
-Three factory types are registered in `game.py`:
-- `"object"` (default) → `panel_factory.make_factory(assets)` → creates `GuiObject` or `HoverableGuiObject`
-- `"text"` → `panel_factory.make_text_factory(assets)` → creates `TextObject`
-- `"animated"` → `panel_factory.make_animated_factory(assets)` → creates animated sprite objects
 
 YAML keys for image objects: `position`, `size`, `asset`, `hover`, `states`, `nine_slice`, `extends`.  
 YAML keys for text objects: `type: text`, `position`, `text_key` (a key in `config/lang`; with `text_params` for `{placeholders}`) or a literal `text` for text that is never translated (numbers, `<` `>`, the credits' names), `font`, `font_size`, `color`.
@@ -236,11 +211,8 @@ links each `parent:` child to its parent, so a parent's `active` covers its chil
 
 ### Towers
 
-`BaseTower` (abstract) → `GroundTower` (types 1–3) or `PlaneTower` (type 4). `TowerFactory.create()` returns the right subclass. Stats come from `config/towers.yaml` via `TowerConfig` (indexed `[type-1][level-1]`).
-
 - Ground towers' barrels turn smoothly (cosmetic): `aim_angle` is the target's direction, set each tick; the drawn `barrel_angle` turns toward it at `TURN_RATE_DEG_PER_S` of game time, the shortest way, at most one tick's worth per update (so a tower built mid-run doesn't snap). Firing never waits for it. `RotatableObject.rotate_to_angle_cached` draws 2° steps, redraws only when the (image, step) pair changes, and takes rotated images from a shared LRU cache (`MAX_CACHED_ROTATIONS`), re-centered on the position. The missile still spawns at the tower's center: moving it to the barrel tip would change damage timing
-- Types 1 & 3: instant-hit `MuzzleFlash` at the drawn barrel tips (twin barrels for type 1 and type 3 lvl 2); damage goes to the target whichever way the barrel points
-- Type 2: homing `Projectile`
+- Types 1 & 3 deal instant-hit damage to the target whichever way the barrel points (the `MuzzleFlash` is cosmetic)
 - Type 4: plane that flies across the map, dropping `Bomb` projectiles (splash damage) along its path, only those that land on the map even at the fastest game speed (`Bomb.landing_offset` at `MAX_GAME_SPEED`: a bomb drifts on with the plane's momentum). Bombs still falling when the plane leaves the map and is removed carry on and land as usual (credited to the departed plane)
 
 Shots in flight outlive their shooter: when a plane leaves the map, a tower is sold or destroyed, or a tank dies or escapes, its shots still flying (bullets with `outlives_source = True`: `Projectile`, `Bomb`, `TankBullet`; not the instant-hit muzzle flashes) are adopted where the source is removed (`_tower_removed` for a plane or a destroyed tower, `_tower_sold` from the placement controller, `_tank_removed` on a tank's death or escape) and listed in `BattleSimulation.orphan_shots`. They hit as they would have, credited to the departed source. A tower's orphans update in its old place in the tower order, so the same shot lands first and takes the kill. Tank shells update at the start of the enemy phase, before a cleared wave can auto-pause the run. They are drawn with the towers' or the enemies' bullets. Shots in flight aren't saved; `_clear_orphan_shots()` drops them on new game, load and each new menu demo run
@@ -251,23 +223,7 @@ Targeting goes through per-tick spatial grids (`src/gameplay/combat/targeting.py
 
 `Projectile` and `MuzzleFlash` (in `src/gameplay/combat/projectile.py`) receive an `IGameContext` on `update()`. `Game` satisfies this protocol via `.enemies`, `.towers`, `.speed`, `.time_ms`, `.map_width`, `.map_height`, `.increase_money()`, `.bomb_landed()`, `.target_hit()` and `.tower_destroyed()`. This avoids circular imports — projectiles never import `Game`.
 
-### Rendering order (game panel)
-
-Tilemap → destroyed towers' rubble decals → ground towers + their bullets → orphan tower shots and bombs (their tower or plane is gone) → enemies + their bullets (a hit tower's or enemy's white flash right over its sprite, under its shots) → orphan tank shells → bomb explosions → death explosions (enemies, towers) → hit sparks → planes (they fly; each draws its own: shadow → falling bombs → selected plane's splash ring → plane, so bombs are under it) → HP bars (towers', then enemies', so neither fire nor a plane hides one) → border lines → tower placement overlay (cursor + range ring) and the selected enemy's HP numbers (all in `_draw_game`, before the panel, so the enemy's numbers stay above planes too) → the game panel: HUD objects, tower shortcut numbers and info-panel HP fill (these two hidden while any popup is open) → kill coins and the money counter's pop (real time, over the HUD) → popups last (pause menu, victory, game over, the objects of `Game._bind_popup_objects`: nothing from the run is over a popup; coins in flight keep flying under it).
-
-The battle part (`BattleSimulation._draw_battle`) is shared by the game and the menu demo; `tests/test_draw_order.py` checks it.
-
 ### Config files
-
-| File | Loaded by | Structure |
-|------|-----------|-----------|
-| `config/assets.yaml` | `AssetManager.load_manifest()` | `{images: {key: {folder, name}}, sounds: {key: {folder, name}}}` |
-| `config/towers.yaml` | `config_loader.load_tower_config()` | Produces `TowerConfig` dataclass with `.prices`, `.max_levels`, `.ranges`, `.damages`, `.speeds` |
-| `config/lang/<code>.yaml` | `pygamine.util.localization` (`Game.__init__`) | Every player-visible string, nested keys with `{placeholders}`; `en.yaml` is the fallback |
-| `config/settings.yaml` | `config_loader.load_settings()`, `gameplay_settings()`, `hud_settings()` | Window, gameplay defaults, `hud` (`money_style`, `money_roll_ms`), camera, audio, links |
-| `config/enemies.yaml` | `config_loader.load_enemy_stats()` | HP/speed/kill_money/damage per enemy type |
-| `config/waves.yaml` | `config_loader.load_wave_compositions()` | `{wave_num: [[enemy_type, count], ...]}` |
-| `config/panels.yaml` | `PanelLoaderExt.load()` | Panels + groups + optional `object_templates` |
 
 `docs/stats/` (the stats reference) is generated from `towers.yaml`, `enemies.yaml`, `waves.yaml`
 and `settings.yaml` by `scripts/gen_stats.py`: after a config change run
@@ -275,31 +231,6 @@ and `settings.yaml` by `scripts/gen_stats.py`: after a config change run
 in CI. It also draws the tower and enemy pictures in `docs/stats/images/` from the asset keys in
 `config/assets.yaml` (platform plus turret, as the game draws them) and `--check` compares them as
 decoded pixels, not PNG bytes. `.github/workflows/wiki.yml` mirrors the pages and pictures to the GitHub wiki on a push to `main`.
-
-### Coordinate system
-
-Tile size is 64 px. Map is 47×34 tiles = 3008×2176 px world space. The camera viewport is the whole canvas (whatever window size is in use); the map is larger than it, so the `Camera` edge-scrolls and zooms over it, opening on the path entrance. The HUD floats over the map: counters top-left, buttons top-right, tower bar bottom-center. All entity positions are world-space center points stored as `pygame.math.Vector2`.
-
-### Battle simulation and the menu demo
-
-The battle itself -- ticking towers, enemies and waves, and drawing them
-through a camera -- lives in `BattleSimulation` (`src/gameplay/battle.py`).
-`Game` inherits it for the real game. `MenuDemo` (`src/gameplay/menu_demo.py`)
-inherits it too, as a separate world shown behind the menus:
-
-- It has its own `GameState`, towers, enemies, wave manager and camera, and it shares
-  only the tilemap and assets with the real game. It has no save store, its
-  towers play no sound, and enemies that escape cost nothing.
-- Each run is random. Towers of every type stand along the path, pre-upgraded. A run
-  starts at a mid-game wave, pre-warmed while the screen is black, and its waves
-  are denser than the real game's. Planes fly bombing runs. The camera eases
-  between groups of enemies.
-- After a few waves, or when the defense is worn down, it fades out and a new run starts.
-
-Hooks: `_on_enemy_killed()` runs just before a kill is paid (`Game` adds the reward
-feedback, which the HUD's money number needs to know about first). `_on_enemy_escaped()` handles lives (`Game` adds game over and deletes the
-save). `_on_tower_positions()` passes the occupied build tiles on (`Game` gives
-them to the placement controller).
 
 ### Simulation timing
 
